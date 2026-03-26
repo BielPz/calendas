@@ -2,10 +2,13 @@ import type { ReactNode } from "react";
 
 interface Props {
   children: ReactNode[];
+  titulo: string
 }
 // Arrumar o tamanho do form para porcentagem
-function Formulario({ children }: Props) {
+function Formulario({ children, titulo }: Props) {
   return (
+    <>
+    <h1>Cadastro {titulo}</h1>
     <form className="w-2/3">
       {children.map((children, index) => (
         <div key={index} className="pb-4">
@@ -13,6 +16,7 @@ function Formulario({ children }: Props) {
         </div>
       ))}
     </form>
+    </>
   );
 }
 
