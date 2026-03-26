@@ -17,7 +17,3 @@ createRoot(document.getElementById('root')!).render(
     </Routes>
   </BrowserRouter>
 )
-<<<<<<< HEAD
-=======
-
->>>>>>> 76f4024a80ab08339ebacec2849d7ed4ed414583
