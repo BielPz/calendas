@@ -1,11 +1,10 @@
 import { useState } from "react";
 import Formulario from "../components/Formulario";
 import TextInput from "../components/TextInput";
-import Cabecalho from "../components/Cabecalho";
 import CheckBox from "../components/CheckBox";
+import Cabecalho from "../components/Cabecalho";
 
-
-function CadastroUsuario() {
+function CadastroUsuario () {
   const [form, setForm] = useState({
     nome: "",
     email: "",
@@ -35,9 +34,9 @@ function CadastroUsuario() {
     checked;
 
   return (
-    <>
-      <div>
-        <Cabecalho /> 
+    <div>
+      <div> 
+	<Cabecalho />
       </div>
       <div className="justify-items-center">
         <div className="pb-4 bg-red-50 w-4/5 justify-items-center">
@@ -111,7 +110,7 @@ function CadastroUsuario() {
           </button>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
