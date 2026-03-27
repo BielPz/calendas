@@ -32,7 +32,7 @@ function TextInput({
 
   return (
     <div className="w-full">
-      <p className="text-gray-500 font-semibold text-xl">
+      <p className="">
         {titulo}
         {required ? <b className="text-red-400 font-semibold"> *</b> : null}
       </p>
@@ -42,7 +42,7 @@ function TextInput({
         name={titulo.toLowerCase()}
         placeholder={placeholderDinamico}
         pattern={type === "tel" ? "\\(\\d{2}\\)\\s\\d{4,5}-\\d{4}" : ""}
-        className="p-1 rounded-xs outline-2 outline-gray-400 outline-black/100 w-full"
+        className="w-full px-4 py-3 border border-gray-300 rounded-xl"
         onChange={onChange}
         onBlur={(e) => {
           const value = e.target.value;
