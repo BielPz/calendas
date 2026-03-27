@@ -3,6 +3,7 @@ import Formulario from "../components/Formulario";
 import TextInput from "../components/TextInput";
 import CheckBox from "../components/CheckBox";
 import Cabecalho from "../components/Cabecalho";
+import Index from "../components/Index";
 
 function CadastroUsuario() {
   const [form, setForm] = useState({
@@ -42,6 +43,7 @@ function CadastroUsuario() {
         <div className="pb-4 w-4/5 justify-items-center rounded-3xl shadow-xl/30 bg-white">
           <div className="w-full justify-items-center">
             <Formulario titulo="Prestador">
+              <Index qntPages={3} itemOn="1" />
               <TextInput
                 titulo="Nome"
                 type="text"
