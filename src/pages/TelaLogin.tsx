@@ -23,7 +23,7 @@ function TelaLogin() {
       <div className="w-[45%] min-w-[300px]">
         <button
           className="w-full py-4 rounded-xl text-white font-semibold bg-gradient-to-br from-orange-400 to-purple-400 
-                cursor-pointer"
+                cursor-pointer mb-10"
         >
           Continuar
         </button>

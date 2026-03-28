@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import CheckBox from "./CheckBox";
 import Formulario from "./Formulario";
 import Index from "./Index";
 import TextInput from "./TextInput";

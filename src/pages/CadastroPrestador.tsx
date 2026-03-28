@@ -11,9 +11,6 @@ function CadastroUsuario() {
 
   return (
     <div className="bg-gray-50">
-      <div>
-        <CabecalhoBranco />
-      </div>
       <div className="justify-items-center pt-5 pb-15">
         <div className="pb-4 w-4/5 justify-items-center rounded-3xl shadow-xl/30 bg-white">
           <div className="w-full justify-items-center">

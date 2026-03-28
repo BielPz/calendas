@@ -1,7 +1,7 @@
 import { useState } from "react";
-import CabecalhoBranco from "../../Calendas/src/components/CabecalhoBranco";
-import CadastroCliente from "../components/CadastroRafa/CadastroCliente";
-import CadastroPrestador from "../components/CadastroRafa/CadastroPrestador";
+import CabecalhoBranco from "../components/CabecalhoBranco";
+import CadastroPrestador from "./CadastroPrestador";
+import CadastroUsuario from "./CadastroUsuario";
 
 function TelaCadastroRafa() {
   const [tipo, setTipo] = useState("cliente");
@@ -13,23 +13,14 @@ function TelaCadastroRafa() {
         titulo={"Fazer Cadastro"}
       />
 
-      <div className="w-[45%] min-w-[300px] relative">
+      <div className="w-[100%] min-w-[300px] relative">
         <div className={`w-full ${tipo === "cliente" ? "block" : "hidden"}`}>
-          <CadastroCliente />
+          <CadastroUsuario />
         </div>
 
         <div className={`w-full ${tipo === "prestador" ? "block" : "hidden"}`}>
           <CadastroPrestador />
         </div>
-      </div>
-
-      <div className="w-[45%] min-w-[300px]">
-        <button
-          className="w-full py-4 rounded-xl text-white font-semibold bg-gradient-to-br from-orange-400 to-purple-400 
-                cursor-pointer"
-        >
-          Continuar
-        </button>
       </div>
     </div>
   );

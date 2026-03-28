@@ -1,8 +1,8 @@
 import { useState } from "react";
-import Formulario from "../../Calendas/src/components/Formulario";
-import TextInput from "../../Calendas/src/components/TextInput";
-import CheckBox from "../../Calendas/src/components/CheckBox";
-import Cabecalho from "../../Calendas/src/components/Cabecalho";
+import Formulario from "../components/Formulario";
+import CabecalhoBranco from "../components/CabecalhoBranco";
+import TextInput from "../components/TextInput";
+import CheckBox from "../components/CheckBox";
 
 function CadastroUsuario() {
   const [form, setForm] = useState({
@@ -35,9 +35,6 @@ function CadastroUsuario() {
 
   return (
     <div className="bg-gray-50">
-      <div>
-        <Cabecalho />
-      </div>
       <div className="justify-items-center pt-5 pb-15">
         <div className="pb-4 w-4/5 justify-items-center rounded-3xl shadow-xl/30 bg-white">
           <div className="w-full justify-items-center">
