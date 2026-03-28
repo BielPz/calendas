@@ -1,4 +1,4 @@
-import Cabecalho from "../../Calendas/src/components/Cabecalho";
+import Cabecalho from "../components/Cabecalho";
 interface Props {
   cor_fundo: string;
 }
