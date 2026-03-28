@@ -42,7 +42,7 @@ function TextInput({
         name={titulo.toLowerCase()}
         placeholder={placeholderDinamico}
         pattern={type === "tel" ? "\\(\\d{2}\\)\\s\\d{4,5}-\\d{4}" : ""}
-        className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none"
         onChange={onChange}
         onBlur={(e) => {
           const value = e.target.value;
