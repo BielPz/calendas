@@ -1,6 +1,5 @@
 import { useState } from "react";
 import Formulario from "../components/Formulario";
-import CabecalhoBranco from "../components/CabecalhoBranco";
 import TextInput from "../components/TextInput";
 import CheckBox from "../components/CheckBox";
 
