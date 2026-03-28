@@ -3,7 +3,7 @@ import Fase1 from "../components/Fase1";
 import Fase2 from "../components/Fase2";
 import Fase3 from "../components/Fase3";
 import CheckBox from "../components/CheckBox";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 function CadastroUsuario() {
   const [isFormValid, setIsFormValid] = useState(false);
