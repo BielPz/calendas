@@ -1,9 +1,8 @@
 import { useState } from "react";
-import CheckBox from "../../Calendas/src/components/CheckBox";
-import Cabecalho from "../../Calendas/src/components/Cabecalho";
 import Fase1 from "../components/Fase1";
 import Fase2 from "../components/Fase2";
 import Fase3 from "../components/Fase3";
+import CheckBox from "../components/CheckBox";
 
 function CadastroUsuario() {
   const [isFormValid, setIsFormValid] = useState(false);
@@ -13,7 +12,7 @@ function CadastroUsuario() {
   return (
     <div className="bg-gray-50">
       <div>
-        <Cabecalho />
+        <CabecalhoBranco />
       </div>
       <div className="justify-items-center pt-5 pb-15">
         <div className="pb-4 w-4/5 justify-items-center rounded-3xl shadow-xl/30 bg-white">

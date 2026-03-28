@@ -1,4 +1,4 @@
-import Cabecalho from "../../Calendas/src/components/Cabecalho";
+import Cabecalho from "../components/Cabecalho";
 import imgComputador from "../images/computador.png";
 
 interface TelaInicialProps {

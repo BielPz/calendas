@@ -1,7 +1,7 @@
 import { useState } from "react";
-import LoginCliente from "../../Calendas/src/components/LoginCliente";
-import LoginPrestador from "../../Calendas/src/components/LoginPrestador";
-import CabecalhoBranco from "../../Calendas/src/components/CabecalhoBranco";
+import LoginPrestador from "../components/LoginPrestador";
+import LoginCliente from "../components/LoginCliente";
+import CabecalhoBranco from "../components/CabecalhoBranco";
 
 function TelaLogin() {
   const [tipo, setTipo] = useState("cliente");
