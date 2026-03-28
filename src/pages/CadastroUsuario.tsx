@@ -2,6 +2,7 @@ import { useState } from "react";
 import Formulario from "../components/Formulario";
 import TextInput from "../components/TextInput";
 import CheckBox from "../components/CheckBox";
+import { useNavigate } from "react-router-dom";
 
 function CadastroUsuario() {
   const [form, setForm] = useState({
@@ -31,6 +32,8 @@ function CadastroUsuario() {
     form.senha &&
     form.senha === form.rSenha &&
     checked;
+
+  const navigate = useNavigate();
 
   return (
     <div className="bg-gray-50">
@@ -104,6 +107,9 @@ function CadastroUsuario() {
           }
           `}
             disabled={!isValid}
+            onClick={() => {
+              navigate("/feed");
+            }}
           >
             Confirmar
           </button>
