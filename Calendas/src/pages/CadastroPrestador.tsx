@@ -1,38 +1,14 @@
 import { useState } from "react";
-import Formulario from "../components/Formulario";
-import TextInput from "../components/TextInput";
 import CheckBox from "../components/CheckBox";
 import Cabecalho from "../components/Cabecalho";
-import Index from "../components/Index";
+import Fase1 from "../components/Fase1";
+import Fase2 from "../components/Fase2";
+import Fase3 from "../components/Fase3";
 
 function CadastroUsuario() {
-  const [form, setForm] = useState({
-    nome: "",
-    email: "",
-    senha: "",
-    rSenha: "",
-    genero: "",
-    dtnasc: "",
-  });
-
+  const [isFormValid, setIsFormValid] = useState(false);
   const [checked, setChecked] = useState(false);
-
-  const handleChange = (campo: string, value: string) => {
-    setForm((prev) => ({
-      ...prev,
-      [campo]: value,
-    }));
-  };
-
-  const isValid =
-    form.dtnasc &&
-    form.email &&
-    form.genero &&
-    form.nome &&
-    form.rSenha &&
-    form.senha &&
-    form.senha === form.rSenha &&
-    checked;
+  const [fase, setFase] = useState(1);
 
   return (
     <div className="bg-gray-50">
@@ -42,48 +18,16 @@ function CadastroUsuario() {
       <div className="justify-items-center pt-5 pb-15">
         <div className="pb-4 w-4/5 justify-items-center rounded-3xl shadow-xl/30 bg-white">
           <div className="w-full justify-items-center">
-            <Formulario titulo="Prestador">
-              <Index qntPages={3} itemOn="1" />
-              <TextInput
-                titulo="Nome"
-                type="text"
-                onChange={(e) => handleChange("nome", e.target.value)}
-                required
-              />
-              <TextInput
-                titulo="E-mail"
-                type="email"
-                onChange={(e) => handleChange("email", e.target.value)}
-                required
-              />
-              <TextInput
-                titulo="Senha"
-                type="password"
-                onChange={(e) => handleChange("senha", e.target.value)}
-                required
-              />
-              <TextInput
-                titulo="Repetir a senha"
-                type="password"
-                onChange={(e) => handleChange("rSenha", e.target.value)}
-                tipoValidacao="senha"
-                validador={form.senha}
-                required
-              />
-              <TextInput titulo="Telefone" type="tel" />
-              <TextInput
-                titulo="Gênero"
-                type="text"
-                onChange={(e) => handleChange("genero", e.target.value)}
-                required
-              />
-              <TextInput
-                titulo="Data de nascimento"
-                type="date"
-                onChange={(e) => handleChange("dtnasc", e.target.value)}
-                required
-              />
-            </Formulario>
+            <div className={`w-full ${fase === 1 ? "block" : "hidden"}`}>
+              <Fase1 onValidate={setIsFormValid} />
+            </div>
+            <div className={`w-full ${fase === 2 ? "block" : "hidden"}`}>
+              <Fase2 onValidate={setIsFormValid} />
+            </div>
+            <div className={`w-full ${fase === 3 ? "block" : "hidden"}`}>
+              <Fase3 />
+            </div>
+
             <CheckBox
               message="Declaro que os dados acima são legítimos"
               onChange={(e) => setChecked(e.target.checked)}
@@ -97,12 +41,16 @@ function CadastroUsuario() {
           px-3 py-1 rounded-lg
           mx-auto block
           ${
-            isValid
+            isFormValid && checked
               ? "bg-gradient-to-br from-orange-500 to-purple-500 hover:from-orange-700 hover:to-purple-700 cursor-pointer"
               : "bg-gray-400 cursor-not-allowed opacity-70"
           }
           `}
-            disabled={!isValid}
+            disabled={!(isFormValid && checked)}
+            onClick={() => {
+              setFase(fase + 1);
+              setIsFormValid(false);
+            }}
           >
             Confirmar
           </button>

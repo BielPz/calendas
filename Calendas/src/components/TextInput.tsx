@@ -2,7 +2,7 @@ import { useState } from "react";
 
 interface Props {
   titulo: string;
-  type?: "text" | "date" | "password" | "number" | "email" | "tel";
+  type?: "text" | "date" | "password" | "number" | "email" | "tel" | "file";
   required?: boolean;
   validador?: string;
   tipoValidacao?: "senha" | "padrão";
@@ -26,6 +26,7 @@ function TextInput({
     date: "dd/mm/aaaa",
     number: "0",
     text: "Digite seu " + titulo,
+    file: "",
   };
 
   const placeholderDinamico = placeholders[type];
