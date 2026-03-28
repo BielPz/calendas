@@ -1,8 +1,8 @@
 import { useState } from "react";
-import Formulario from "../components/Formulario";
-import TextInput from "../components/TextInput";
-import CheckBox from "../components/CheckBox";
-import Cabecalho from "../components/Cabecalho";
+import Formulario from "../../Calendas/src/components/Formulario";
+import TextInput from "../../Calendas/src/components/TextInput";
+import CheckBox from "../../Calendas/src/components/CheckBox";
+import Cabecalho from "../../Calendas/src/components/Cabecalho";
 
 function CadastroUsuario() {
   const [form, setForm] = useState({

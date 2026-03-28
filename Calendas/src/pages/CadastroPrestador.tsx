@@ -1,6 +1,6 @@
 import { useState } from "react";
-import CheckBox from "../components/CheckBox";
-import Cabecalho from "../components/Cabecalho";
+import CheckBox from "../../Calendas/src/components/CheckBox";
+import Cabecalho from "../../Calendas/src/components/Cabecalho";
 import Fase1 from "../components/Fase1";
 import Fase2 from "../components/Fase2";
 import Fase3 from "../components/Fase3";
