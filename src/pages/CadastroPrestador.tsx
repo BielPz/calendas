@@ -3,12 +3,13 @@ import Fase1 from "../components/Fase1";
 import Fase2 from "../components/Fase2";
 import Fase3 from "../components/Fase3";
 import CheckBox from "../components/CheckBox";
+import { useNavigate } from "react-router";
 
 function CadastroUsuario() {
   const [isFormValid, setIsFormValid] = useState(false);
   const [checked, setChecked] = useState(false);
   const [fase, setFase] = useState(1);
-
+  const navigate = useNavigate();
   return (
     <div className="bg-gray-50">
       <div className="justify-items-center pt-5 pb-15">
@@ -21,7 +22,7 @@ function CadastroUsuario() {
               <Fase2 onValidate={setIsFormValid} />
             </div>
             <div className={`w-full ${fase === 3 ? "block" : "hidden"}`}>
-              <Fase3 />
+              <Fase3 onValidate={setIsFormValid} />
             </div>
 
             <CheckBox
@@ -44,8 +45,12 @@ function CadastroUsuario() {
           `}
             disabled={!(isFormValid && checked)}
             onClick={() => {
-              setFase(fase + 1);
-              setIsFormValid(false);
+              if (fase < 3) {
+                setFase(fase + 1);
+                setIsFormValid(false);
+              } else {
+                navigate("/feed");
+              }
             }}
           >
             Confirmar

@@ -17,7 +17,7 @@ function Cabecalho() {
             Entrar
           </Link>
           <Link
-            to="cadastroprestador"
+            to="cadastro"
             className="text-white font-medium
                         hover:bg-gray-800  
                         active:bg-gray-800
