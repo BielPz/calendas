@@ -4,7 +4,7 @@ import TextInput from "../TextInput"
 function Fase1()
 {
     return (
-        <div className="justify-items-center pb-3">
+        <div className="justify-items-center pb-2">
             <div className="w-full justify-items-center">
                 <TextInput
                     titulo="Nome"
