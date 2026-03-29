@@ -3,7 +3,7 @@ import CabecalhoBranco from "../components/CabecalhoBranco";
 import CadastroPrestador from "../components/CadastroPrestador";
 import CadastroUsuario from "../components/CadastroUsuario";
 
-function TelaCadastroRafa() {
+function TelaCadastro() {
   const [tipo, setTipo] = useState("cliente");
   return (
     <div className="flex flex-col items-center justify-start min-h-screen">
@@ -12,7 +12,7 @@ function TelaCadastroRafa() {
         setTipo={setTipo}
         titulo={"Fazer Cadastro"}
       />
-      
+
       <div className="w-[45%] min-w-[300px] relative">
         <div className={`w-full ${tipo === "cliente" ? "block" : "hidden"}`}>
           <CadastroUsuario />
@@ -26,4 +26,4 @@ function TelaCadastroRafa() {
   );
 }
 
-export default TelaCadastroRafa;
+export default TelaCadastro;
