@@ -21,7 +21,8 @@ function Fase3({ onValidate }: Props) {
     <div className="w-full justify-items-center">
       <Formulario titulo="Prestador">
         <Index qntPages={3} itemOn="3" />
-        <div className="overflow-auto h-40">
+        <h1 className="font-bold text-4xl py-6">Termos de Uso</h1>
+        <div className="overflow-auto h-70 border p-2 border-gray-400 rounded-xl">
           Lorem ipsum dolor sit amet. Et corporis aliasNam galisum non culpa
           molestiae quo nostrum doloremque rem earum provident eum
           necessitatibus vero At amet nemo. Rem tempora beatae in quas
