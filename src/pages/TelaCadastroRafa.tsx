@@ -1,7 +1,7 @@
 import { useState } from "react";
 import CabecalhoBranco from "../components/CabecalhoBranco";
-import CadastroPrestador from "./CadastroPrestador";
-import CadastroUsuario from "./CadastroUsuario";
+import CadastroPrestador from "../components/CadastroPrestador";
+import CadastroUsuario from "../components/CadastroUsuario";
 
 function TelaCadastroRafa() {
   const [tipo, setTipo] = useState("cliente");
@@ -12,8 +12,8 @@ function TelaCadastroRafa() {
         setTipo={setTipo}
         titulo={"Fazer Cadastro"}
       />
-
-      <div className="w-[100%] min-w-[300px] relative">
+      
+      <div className="w-[45%] min-w-[300px] relative">
         <div className={`w-full ${tipo === "cliente" ? "block" : "hidden"}`}>
           <CadastroUsuario />
         </div>

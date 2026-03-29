@@ -9,7 +9,7 @@ function Formulario({ children, titulo }: Props) {
   return (
     <>
       <h1 className="font-bold text-4xl py-6">Cadastro {titulo}</h1>
-      <form className="w-2/3">
+      <form>
         {children.map((children, index) => (
           <div key={index} className="pb-3">
             {children}
