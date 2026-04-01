@@ -37,60 +37,58 @@ function CadastroUsuario() {
 
   return (
     <div className="w-full flex flex-col gap-3">
-      <div>
-        <Formulario titulo="Cliente">
-          <TextInput
-            titulo="Nome"
-            type="text"
-            onChange={(e) => handleChange("nome", e.target.value)}
-            required
-          />
-          <TextInput
-            titulo="E-mail"
-            type="email"
-            onChange={(e) => handleChange("email", e.target.value)}
-            required
-          />
-          <TextInput
-            titulo="Senha"
-            type="password"
-            onChange={(e) => handleChange("senha", e.target.value)}
-            required
-          />
-          <TextInput
-            titulo="Repetir a senha"
-            type="password"
-            onChange={(e) => handleChange("rSenha", e.target.value)}
-            tipoValidacao="senha"
-            validador={form.senha}
-            required
-          />
-          <TextInput titulo="Telefone" type="tel" />
-          <TextInput
-            titulo="Gênero"
-            type="text"
-            onChange={(e) => handleChange("genero", e.target.value)}
-            required
-          />
-          <TextInput
-            titulo="Data de nascimento"
-            type="date"
-            onChange={(e) => handleChange("dtnasc", e.target.value)}
-            required
-          />
-          <TextInput titulo="CEP" type="number" />
-          <TextInput titulo="Complemento" type="text" />
-          <TextInput titulo="Logradouro" type="text" />
-          <TextInput titulo="Número" type="number" />
-          <TextInput titulo="Bairro" type="text" />
-          <TextInput titulo="Cidade" type="text" />
-          <TextInput titulo="Estado" type="text" />
-        </Formulario>
-        <CheckBox
-          message="Declaro que os dados acima são legítimos"
-          onChange={(e) => setChecked(e.target.checked)}
+      <Formulario titulo="Cliente">
+        <TextInput
+          titulo="Nome"
+          type="text"
+          onChange={(e) => handleChange("nome", e.target.value)}
+          required
         />
-      </div>
+        <TextInput
+          titulo="E-mail"
+          type="email"
+          onChange={(e) => handleChange("email", e.target.value)}
+          required
+        />
+        <TextInput
+          titulo="Senha"
+          type="password"
+          onChange={(e) => handleChange("senha", e.target.value)}
+          required
+        />
+        <TextInput
+          titulo="Repetir a senha"
+          type="password"
+          onChange={(e) => handleChange("rSenha", e.target.value)}
+          tipoValidacao="senha"
+          validador={form.senha}
+          required
+        />
+        <TextInput titulo="Telefone" type="tel" />
+        <TextInput
+          titulo="Gênero"
+          type="text"
+          onChange={(e) => handleChange("genero", e.target.value)}
+          required
+        />
+        <TextInput
+          titulo="Data de nascimento"
+          type="date"
+          onChange={(e) => handleChange("dtnasc", e.target.value)}
+          required
+        />
+        <TextInput titulo="CEP" type="number" />
+        <TextInput titulo="Complemento" type="text" />
+        <TextInput titulo="Logradouro" type="text" />
+        <TextInput titulo="Número" type="number" />
+        <TextInput titulo="Bairro" type="text" />
+        <TextInput titulo="Cidade" type="text" />
+        <TextInput titulo="Estado" type="text" />
+      </Formulario>
+      <CheckBox
+        message="Declaro que os dados acima são legítimos"
+        onChange={(e) => setChecked(e.target.checked)}
+      />
       <div>
         <button
           className={`
