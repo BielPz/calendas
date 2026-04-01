@@ -3,31 +3,38 @@ import { Link } from "react-router-dom";
 
 function Cabecalho() {
   return (
-    <div className={`flex h-[10%] items-center justify-center`}>
-      <div className="flex border-b border-white h-13 w-[98%] items-center p-3">
-        <img src={imgLogo} alt="logo" className="w-30 cursor-pointer" onClick={() => (window.location.href = "/")}/>
-        <div className="ml-auto flex gap-4">
+    <div className="w-full z-50 flex justify-center">
+      <div className="w-[95%] border-b border-white flex items-center py-2 px-3">
+        
+        <img
+          src={imgLogo}
+          alt="logo"
+          className="w-24 cursor-pointer"
+          onClick={() => (window.location.href = "/")}
+        />
+
+        <div className="ml-auto flex gap-3">
           <Link
             to="/login"
-            className="text-white font-medium
-                        hover:bg-gray-800  
-                        active:bg-gray-800
-                        transition-colors duration-200 px-3 py-1 rounded-lg cursor-pointer"
+            className="text-white text-sm font-medium
+                      hover:bg-gray-800  
+                      transition-colors duration-200 px-3 py-1 rounded-lg"
           >
             Entrar
           </Link>
+
           <Link
             to="/cadastro"
-            className="text-white font-medium
-                        hover:bg-gray-800  
-                        active:bg-gray-800
-                        transition-colors duration-200 px-3 py-1 rounded-lg cursor-pointer"
+            className="text-white text-sm font-medium
+                      hover:bg-gray-800  
+                      transition-colors duration-200 px-3 py-1 rounded-lg"
           >
             Cadastrar
           </Link>
         </div>
+
       </div>
-    </div>
+</div>
   );
 }
 
