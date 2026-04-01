@@ -1,8 +1,8 @@
 import { useState } from "react";
-import Fase1 from "../components/Fase1";
-import Fase2 from "../components/Fase2";
-import Fase3 from "../components/Fase3";
-import CheckBox from "../components/CheckBox";
+import Fase1 from "./Fase1";
+import Fase2 from "./Fase2";
+import Fase3 from "./Fase3";
+import CheckBox from "../CheckBox";
 import { useNavigate } from "react-router-dom";
 
 function CadastroUsuario() {

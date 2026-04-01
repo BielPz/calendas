@@ -1,7 +1,7 @@
 import { useState } from "react";
-import Formulario from "../components/Formulario";
-import TextInput from "../components/TextInput";
-import CheckBox from "../components/CheckBox";
+import Formulario from "../Formulario";
+import TextInput from "../TextInput";
+import CheckBox from "../CheckBox";
 import { useNavigate } from "react-router-dom";
 
 function CadastroUsuario() {

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import CabecalhoBranco from "../components/CabecalhoBranco";
-import CadastroPrestador from "../components/CadastroPrestador";
-import CadastroUsuario from "../components/CadastroUsuario";
+import CadastroPrestador from "../components/cadastro/CadastroPrestador";
+import CadastroUsuario from "../components/cadastro/CadastroUsuario";
 
 function TelaCadastroRafa() {
   const [tipo, setTipo] = useState("cliente");
