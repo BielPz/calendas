@@ -8,7 +8,7 @@ interface Props {
 
 function Index({ qntPages, itemOn }: Props) {
   return (
-    <div className="grid grid-cols-5 gap-4 justify-items-center my-4">
+    <div className="flex gap-4 items-center justify-between w-full my-4">
       {Array.from({ length: qntPages }, (_, i) => (
         <React.Fragment key={i}>
           <IndexNumber
@@ -17,9 +17,7 @@ function Index({ qntPages, itemOn }: Props) {
           />
 
           {i + 1 < qntPages && (
-            <span className="text-gray-700 justify-self-center text-6xl">
-              -
-            </span>
+              <hr className="flex-1 border-t border-gray-400 mx-2" />
           )}
         </React.Fragment>
       ))}
