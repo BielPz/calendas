@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Formulario from "./Formulario";
 import Index from "./Index";
 import TextInput from "./TextInput";
+import UploadImagem from "./UploadImagem";
 
 interface Props {
   onValidate?: (valid: boolean) => void;
@@ -53,7 +54,7 @@ function Fase2({ onValidate }: Props) {
           onChange={(e) => handleChange("nome", e.target.value)}
           required
         />
-        <TextInput titulo="Imagem da Empresa" type="file" />
+        <UploadImagem label="Imagem da empresa" />
         <TextInput
           titulo="CNPJ"
           type="text"
