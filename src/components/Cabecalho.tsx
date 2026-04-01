@@ -5,7 +5,7 @@ function Cabecalho() {
   return (
     <div className={`flex h-[10%] items-center justify-center`}>
       <div className="flex border-b border-white h-13 w-[98%] items-center p-3">
-        <img src={imgLogo} alt="logo" className="w-30" />
+        <img src={imgLogo} alt="logo" className="w-30" onClick={() => (window.location.href = "/")}/>
         <div className="ml-auto flex gap-4">
           <Link
             to="/login"
@@ -17,7 +17,7 @@ function Cabecalho() {
             Entrar
           </Link>
           <Link
-            to="cadastro"
+            to="/cadastro"
             className="text-white font-medium
                         hover:bg-gray-800  
                         active:bg-gray-800
