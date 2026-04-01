@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import Formulario from "./Formulario";
+import Formulario from "../Formulario";
 import Index from "./Index";
-import TextInput from "./TextInput";
+import TextInput from "../TextInput";
 
 interface Props {
   onValidate?: (valid: boolean) => void;
