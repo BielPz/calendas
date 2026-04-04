@@ -3,6 +3,8 @@ import Formulario from "../Formulario";
 import Index from "./Index";
 import TextInput from "../TextInput";
 import UploadImagem from "../UploadImagem";
+import Estados from "./Estados";
+import Cidades from "./Cidades";
 
 interface Props {
   onValidate?: (valid: boolean) => void;
@@ -40,6 +42,9 @@ function Fase2({ onValidate }: Props) {
     form.estado,
   );
 
+  const estados = Estados();
+  const cidades = Cidades(String(form.estado));
+
   useEffect(() => {
     onValidate?.(isValid);
   }, [isValid]);
@@ -51,27 +56,27 @@ function Fase2({ onValidate }: Props) {
         <TextInput
           titulo="Nome da Empresa"
           type="text"
-          onChange={(e) => handleChange("nome", e.target.value)}
+          onChange={(value) => handleChange("nome", value)}
           required
         />
         <UploadImagem label="Imagem da empresa" />
         <TextInput
           titulo="CNPJ"
           type="text"
-          onChange={(e) => handleChange("cnpj", e.target.value)}
+          onChange={(value) => handleChange("cnpj", value)}
           required
         />
         <TextInput
           titulo="Telefone"
           type="tel"
-          onChange={(e) => handleChange("telefone", e.target.value)}
+          onChange={(value) => handleChange("telefone", value)}
           required
         />
         <TextInput titulo="E-mail" type="email" />
         <TextInput
           titulo="CEP"
           type="number"
-          onChange={(e) => handleChange("cep", e.target.value)}
+          onChange={(value) => handleChange("cep", value)}
           required
           cep
         />
@@ -79,31 +84,33 @@ function Fase2({ onValidate }: Props) {
         <TextInput
           titulo="Logradouro"
           type="text"
-          onChange={(e) => handleChange("logradouro", e.target.value)}
+          onChange={(value) => handleChange("logradouro", value)}
           required
         />
         <TextInput
           titulo="Número"
           type="number"
-          onChange={(e) => handleChange("numero", e.target.value)}
+          onChange={(value) => handleChange("numero", value)}
           required
         />
         <TextInput
           titulo="Bairro"
           type="text"
-          onChange={(e) => handleChange("bairro", e.target.value)}
+          onChange={(value) => handleChange("bairro", value)}
           required
         />
         <TextInput
           titulo="Estado"
-          type="text"
-          onChange={(e) => handleChange("estado", e.target.value)}
+          type="select"
+          options={estados}
+          onChange={(value) => handleChange("estado", value)}
           required
         />
         <TextInput
           titulo="Cidade"
-          type="text"
-          onChange={(e) => handleChange("cidade", e.target.value)}
+          type="select"
+          options={cidades}
+          onChange={(value) => handleChange("cidade", value)}
           required
         />
       </Formulario>

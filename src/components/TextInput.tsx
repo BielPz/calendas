@@ -1,14 +1,28 @@
 import { useState } from "react";
 import { IMaskInput } from "react-imask";
 
+type Option = {
+  label: string;
+  value: string;
+};
+
 interface Props {
   titulo: string;
-  type?: "text" | "date" | "password" | "number" | "email" | "tel" | "file";
+  type?:
+    | "text"
+    | "date"
+    | "password"
+    | "number"
+    | "email"
+    | "tel"
+    | "file"
+    | "select";
   required?: boolean;
   cep?: boolean;
   validador?: string;
   tipoValidacao?: "senha" | "padrão";
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  options?: Option[];
+  onChange?: (value: string) => void;
 }
 
 function TextInput({
@@ -18,9 +32,11 @@ function TextInput({
   cep,
   validador,
   tipoValidacao,
+  options = [],
   onChange,
 }: Props) {
   const [erro, setErro] = useState<string | null>(null);
+  const [valor, setValor] = useState("");
 
   const today = new Date();
   today.setFullYear(today.getFullYear() - 14);
@@ -34,25 +50,38 @@ function TextInput({
     number: "0",
     text: "Digite seu " + titulo,
     file: "",
+    select: "Selecione...",
   };
 
   const placeholderDinamico = placeholders[type];
+
+  function validar(value: string) {
+    if (tipoValidacao === "senha") {
+      return validador !== value ? "As senhas não coincidem" : null;
+    }
+
+    if (required && !value) {
+      return "Você deve preencher esse campo";
+    }
+
+    return null;
+  }
+
+  function handleChange(value: string) {
+    setValor(value);
+    onChange?.(value);
+  }
+
+  const baseClass =
+    "w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none";
 
   const commonProps = {
     id: titulo.toLowerCase(),
     name: titulo.toLowerCase(),
     placeholder: placeholderDinamico,
-    className:
-      "w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none no-spinner appearance-none",
-    onChange,
-    onBlur: (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-
-      if (tipoValidacao === "senha") {
-        setErro(validador !== value ? "As senhas não coincidem" : null);
-      } else {
-        setErro(!value && required ? "Você deve preencher esse campo" : null);
-      }
+    className: `${baseClass} no-spinner appearance-none`,
+    onBlur: () => {
+      setErro(validar(valor));
     },
     required,
   };
@@ -64,35 +93,46 @@ function TextInput({
         {required && <b className="text-red-400 font-semibold"> *</b>}
       </p>
 
-      {type === "tel" ? (
+      {type === "select" ? (
+        <select
+          className={baseClass}
+          value={valor}
+          onChange={(e) => handleChange(e.target.value)}
+          onBlur={() => setErro(validar(valor))}
+        >
+          <option value="" disabled>
+            {placeholderDinamico}
+          </option>
+
+          {options.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      ) : type === "tel" ? (
         <IMaskInput
           mask="(00) 00000-0000"
           {...commonProps}
-          onAccept={(value) => {
-            // simula o onChange padrão
-            onChange?.({
-              target: { value },
-            } as React.ChangeEvent<HTMLInputElement>);
-          }}
+          onAccept={(value) => handleChange(value)}
         />
       ) : cep ? (
         <IMaskInput
           mask="00000-000"
           {...commonProps}
-          onAccept={(value) => {
-            // simula o onChange padrão
-            onChange?.({
-              target: { value },
-            } as React.ChangeEvent<HTMLInputElement>);
-          }}
+          onAccept={(value) => handleChange(value)}
         />
       ) : (
         <input
           type={type}
           {...commonProps}
+          value={valor}
+          onChange={(e) => handleChange(e.target.value)}
           max={type === "date" ? dataMinima : undefined}
           onWheel={
-            type === "number" ? (e) => e.currentTarget.blur() : undefined
+            type === "number"
+              ? (e) => (e.currentTarget as HTMLInputElement).blur()
+              : undefined
           }
         />
       )}

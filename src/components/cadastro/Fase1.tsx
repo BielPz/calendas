@@ -17,6 +17,14 @@ function Fase1({ onValidate }: Props) {
     dtnasc: "",
   });
 
+  const generos = [
+    { label: "Masculino", value: "masculino" },
+    { label: "Feminino", value: "feminino" },
+    { label: "Não binário", value: "nao_binario" },
+    { label: "Prefiro não informar", value: "nao_informar" },
+    { label: "Outro", value: "outro" },
+  ];
+
   const handleChange = (campo: string, value: string) => {
     setForm((prev) => ({
       ...prev,
@@ -45,25 +53,25 @@ function Fase1({ onValidate }: Props) {
         <TextInput
           titulo="Nome"
           type="text"
-          onChange={(e) => handleChange("nome", e.target.value)}
+          onChange={(value) => handleChange("nome", value)}
           required
         />
         <TextInput
           titulo="E-mail"
           type="email"
-          onChange={(e) => handleChange("email", e.target.value)}
+          onChange={(value) => handleChange("email", value)}
           required
         />
         <TextInput
           titulo="Senha"
           type="password"
-          onChange={(e) => handleChange("senha", e.target.value)}
+          onChange={(value) => handleChange("senha", value)}
           required
         />
         <TextInput
           titulo="Repetir a senha"
           type="password"
-          onChange={(e) => handleChange("rSenha", e.target.value)}
+          onChange={(value) => handleChange("rSenha", value)}
           tipoValidacao="senha"
           validador={form.senha}
           required
@@ -71,14 +79,15 @@ function Fase1({ onValidate }: Props) {
         <TextInput titulo="Telefone" type="tel" />
         <TextInput
           titulo="Gênero"
-          type="text"
-          onChange={(e) => handleChange("genero", e.target.value)}
+          type="select"
+          options={generos}
+          onChange={(value) => handleChange("genero", value)}
           required
         />
         <TextInput
           titulo="Data de nascimento"
           type="date"
-          onChange={(e) => handleChange("dtnasc", e.target.value)}
+          onChange={(value) => handleChange("dtnasc", value)}
           required
         />
       </Formulario>

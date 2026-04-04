@@ -3,6 +3,8 @@ import Formulario from "../Formulario";
 import TextInput from "../TextInput";
 import CheckBox from "../CheckBox";
 import { useNavigate } from "react-router-dom";
+import Estados from "./Estados";
+import Cidades from "./Cidades";
 
 function CadastroUsuario() {
   const [form, setForm] = useState({
@@ -12,7 +14,16 @@ function CadastroUsuario() {
     rSenha: "",
     genero: "",
     dtnasc: "",
+    estado: "",
   });
+
+  const generos = [
+    { label: "Masculino", value: "masculino" },
+    { label: "Feminino", value: "feminino" },
+    { label: "Não binário", value: "nao_binario" },
+    { label: "Prefiro não informar", value: "nao_informar" },
+    { label: "Outro", value: "outro" },
+  ];
 
   const [checked, setChecked] = useState(false);
 
@@ -35,31 +46,34 @@ function CadastroUsuario() {
 
   const navigate = useNavigate();
 
+  const estados = Estados();
+  const cidades = Cidades(String(form.estado));
+
   return (
     <div className="w-full flex flex-col gap-3 justify-items-center">
       <Formulario>
         <TextInput
           titulo="Nome"
           type="text"
-          onChange={(e) => handleChange("nome", e.target.value)}
+          onChange={(value) => handleChange("nome", value)}
           required
         />
         <TextInput
           titulo="E-mail"
           type="email"
-          onChange={(e) => handleChange("email", e.target.value)}
+          onChange={(value) => handleChange("email", value)}
           required
         />
         <TextInput
           titulo="Senha"
           type="password"
-          onChange={(e) => handleChange("senha", e.target.value)}
+          onChange={(value) => handleChange("senha", value)}
           required
         />
         <TextInput
           titulo="Repetir a senha"
           type="password"
-          onChange={(e) => handleChange("rSenha", e.target.value)}
+          onChange={(value) => handleChange("rSenha", value)}
           tipoValidacao="senha"
           validador={form.senha}
           required
@@ -67,14 +81,15 @@ function CadastroUsuario() {
         <TextInput titulo="Telefone" type="tel" />
         <TextInput
           titulo="Gênero"
-          type="text"
-          onChange={(e) => handleChange("genero", e.target.value)}
+          type="select"
+          options={generos}
+          onChange={(value) => handleChange("genero", value)}
           required
         />
         <TextInput
           titulo="Data de nascimento"
           type="date"
-          onChange={(e) => handleChange("dtnasc", e.target.value)}
+          onChange={(value) => handleChange("dtnasc", value)}
           required
         />
         <TextInput titulo="CEP" type="number" cep />
@@ -82,8 +97,13 @@ function CadastroUsuario() {
         <TextInput titulo="Logradouro" type="text" />
         <TextInput titulo="Número" type="number" />
         <TextInput titulo="Bairro" type="text" />
-        <TextInput titulo="Estado" type="text" />
-        <TextInput titulo="Cidade" type="text" />
+        <TextInput
+          titulo="Estado"
+          type="select"
+          options={estados}
+          onChange={(value) => handleChange("estado", value)}
+        />
+        <TextInput titulo="Cidade" type="select" options={cidades} />
       </Formulario>
       <CheckBox
         message="Declaro que os dados acima são legítimos"
