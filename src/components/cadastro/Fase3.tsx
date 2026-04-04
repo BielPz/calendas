@@ -19,7 +19,7 @@ function Fase3({ onValidate }: Props) {
 
   return (
     <div className="w-full justify-items-center">
-      <Formulario titulo="Prestador">
+      <Formulario>
         <Index qntPages={3} itemOn="3" />
         <h1 className="font-bold text-4xl py-6">Termos de Uso</h1>
         <div className="overflow-auto h-70 border p-2 border-gray-400 rounded-xl">

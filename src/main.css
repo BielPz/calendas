@@ -1,1 +1,13 @@
 @import "tailwindcss";
+
+/* Remove setinhas no Chrome, Safari, Edge */
+.no-spinner::-webkit-inner-spin-button,
+.no-spinner::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Remove no Firefox */
+.no-spinner {
+  -moz-appearance: textfield;
+}

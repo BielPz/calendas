@@ -13,20 +13,20 @@ function CadastroUsuario() {
   return (
     <div className="w-full flex flex-col gap-3">
       <div>
-          <div className={`w-full ${fase === 1 ? "block" : "hidden"}`}>
-            <Fase1 onValidate={setIsFormValid} />
-          </div>
-          <div className={`w-full ${fase === 2 ? "block" : "hidden"}`}>
-            <Fase2 onValidate={setIsFormValid} />
-          </div>
-          <div className={`w-full ${fase === 3 ? "block" : "hidden"}`}>
-            <Fase3 onValidate={setIsFormValid} />
-          </div>
+        <div className={`w-full ${fase === 1 ? "block" : "hidden"}`}>
+          <Fase1 onValidate={setIsFormValid} />
+        </div>
+        <div className={`w-full ${fase === 2 ? "block" : "hidden"}`}>
+          <Fase2 onValidate={setIsFormValid} />
+        </div>
+        <div className={`w-full ${fase === 3 ? "block" : "hidden"}`}>
+          <Fase3 onValidate={setIsFormValid} />
+        </div>
 
-          <CheckBox
-            message="Declaro que os dados acima são legítimos"
-            onChange={(e) => setChecked(e.target.checked)}
-          />
+        <CheckBox
+          message="Declaro que os dados acima são legítimos"
+          onChange={(e) => setChecked(e.target.checked)}
+        />
       </div>
       <button
         className={`

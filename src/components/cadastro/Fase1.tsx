@@ -39,8 +39,8 @@ function Fase1({ onValidate }: Props) {
   }, [isValid]);
 
   return (
-    <div className="w-full justify-items-center">
-      <Formulario titulo="Prestador">
+    <>
+      <Formulario>
         <Index qntPages={3} itemOn="1" />
         <TextInput
           titulo="Nome"
@@ -82,7 +82,7 @@ function Fase1({ onValidate }: Props) {
           required
         />
       </Formulario>
-    </div>
+    </>
   );
 }
 

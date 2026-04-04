@@ -36,8 +36,8 @@ function CadastroUsuario() {
   const navigate = useNavigate();
 
   return (
-    <div className="w-full flex flex-col gap-3">
-      <Formulario titulo="Cliente">
+    <div className="w-full flex flex-col gap-3 justify-items-center">
+      <Formulario>
         <TextInput
           titulo="Nome"
           type="text"
@@ -77,13 +77,13 @@ function CadastroUsuario() {
           onChange={(e) => handleChange("dtnasc", e.target.value)}
           required
         />
-        <TextInput titulo="CEP" type="number" />
+        <TextInput titulo="CEP" type="number" cep />
         <TextInput titulo="Complemento" type="text" />
         <TextInput titulo="Logradouro" type="text" />
         <TextInput titulo="Número" type="number" />
         <TextInput titulo="Bairro" type="text" />
-        <TextInput titulo="Cidade" type="text" />
         <TextInput titulo="Estado" type="text" />
+        <TextInput titulo="Cidade" type="text" />
       </Formulario>
       <CheckBox
         message="Declaro que os dados acima são legítimos"
@@ -105,14 +105,14 @@ function CadastroUsuario() {
               : "bg-gray-400 cursor-not-allowed opacity-70"
           }
           `}
-            disabled={!isValid}
-            onClick={() => {
-              navigate("/feed");
-            }}
-          >
+          disabled={!isValid}
+          onClick={() => {
+            navigate("/feed");
+          }}
+        >
           Confirmar
         </button>
-      </div>     
+      </div>
     </div>
   );
 }

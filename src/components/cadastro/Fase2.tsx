@@ -46,7 +46,7 @@ function Fase2({ onValidate }: Props) {
 
   return (
     <div className="w-full justify-items-center">
-      <Formulario titulo="Prestador">
+      <Formulario>
         <Index qntPages={3} itemOn="2" />
         <TextInput
           titulo="Nome da Empresa"
@@ -73,6 +73,7 @@ function Fase2({ onValidate }: Props) {
           type="number"
           onChange={(e) => handleChange("cep", e.target.value)}
           required
+          cep
         />
         <TextInput titulo="Complemento" type="text" />
         <TextInput
@@ -94,15 +95,15 @@ function Fase2({ onValidate }: Props) {
           required
         />
         <TextInput
-          titulo="Cidade"
-          type="text"
-          onChange={(e) => handleChange("cidade", e.target.value)}
-          required
-        />
-        <TextInput
           titulo="Estado"
           type="text"
           onChange={(e) => handleChange("estado", e.target.value)}
+          required
+        />
+        <TextInput
+          titulo="Cidade"
+          type="text"
+          onChange={(e) => handleChange("cidade", e.target.value)}
           required
         />
       </Formulario>
