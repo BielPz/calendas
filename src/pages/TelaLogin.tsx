@@ -1,6 +1,6 @@
 import { useState } from "react";
-import LoginPrestador from "../components/LoginPrestador";
-import LoginCliente from "../components/LoginCliente";
+import LoginPrestador from "../components/login/LoginPrestador";
+import LoginCliente from "../components/login/LoginCliente";
 import CabecalhoBranco from "../components/CabecalhoBranco";
 
 function TelaLogin() {

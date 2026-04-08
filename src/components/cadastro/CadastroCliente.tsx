@@ -9,21 +9,28 @@ import { registrarCliente } from "../../firebase/auth";
 
 function CadastroUsuario() {
   const [form, setForm] = useState({
-    nome: "",
+    // Credenciais
     email: "",
     senha: "",
     rSenha: "",
+
+    // Dados pessoais
+    nome: "",
     genero: "",
     dtnasc: "",
-    estado: "",
-    cidade: "",
     telefone: "",
+
+    // Endereço
     cep: "",
-    complemento: "",
     logradouro: "",
     numero: "",
+    complemento: "",
     bairro: "",
+    cidade: "",
+    estado: "",
   });
+
+  const [checked, setChecked] = useState(false);
 
   const generos = [
     { label: "Masculino", value: "masculino" },
@@ -33,9 +40,7 @@ function CadastroUsuario() {
     { label: "Outro", value: "outro" },
   ];
 
-  const [checked, setChecked] = useState(false);
-
-    const isValid =
+  const isValid =
     form.dtnasc &&
     form.email &&
     form.genero &&
@@ -60,14 +65,20 @@ function CadastroUsuario() {
   const handleConfirmar = async () => {
     if (!isValid) return;
 
-    // Cria uma cópia para não alterar o estado original 'form'
-    const dadosParaSalvar = { ...form };
-    
-    // Deleta o que não deve ir para o Realtime Database
-    // @ts-expect-error (opcional, se o TS reclamar que a chave é obrigatória no tipo)
-    delete dadosParaSalvar.senha;
-    // @ts-expect-error (opcional, se o TS reclamar que a chave é obrigatória no tipo)
-    delete dadosParaSalvar.rSenha;
+    const dadosParaSalvar = {
+      nome: form.nome,
+      email: form.email,
+      genero: form.genero,
+      dtnasc: form.dtnasc,
+      telefone: form.telefone,
+      cep: form.cep,
+      logradouro: form.logradouro,
+      numero: form.numero,
+      complemento: form.complemento,
+      bairro: form.bairro,
+      cidade: form.cidade,
+      estado: form.estado,
+    };
 
     try 
     {
@@ -114,7 +125,11 @@ function CadastroUsuario() {
           validador={form.senha}
           required
         />
-        <TextInput titulo="Telefone" type="tel" />
+        <TextInput
+          titulo="Telefone"
+          type="tel"
+          onChange={(value) => handleChange("telefone", value)}
+        />
         <TextInput
           titulo="Gênero"
           type="select"
