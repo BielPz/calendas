@@ -2,70 +2,47 @@ import { auth, db } from "./config";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { ref, set } from "firebase/database";
 
-// Interface para facilitar o TypeScript e não esquecer nenhum campo
-interface CadastroDados {
-  nome: string;
+interface CadastroDados 
+{
+  // Credenciais
   email: string;
+  
+  // Dados pessoais
+  nome: string;
   genero: string;
   dtnasc: string;
+  telefone: string;
+
+  // Endereço
+  cep: string;
+  logradouro: string;
+  numero: string;
+  complemento: string;
+  bairro: string;
+  cidade: string;
   estado: string;
-  cidade?: string;
-  // ... adicione outros campos que você tiver no formulário
 }
 
-/**
- * Função genérica interna para salvar no banco (para evitar repetição de código)
- */
 const salvarNoBanco = async (path: string, uid: string, dados: CadastroDados) => {
   return set(ref(db, `${path}/${uid}`), {
     ...dados,
-    uid: uid,
+    uid,
     dataCadastro: new Date().toISOString(),
   });
 };
 
-/**
- * CADASTRO DE CLIENTE
- */
 export const registrarCliente = async (email: string, pass: string, dados: CadastroDados) => {
-  // eslint-disable-next-line no-useless-catch
-  try 
-  {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-    const user = userCredential.user;
-
-    await updateProfile(user, { displayName: dados.nome });
-    
-    // Salva na pasta 'clientes'
-    await salvarNoBanco('clientes', user.uid, dados);
-    
-    return user;
-  } 
-  catch (error) 
-  {
-    throw error;
-  }
+  const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+  const user = userCredential.user;
+  await updateProfile(user, { displayName: dados.nome });
+  await salvarNoBanco("clientes", user.uid, dados);
+  return user;
 };
 
-/**
- * CADASTRO DE PRESTADOR
- */
 export const registrarPrestador = async (email: string, pass: string, dados: CadastroDados) => {
-  // eslint-disable-next-line no-useless-catch
-  try 
-  {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-    const user = userCredential.user;
-
-    await updateProfile(user, { displayName: dados.nome });
-    
-    // Salva na pasta 'prestadores'
-    await salvarNoBanco('prestadores', user.uid, dados);
-    
-    return user;
-  } 
-  catch (error) 
-  {
-    throw error;
-  }
+  const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+  const user = userCredential.user;
+  await updateProfile(user, { displayName: dados.nome });
+  await salvarNoBanco("prestadores", user.uid, dados);
+  return user;
 };

@@ -1,3 +1,7 @@
+/**
+ * IGNORAR POR ENQUANTO
+ */
+
 import { db } from "./config";
 import { ref, set, push, get, child } from "firebase/database";
 
