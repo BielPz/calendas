@@ -5,17 +5,31 @@ import TextInput from "../TextInput";
 
 interface Props {
   onValidate?: (valid: boolean) => void;
+  onChange: (valor: string) => void;
 }
 
-function Fase1({ onValidate }: Props) {
-  const [form, setForm] = useState({
+interface DadosForm
+{
+  nome: string,
+  email: string,
+  senha: string,
+  rSenha: string,
+  tel?: string,
+  genero: string,
+  dtnasc: string
+}
+
+function Fase1({ onValidate, onChange }: Props)
+{
+ 
+  const [form, setForm] = useState<DadosForm>({
     nome: "",
     email: "",
     senha: "",
     rSenha: "",
     genero: "",
-    dtnasc: "",
-  });
+    dtnasc: ""
+  })
 
   const generos = [
     { label: "Masculino", value: "masculino" },
@@ -26,6 +40,7 @@ function Fase1({ onValidate }: Props) {
   ];
 
   const handleChange = (campo: string, value: string) => {
+    onChange(value)
     setForm((prev) => ({
       ...prev,
       [campo]: value,
@@ -34,12 +49,12 @@ function Fase1({ onValidate }: Props) {
 
   const isValid = Boolean(
     form.dtnasc &&
-    form.email &&
-    form.genero &&
-    form.nome &&
-    form.rSenha &&
-    form.senha &&
-    form.senha === form.rSenha,
+    dadosForm.email &&
+    dadosForm.genero &&
+    dadosForm.nome &&
+    dadosForm.rSenha &&
+    dadosForm.senha &&
+    dadosForm.senha === dadosForm.rSenha,
   );
 
   useEffect(() => {

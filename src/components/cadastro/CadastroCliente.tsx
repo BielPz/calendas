@@ -82,9 +82,9 @@ function CadastroUsuario() {
 
     try 
     {
-      console.log("Iniciando cadastro para:", form.email);
+      // console.log("Iniciando cadastro para:", form.email);
       await registrarCliente(form.email, form.senha, dadosParaSalvar);
-      console.log("Cadastro e gravação no banco concluídos!");
+      // console.log("Cadastro e gravação no banco concluídos!");
       navigate("/feed");
     } 
     catch (error) 
