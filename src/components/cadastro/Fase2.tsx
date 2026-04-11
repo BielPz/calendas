@@ -3,8 +3,8 @@ import Formulario from "../Formulario";
 import Index from "./Index";
 import TextInput from "../TextInput";
 import UploadImagem from "../UploadImagem";
-import Estados from "./Estados";
-import Cidades from "./Cidades";
+import Estados from "../../hooks/Estados";
+import Cidades from "../../hooks/Cidades";
 
 interface Props {
   onValidate?: (valid: boolean) => void;
