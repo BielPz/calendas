@@ -8,28 +8,25 @@ interface Props {
   onChange: (valor: string) => void;
 }
 
-interface DadosForm
-{
-  nome: string,
-  email: string,
-  senha: string,
-  rSenha: string,
-  tel?: string,
-  genero: string,
-  dtnasc: string
+interface DadosForm {
+  nome: string;
+  email: string;
+  senha: string;
+  rSenha: string;
+  tel?: string;
+  genero: string;
+  dtnasc: string;
 }
 
-function Fase1({ onValidate, onChange }: Props)
-{
- 
+function Fase1({ onValidate, onChange }: Props) {
   const [form, setForm] = useState<DadosForm>({
     nome: "",
     email: "",
     senha: "",
     rSenha: "",
     genero: "",
-    dtnasc: ""
-  })
+    dtnasc: "",
+  });
 
   const generos = [
     { label: "Masculino", value: "masculino" },
@@ -40,7 +37,7 @@ function Fase1({ onValidate, onChange }: Props)
   ];
 
   const handleChange = (campo: string, value: string) => {
-    onChange(value)
+    onChange(value);
     setForm((prev) => ({
       ...prev,
       [campo]: value,
@@ -49,12 +46,12 @@ function Fase1({ onValidate, onChange }: Props)
 
   const isValid = Boolean(
     form.dtnasc &&
-    dadosForm.email &&
-    dadosForm.genero &&
-    dadosForm.nome &&
-    dadosForm.rSenha &&
-    dadosForm.senha &&
-    dadosForm.senha === dadosForm.rSenha,
+    form.email &&
+    form.genero &&
+    form.nome &&
+    form.rSenha &&
+    form.senha &&
+    form.senha === form.rSenha,
   );
 
   useEffect(() => {
