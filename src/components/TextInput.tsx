@@ -41,6 +41,7 @@ function TextInput({
   const today = new Date();
   today.setFullYear(today.getFullYear() - 14);
   const dataMinima = today.toLocaleDateString("en-CA");
+  const hoje = new Date().toLocaleDateString("en-CA");
 
   const placeholders = {
     tel: "(xx) xxxxx-xxxx",
@@ -128,6 +129,7 @@ function TextInput({
           {...commonProps}
           value={valor}
           onChange={(e) => handleChange(e.target.value)}
+          min={type === "date" ? hoje : undefined}
           max={type === "date" ? dataMinima : undefined}
           onWheel={
             type === "number"
