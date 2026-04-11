@@ -2,6 +2,7 @@ import { useState } from "react";
 import LoginPrestador from "../components/login/LoginPrestador";
 import LoginCliente from "../components/login/LoginCliente";
 import CabecalhoBranco from "../components/CabecalhoBranco";
+import { Link } from "react-router-dom";
 
 function TelaLogin() {
   const [tipo, setTipo] = useState("cliente");
@@ -27,6 +28,15 @@ function TelaLogin() {
         >
           Continuar
         </button>
+        <Link
+          to="/esqueci-senha"
+          // Arrumar o estilo do link depois
+          className="text-black text-sm font-medium
+                      hover:bg-gray-800  
+                      transition-colors duration-200 px-3 py-1 rounded-lg"
+        >
+          Esqueci a senha
+        </Link>
       </div>
     </div>
   );
