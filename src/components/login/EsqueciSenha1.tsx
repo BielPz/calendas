@@ -18,9 +18,12 @@ function EsqueciSenha1({ onClick }: Props) {
   };
 
   return (
-    <div className="w-full justify-center items-center bg-white p-6 rounded-lg shadow-md px-10 flex flex-col gap-6">
-      <p className="text-lg font-medium text-gray-700 mb-4 text-center">
-        Digite seu email para recuperar a senha
+    <div className="max-w-md justify-center items-center bg-white p-6 rounded-lg shadow-md px-10 flex flex-col gap-6">
+      <h1 className="text-2xl font-bold text-gray-800 mb-2 text-center px-4">
+        Redefinir senha
+      </h1>
+      <p className="text-lg font-medium text-gray-700 mb-4 text-center px-4 justify-self-start">
+        Informe o email associado à sua conta para redefinir sua senha.
       </p>
       <TextInput
         titulo="Email"

@@ -18,7 +18,7 @@ function EsqueciSenha2({ onClick }: Props) {
   };
 
   return (
-    <div className="w-full justify-center items-center bg-white p-6 rounded-lg shadow-md px-10 flex flex-col gap-6">
+    <div className="max-w-md justify-center items-center bg-white p-6 rounded-lg shadow-md px-10 flex flex-col gap-6">
       <p className="text-lg font-medium text-gray-700 mb-4 text-center">
         Digite o token de verificação que enviamos para seu email
       </p>
@@ -40,7 +40,7 @@ function EsqueciSenha2({ onClick }: Props) {
         disabled={!isValid}
         onClick={onClick}
       >
-        Continuar
+        Confirmar
       </button>
     </div>
   );

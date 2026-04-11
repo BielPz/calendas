@@ -28,15 +28,6 @@ function TelaLogin() {
         >
           Continuar
         </button>
-        <Link
-          to="/esqueci-senha"
-          // Arrumar o estilo do link depois
-          className="text-black text-sm font-medium
-                      hover:bg-gray-800  
-                      transition-colors duration-200 px-3 py-1 rounded-lg"
-        >
-          Esqueci a senha
-        </Link>
       </div>
     </div>
   );
