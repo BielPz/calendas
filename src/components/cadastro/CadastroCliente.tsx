@@ -6,9 +6,11 @@ import { useNavigate } from "react-router-dom";
 import Estados from "../../hooks/Estados";
 import Cidades from "../../hooks/Cidades";
 import { registrarCliente } from "../../firebase/auth";
+import type { Usuario , Cliente} from "../../firebase/types";
 
 function CadastroUsuario() {
-  const [form, setForm] = useState({
+
+  const [form, setForm] = useState<Usuario & Cliente>({
     // Credenciais
     email: "",
     senha: "",
@@ -65,24 +67,9 @@ function CadastroUsuario() {
   const handleConfirmar = async () => {
     if (!isValid) return;
 
-    const dadosParaSalvar = {
-      nome: form.nome,
-      email: form.email,
-      genero: form.genero,
-      dtnasc: form.dtnasc,
-      telefone: form.telefone,
-      cep: form.cep,
-      logradouro: form.logradouro,
-      numero: form.numero,
-      complemento: form.complemento,
-      bairro: form.bairro,
-      cidade: form.cidade,
-      estado: form.estado,
-    };
-
     try {
       // console.log("Iniciando cadastro para:", form.email);
-      await registrarCliente(form.email, form.senha, dadosParaSalvar);
+      await registrarCliente(form.email, form.senha, form);
       // console.log("Cadastro e gravação no banco concluídos!");
       navigate("/feed");
     } catch (error) {

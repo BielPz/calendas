@@ -2,24 +2,15 @@ import { useEffect, useState } from "react";
 import Formulario from "../Formulario";
 import Index from "./Index";
 import TextInput from "../TextInput";
+import type { Usuario } from "../../firebase/types";
 
 interface Props {
   onValidate?: (valid: boolean) => void;
-  onChange: (valor: string) => void;
-}
-
-interface DadosForm {
-  nome: string;
-  email: string;
-  senha: string;
-  rSenha: string;
-  tel?: string;
-  genero: string;
-  dtnasc: string;
+  onChange: (dados: Usuario) => void;
 }
 
 function Fase1({ onValidate, onChange }: Props) {
-  const [form, setForm] = useState<DadosForm>({
+  const [form, setForm] = useState<Usuario>({
     nome: "",
     email: "",
     senha: "",
@@ -37,7 +28,9 @@ function Fase1({ onValidate, onChange }: Props) {
   ];
 
   const handleChange = (campo: string, value: string) => {
-    onChange(value);
+    const novoForm = { ...form, [campo]: value }
+    onChange(novoForm)
+    
     setForm((prev) => ({
       ...prev,
       [campo]: value,
@@ -88,7 +81,7 @@ function Fase1({ onValidate, onChange }: Props) {
           validador={form.senha}
           required
         />
-        <TextInput titulo="Telefone" type="tel" />
+        <TextInput titulo="Telefone" type="tel" onChange={(value) => handleChange("telefone", value)} />
         <TextInput
           titulo="Gênero"
           type="select"

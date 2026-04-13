@@ -4,6 +4,8 @@ import Fase2 from "./Fase2";
 import Fase3 from "./Fase3";
 import CheckBox from "../CheckBox";
 import { useNavigate } from "react-router-dom";
+import { registrarEmpresa, registrarPrestador } from "../../firebase/auth";
+import type { Usuario, Empresa } from "../../firebase/types";
 
 function CadastroUsuario() {
   const [isFormValid, setIsFormValid] = useState(false);
@@ -11,41 +13,50 @@ function CadastroUsuario() {
   const [fase, setFase] = useState(1);
   const navigate = useNavigate();
 
-  interface prestador
-  {
-    nome: string,
-    email: string,
-    tel: string,
-    genero: string,
-    dtnasc: string
-  }
+  const [dadosPrestador, setDadosPrestador] = useState<Usuario>({
+    nome: "",
+    email: "", 
+    senha: "", 
+    rSenha: "", 
+    genero: "", 
+    dtnasc: ""
+  });
 
-  interface empresa
-  {
-    nome: string,
-    cnpj: string,
-    tel: string,
-    email: string,
-    cep: string,
-    logradouro: string,
-    numero: string,
-    complemento: string,
-    bairro: string,
-    cidade: string,
-    estado: string,
-  }
+  const [dadosEmpresa, setDadosEmpresa] = useState<Empresa>({
+    nome: "", 
+    cnpj: "", 
+    tel: "", 
+    email: "",
+    cep: "", 
+    logradouro: "", 
+    numero: "",
+    complemento: "", 
+    bairro: "", 
+    cidade: "", 
+    estado: ""
+  });
 
-  const [dadosPrestador, setDadosPrestador] = useState<prestador>()
-
-  const [dadosEmpresa, setDadosEmpresa] = useState<empresa>()
-
-  const receberFase1 = (dadosPrestador: prestador) => {
-    setDadosPrestador(dadosPrestador);
+  const receberFase1 = (dados: Usuario) => {
+    setDadosPrestador(dados);
   };
 
-  const receberFase2 = (dadosEmpresa: empresa) => {
-    setDadosEmpresa(dadosEmpresa);
+  const receberFase2 = (dados: Empresa) => {
+    setDadosEmpresa(dados);
   };
+
+  const handleConfirmar = async () => {
+    if (!dadosPrestador || !dadosEmpresa) return;
+
+    try {
+      const user = await registrarPrestador(dadosPrestador.email, dadosPrestador.senha, dadosPrestador);
+      await registrarEmpresa(user.uid, dadosEmpresa);
+      navigate("/feed");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
+      alert("Erro: " + errorMessage);
+    }
+  };
+  
 
   return (
     <div className="w-full flex flex-col gap-3">
@@ -54,7 +65,7 @@ function CadastroUsuario() {
           <Fase1 onValidate={setIsFormValid} onChange={receberFase1} />
         </div>
         <div className={`w-full ${fase === 2 ? "block" : "hidden"}`}>
-          <Fase2 onValidate={setIsFormValid} />
+          <Fase2 onValidate={setIsFormValid} onChange={receberFase2} />
         </div>
         <div className={`w-full ${fase === 3 ? "block" : "hidden"}`}>
           <Fase3 onValidate={setIsFormValid} />
@@ -73,7 +84,7 @@ function CadastroUsuario() {
               ? "bg-linear-to-br from-orange-500 to-purple-500 hover:from-orange-700 hover:to-purple-700 cursor-pointer"
               : "bg-gray-400 cursor-not-allowed opacity-70"}
           `}
-        disabled={!(isFormValid && checked)}
+        //disabled={!(isFormValid && checked)}
         onClick={() => {
           if (fase < 3) 
           {
@@ -82,7 +93,7 @@ function CadastroUsuario() {
           } 
           else 
           {
-            navigate("/feed");
+            handleConfirmar()
           }
         }}
       >

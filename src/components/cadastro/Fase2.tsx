@@ -5,25 +5,32 @@ import TextInput from "../TextInput";
 import UploadImagem from "../UploadImagem";
 import Estados from "../../hooks/Estados";
 import Cidades from "../../hooks/Cidades";
+import type { Empresa } from "../../firebase/types";
 
 interface Props {
   onValidate?: (valid: boolean) => void;
+  onChange: (dados: Empresa) => void;
 }
 
-function Fase2({ onValidate }: Props) {
-  const [form, setForm] = useState({
+function Fase2({ onValidate, onChange }: Props) {
+  const [form, setForm] = useState<Empresa>({
     nome: "",
     cnpj: "",
-    telefone: "",
+    tel: "",
+    email: "",
     cep: "",
     logradouro: "",
     numero: "",
+    complemento: "",
     bairro: "",
     cidade: "",
     estado: "",
   });
 
   const handleChange = (campo: string, value: string) => {
+    const novoForm = { ...form, [campo]: value }
+    onChange(novoForm)
+
     setForm((prev) => ({
       ...prev,
       [campo]: value,
@@ -33,7 +40,7 @@ function Fase2({ onValidate }: Props) {
   const isValid = Boolean(
     form.nome &&
     form.cnpj &&
-    form.telefone &&
+    form.tel &&
     form.cep &&
     form.logradouro &&
     form.numero &&
@@ -69,10 +76,10 @@ function Fase2({ onValidate }: Props) {
         <TextInput
           titulo="Telefone"
           type="tel"
-          onChange={(value) => handleChange("telefone", value)}
+          onChange={(value) => handleChange("tel", value)}
           required
         />
-        <TextInput titulo="E-mail" type="email" />
+        <TextInput titulo="E-mail" type="email" onChange={(value) => handleChange("email", value)} />
         <TextInput
           titulo="CEP"
           type="number"
@@ -80,7 +87,7 @@ function Fase2({ onValidate }: Props) {
           required
           cep
         />
-        <TextInput titulo="Complemento" type="text" />
+        <TextInput titulo="Complemento" type="text" onChange={(value) => handleChange("complemento", value)} />
         <TextInput
           titulo="Logradouro"
           type="text"
