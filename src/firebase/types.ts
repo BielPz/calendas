@@ -8,6 +8,8 @@ export interface Usuario
     genero: string,
     dtnasc: string,
     telefone?: string,
+
+    tipo: string
 }
 
 
@@ -19,19 +21,13 @@ export interface Cliente
     complemento: string,
     bairro: string,
     cidade: string,
-    estado: string,
+    estado: string
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface Prestador 
 {
-    email: string,
-    senha: string,
-    rSenha: string,
-
-    nome: string,
-    genero: string,
-    dtnasc: string,
-    telefone?: string,
+    // add algo depois?
 }
 
 export interface Empresa

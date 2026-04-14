@@ -1,11 +1,10 @@
 import Logo from "../images/logo.png";
 
 interface Props {
-  tipo: string;
-  setTipo: React.Dispatch<React.SetStateAction<string>>;
+  tipo: "cliente" | "prestador";
+  setTipo: React.Dispatch<React.SetStateAction<"cliente" | "prestador">>;
   titulo: string;
 }
-
 function CabecalhoBranco({ tipo, setTipo, titulo }: Props) {
   return (
     <div className="w-[45%] flex flex-col gap-2">

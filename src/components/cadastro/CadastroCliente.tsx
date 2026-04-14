@@ -30,6 +30,7 @@ function CadastroUsuario() {
     bairro: "",
     cidade: "",
     estado: "",
+    tipo: "cliente"
   });
 
   const [checked, setChecked] = useState(false);

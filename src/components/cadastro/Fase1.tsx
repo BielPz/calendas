@@ -17,6 +17,7 @@ function Fase1({ onValidate, onChange }: Props) {
     rSenha: "",
     genero: "",
     dtnasc: "",
+    tipo: "prestador"
   });
 
   const generos = [

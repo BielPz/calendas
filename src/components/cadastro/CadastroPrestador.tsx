@@ -19,7 +19,8 @@ function CadastroUsuario() {
     senha: "", 
     rSenha: "", 
     genero: "", 
-    dtnasc: ""
+    dtnasc: "",
+    tipo: "prestador"
   });
 
   const [dadosEmpresa, setDadosEmpresa] = useState<Empresa>({
