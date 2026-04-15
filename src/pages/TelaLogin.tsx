@@ -60,7 +60,7 @@ function TelaLogin() {
             {erro && <p className="text-red-500 text-sm">{erro}</p>}
             <Link
               to="/esqueci-senha"
-              className="text-sm text-gray-400 hover:text-black transition-colors duration-200 self-start mt-1 mb-5"
+              className="text-m text-blue-700 hover:text-black transition-colors duration-200 self-start mt-1 mb-5"
             >
               Esqueci a senha
             </Link>
