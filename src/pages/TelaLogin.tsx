@@ -28,7 +28,9 @@ function TelaLogin() {
         //navigate("/feed/prestador");
         navigate("/feed");
       }
-    } catch (error) {
+    } 
+    catch (error) 
+    {
       const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
       setErro(errorMessage);
     }

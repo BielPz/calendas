@@ -14,18 +14,22 @@ const salvarNoBanco = async (path: string, uid: string, dados: object) => {
 };
 
 export const registrarCliente = async (email: string, pass: string, dados: Usuario & Cliente) => {
+  const { senha, rSenha, ...dadosParaSalvar } = dados;
+
   const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
   const user = userCredential.user;
   await updateProfile(user, { displayName: dados.nome });
-  await salvarNoBanco("clientes", user.uid, dados);
+  await salvarNoBanco("clientes", user.uid, dadosParaSalvar);
   return user;
 };
 
 export const registrarPrestador = async (email: string, pass: string, dados: Usuario) => {
+  const { senha, rSenha, ...dadosParaSalvar } = dados;
+
   const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
   const user = userCredential.user;
   await updateProfile(user, { displayName: dados.nome });
-  await salvarNoBanco("prestadores", user.uid, dados);
+  await salvarNoBanco("prestadores", user.uid, dadosParaSalvar);
   return user;
 };
 
