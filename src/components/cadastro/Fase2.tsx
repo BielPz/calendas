@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import Formulario from "../Formulario";
-import Index from "./Index";
 import TextInput from "../TextInput";
 import UploadImagem from "../UploadImagem";
 import Estados from "../../hooks/Estados";
@@ -59,7 +58,6 @@ function Fase2({ onValidate, onChange }: Props) {
   return (
     <>
       <Formulario>
-        <Index qntPages={3} itemOn="2" />
         <TextInput
           titulo="Nome da Empresa"
           type="text"

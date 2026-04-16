@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import Formulario from "../Formulario";
-import Index from "./Index";
 import TextInput from "../TextInput";
 import type { Usuario } from "../../firebase/types";
 
@@ -55,7 +54,6 @@ function Fase1({ onValidate, onChange }: Props) {
   return (
     <>
       <Formulario>
-        <Index qntPages={3} itemOn="1" />
         <TextInput
           titulo="Nome"
           type="text"

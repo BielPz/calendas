@@ -6,6 +6,7 @@ import CheckBox from "../CheckBox";
 import { useNavigate } from "react-router-dom";
 import { registrarEmpresa, registrarPrestador } from "../../firebase/auth";
 import type { Usuario, Empresa } from "../../firebase/types";
+import Index from "./Index";
 
 function CadastroUsuario() {
   const [isFormValid, setIsFormValid] = useState(false);
@@ -57,10 +58,15 @@ function CadastroUsuario() {
       alert("Erro: " + errorMessage);
     }
   };
+
+  const handleClick = (fase: number, faseAtual: number) => {
+    return fase < faseAtual? setFase(fase) : null;
+  };
   
 
   return (
     <div className="w-full flex flex-col gap-3">
+      <Index qntPages={3} itemOn={fase} onClick={() => handleClick(1, fase)}/>
       <div>
         <div className={`w-full ${fase === 1 ? "block" : "hidden"}`}>
           <Fase1 onValidate={setIsFormValid} onChange={receberFase1} />

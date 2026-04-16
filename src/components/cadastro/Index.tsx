@@ -3,17 +3,19 @@ import IndexNumber from "./IndexNumber";
 
 interface Props {
   qntPages: number;
-  itemOn: string;
+  itemOn: number;
+  onClick: () => void;
 }
 
-function Index({ qntPages, itemOn }: Props) {
+function Index({ qntPages, itemOn, onClick }: Props) {
   return (
     <div className="flex gap-4 items-center justify-between w-full my-4">
       {Array.from({ length: qntPages }, (_, i) => (
         <React.Fragment key={i}>
           <IndexNumber
             index={String(i + 1)}
-            atived={itemOn === String(i + 1)}
+            atived={itemOn === i + 1}
+            onClick={onClick}
           />
 
           {i + 1 < qntPages && (
