@@ -20,7 +20,7 @@ interface Props {
   required?: boolean;
   cep?: boolean;
   validador?: string;
-  tipoValidacao?: "senha" | "padrão";
+  tipoValidacao?: "senha" | "data" | "padrão";
   options?: Option[];
   onChange?: (value: string) => void;
 }
@@ -39,7 +39,7 @@ function TextInput({
   const [valor, setValor] = useState("");
 
   const today = new Date();
-  today.setFullYear(today.getFullYear() - 14);
+  today.setFullYear(today.getFullYear() - 16);
   const dataMinima = today.toLocaleDateString("en-CA");
   const hoje = new Date().toLocaleDateString("en-CA");
 
@@ -58,11 +58,16 @@ function TextInput({
 
   function validar(value: string) {
     if (tipoValidacao === "senha") {
-      return validador !== value ? "As senhas não coincidem" : null;
+      return validador !== value ? "As senhas não coincidem." : null;
+    }
+    
+    if (tipoValidacao === "data") 
+    {
+      return value > hoje || value > dataMinima ? "Data invalida!" : null;
     }
 
     if (required && !value) {
-      return "Você deve preencher esse campo";
+      return "Você deve preencher esse campo.";
     }
 
     return null;
@@ -129,8 +134,8 @@ function TextInput({
           {...commonProps}
           value={valor}
           onChange={(e) => handleChange(e.target.value)}
-          min={type === "date" ? hoje : undefined}
-          max={type === "date" ? dataMinima : undefined}
+          //min={type === "date" ? hoje : undefined}
+          //max={type === "date" ? dataMinima : undefined}
           onWheel={
             type === "number"
               ? (e) => (e.currentTarget as HTMLInputElement).blur()

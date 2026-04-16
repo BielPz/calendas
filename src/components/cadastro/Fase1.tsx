@@ -94,6 +94,7 @@ function Fase1({ onValidate, onChange }: Props) {
           titulo="Data de nascimento"
           type="date"
           onChange={(value) => handleChange("dtnasc", value)}
+          tipoValidacao="data"
           required
         />
       </Formulario>
