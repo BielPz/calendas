@@ -19,6 +19,7 @@ interface Props {
     | "select";
   required?: boolean;
   cep?: boolean;
+  cnpj?: boolean;
   validador?: string;
   tipoValidacao?: "senha" | "data" | "padrão";
   options?: Option[];
@@ -30,6 +31,7 @@ function TextInput({
   type = "text",
   required,
   cep,
+  cnpj,
   validador,
   tipoValidacao,
   options = [],
@@ -96,7 +98,7 @@ function TextInput({
     <div className="w-full">
       <p>
         {titulo}
-        {required && <b className="text-red-400 font-semibold"> *</b>}
+        {required && <b className="text-red-400 font-semibold">*</b>}
       </p>
 
       {type === "select" ? (
@@ -125,6 +127,12 @@ function TextInput({
       ) : cep ? (
         <IMaskInput
           mask="00000-000"
+          {...commonProps}
+          onAccept={(value) => handleChange(value)}
+        />
+      ) : cnpj ? (
+        <IMaskInput
+          mask="00.000.000/0000-00"
           {...commonProps}
           onAccept={(value) => handleChange(value)}
         />

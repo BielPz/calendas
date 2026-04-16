@@ -78,13 +78,13 @@ function CadastroUsuario() {
         />
       </div>
       <button
-        className={`
-          w-full py-4 rounded-xl text-white font-semibold
-          bg-linear-to-br from-orange-400 to-purple-400 cursor-pointer mb-10
+       className={`
+          w-full py-4 rounded-xl text-white font-semibold mb-10
           ${isFormValid && checked
-              ? "bg-linear-to-br from-orange-500 to-purple-500 hover:from-orange-700 hover:to-purple-700 cursor-pointer"
-              : "bg-gray-400 cursor-not-allowed opacity-70"}
-          `}
+              ? "bg-gradient-to-br from-orange-500 to-purple-500 hover:from-orange-700 hover:to-purple-700 cursor-pointer"
+              : "bg-gray-400 cursor-not-allowed opacity-70"
+          }
+        `}
         disabled={!(isFormValid && checked)}
         onClick={() => {
           if (fase < 3) 

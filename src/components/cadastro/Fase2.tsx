@@ -71,6 +71,7 @@ function Fase2({ onValidate, onChange }: Props) {
           titulo="CNPJ"
           type="text"
           onChange={(value) => handleChange("cnpj", value)}
+          cnpj
           required
         />
         <TextInput

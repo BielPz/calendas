@@ -126,6 +126,7 @@ function CadastroUsuario() {
           titulo="Data de nascimento"
           type="date"
           onChange={(value) => handleChange("dtnasc", value)}
+          tipoValidacao="data"
           required
         />
         <TextInput
@@ -155,17 +156,17 @@ function CadastroUsuario() {
           onChange={(value) => handleChange("bairro", value)}
         />
         <TextInput
-          titulo="Cidade"
-          type="select"
-          options={cidades}
-          onChange={(value) => handleChange("cidade", value)}
-        />
-        <TextInput
           titulo="Estado"
           type="select"
           options={estados}
           onChange={(value) => handleChange("estado", value)}
         />
+        <TextInput
+          titulo="Cidade"
+          type="select"
+          options={cidades}
+          onChange={(value) => handleChange("cidade", value)}
+        />   
       </Formulario>
       <CheckBox
         message="Declaro que os dados acima são legítimos"
