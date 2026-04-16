@@ -44,3 +44,10 @@ export interface Empresa
     cidade: string,
     estado: string,
 }
+
+export interface Servico {
+    cnpj: string;
+    nome: string;
+    descricao?: string;
+    preco: number;
+}

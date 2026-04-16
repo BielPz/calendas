@@ -7,6 +7,7 @@ import TelaLogin from "./pages/TelaLogin";
 import TelaCadastro from "./pages/TelaCadastro";
 import TelaFeed from "./pages/TelaFeed";
 import TelaEsqueciSenha from "./pages/TelaEsqueciSenha";
+import TelaCriarServico from "./pages/TelaCriarServico";
 
 const gradiente: string = "bg-gradient-to-br from-orange-400 to-purple-400";
 
@@ -17,10 +18,8 @@ createRoot(document.getElementById("root")!).render(
       <Route path="/login" element={<TelaLogin />} />
       <Route path="/cadastro" element={<TelaCadastro />} />
       <Route path="/feed" element={<TelaFeed cor_fundo={gradiente} />} />
-      <Route
-        path="/esqueci-senha"
-        element={<TelaEsqueciSenha cor_fundo={gradiente} />}
-      />
+      <Route path="/esqueci-senha" element={<TelaEsqueciSenha cor_fundo={gradiente} />} />
+      <Route path="/cadastro-servico" element={<TelaCriarServico />} />
     </Routes>
   </BrowserRouter>,
 );
