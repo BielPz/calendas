@@ -4,7 +4,7 @@ import IndexNumber from "./IndexNumber";
 interface Props {
   qntPages: number;
   itemOn: number;
-  onClick: () => void;
+  onClick?: (index: number) => void;
 }
 
 function Index({ qntPages, itemOn, onClick }: Props) {
@@ -15,11 +15,11 @@ function Index({ qntPages, itemOn, onClick }: Props) {
           <IndexNumber
             index={String(i + 1)}
             atived={itemOn === i + 1}
-            onClick={onClick}
+            onClick={() => onClick?.(i + 1)}
           />
 
           {i + 1 < qntPages && (
-              <hr className="flex-1 border-t border-gray-400 mx-2" />
+            <hr className="flex-1 border-t border-gray-400 mx-2" />
           )}
         </React.Fragment>
       ))}

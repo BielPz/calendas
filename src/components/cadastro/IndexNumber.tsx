@@ -5,8 +5,6 @@ interface Props {
 }
 
 function IndexNumber({ index, atived, onClick }: Props) {
-  //const [fase, setFase] = useState(1);
-
   return (
     <>
       <div
