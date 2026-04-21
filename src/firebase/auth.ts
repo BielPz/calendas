@@ -1,5 +1,5 @@
 import { auth, db } from "./config";
-import { createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { ref, get, set, push } from "firebase/database";
 import type { Usuario, Cliente, Empresa } from "./types";
 
@@ -63,4 +63,15 @@ export const login = async (email: string, pass: string, tipo: "cliente" | "pres
   }
 
   return user;
+};
+
+// Esqueci senha
+
+export const redefinirSenha = async (email: string) => {
+  try {
+    await sendPasswordResetEmail(auth, email);
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, message: error.message };
+  }
 };

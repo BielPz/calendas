@@ -2,6 +2,7 @@ import { useState } from "react";
 import Cabecalho from "../components/Cabecalho";
 import TextInput from "../components/TextInput";
 import { useNavigate } from "react-router-dom";
+import { redefinirSenha } from "../firebase/auth";
 
 interface Props {
   cor_fundo: string;
@@ -57,7 +58,19 @@ function TelaEsqueciSenha({ cor_fundo }: Props) {
             }
           `}
             disabled={!isValid}
-            onClick={() => navigate("/reset-senha")}
+            onClick={() =>
+              redefinirSenha(form.email)
+                .then(() => {
+                  alert(
+                    "Email de redefinição enviado! Verifique sua caixa de entrada.",
+                  );
+                })
+                .catch(() => {
+                  alert(
+                    "Erro ao enviar email de redefinição. Verifique o email informado.",
+                  );
+                })
+            }
           >
             Continuar
           </button>
