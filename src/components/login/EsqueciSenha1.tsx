@@ -1,8 +1,9 @@
 import { useState } from "react";
 import TextInput from "../TextInput";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
-  onClick: () => void;
+  onClick: (etapa: number) => void;
 }
 
 function EsqueciSenha1({ onClick }: Props) {
@@ -17,8 +18,17 @@ function EsqueciSenha1({ onClick }: Props) {
     }));
   };
 
+  const navigate = useNavigate();
+
   return (
     <div className="max-w-md justify-center items-center bg-white p-6 rounded-lg shadow-md px-10 flex flex-col gap-6">
+      <button
+        className="flex items-center gap-2 text-gray-500 hover:text-gray-800 transition-colors self-start"
+        onClick={() => navigate("/login")}
+      >
+        <span className="text-xl">X</span>
+      </button>
+
       <h1 className="text-2xl font-bold text-gray-800 mb-2 text-center px-4">
         Redefinir senha
       </h1>
@@ -41,7 +51,7 @@ function EsqueciSenha1({ onClick }: Props) {
             }
           `}
         disabled={!isValid}
-        onClick={onClick}
+        onClick={() => onClick(2)}
       >
         Continuar
       </button>
