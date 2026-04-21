@@ -43,6 +43,7 @@ export interface Empresa
     bairro: string,
     cidade: string,
     estado: string,
+    imagem?: string
 }
 
 export interface Servico {

@@ -1,11 +1,25 @@
 import { useState } from "react";
+import { uploadImage } from "../cloudinary/upload";
 
 interface Props {
   label: string;
+  onUpload: (url: string) => void;
 }
 
-function UploadImagem({ label }: Props) {
+function UploadImagem({ label, onUpload }: Props) {
   const [fileName, setFileName] = useState("Nenhum arquivo selecionado");
+  const [loading, setLoading] = useState(false);
+
+  const handleFile = async (file: File) => {
+    setLoading(true);
+
+    const url = await uploadImage(file);
+
+    setFileName(file.name);
+    onUpload(url);
+
+    setLoading(false);
+  };
 
   return (
     <div className="w-full max-w-md">
@@ -14,13 +28,13 @@ function UploadImagem({ label }: Props) {
       <div className="flex items-center border rounded-lg overflow-hidden bg-gray-100">
         {/* Botão */}
         <label className="bg-gray-300 px-4 py-2 cursor-pointer hover:bg-gray-400 transition">
-          Selecionar imagem
+          {loading ? "Enviando..." : "Selecionar imagem"}
           <input
             type="file"
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0];
-              if (file) setFileName(file.name);
+              if (file) handleFile(file);
             }}
           />
         </label>

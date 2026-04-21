@@ -24,11 +24,12 @@ function Fase2({ onValidate, onChange }: Props) {
     bairro: "",
     cidade: "",
     estado: "",
+    imagem: "",
   });
 
   const handleChange = (campo: string, value: string) => {
-    const novoForm = { ...form, [campo]: value }
-    onChange(novoForm)
+    const novoForm = { ...form, [campo]: value };
+    onChange(novoForm);
 
     setForm((prev) => ({
       ...prev,
@@ -64,7 +65,10 @@ function Fase2({ onValidate, onChange }: Props) {
           onChange={(value) => handleChange("nome", value)}
           required
         />
-        <UploadImagem label="Imagem da empresa" />
+        <UploadImagem
+          label="Imagem da empresa"
+          onUpload={(url) => handleChange("imagem", url)}
+        />
         <TextInput
           titulo="CNPJ"
           type="text"
@@ -78,7 +82,11 @@ function Fase2({ onValidate, onChange }: Props) {
           onChange={(value) => handleChange("tel", value)}
           required
         />
-        <TextInput titulo="E-mail" type="email" onChange={(value) => handleChange("email", value)} />
+        <TextInput
+          titulo="E-mail"
+          type="email"
+          onChange={(value) => handleChange("email", value)}
+        />
         <TextInput
           titulo="CEP"
           type="number"
@@ -86,7 +94,11 @@ function Fase2({ onValidate, onChange }: Props) {
           required
           cep
         />
-        <TextInput titulo="Complemento" type="text" onChange={(value) => handleChange("complemento", value)} />
+        <TextInput
+          titulo="Complemento"
+          type="text"
+          onChange={(value) => handleChange("complemento", value)}
+        />
         <TextInput
           titulo="Logradouro"
           type="text"

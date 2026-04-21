@@ -36,6 +36,7 @@ function CadastroUsuario() {
     bairro: "",
     cidade: "",
     estado: "",
+    imagem: "",
   });
 
   const receberFase1 = (dados: Usuario) => {
