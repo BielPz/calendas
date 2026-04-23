@@ -2,18 +2,16 @@ import { useState } from "react";
 import Formulario from "../components/Formulario";
 import TextInput from "../components/TextInput";
 import type { Servico } from "../firebase/types";
-/*
-interface Props 
-{
-    onValidate?: (valid: boolean) => void;
-}
-*/
+import CabecalhoBranco from "../components/CabecalhoBranco";
 
-function TelaCriarServico(/*{onValidate}: Props*/) {
+function TelaCriarServico() {
   const [form, setForm] = useState<Servico>({
     cnpj: "",
     nome: "",
     preco: 0,
+    incio: "",
+    fim: "",
+    duracao: ""
   });
 
   const handleChange = (campo: string, value: string) => {
@@ -24,17 +22,13 @@ function TelaCriarServico(/*{onValidate}: Props*/) {
     }));
   };
 
-  const isValid = Boolean(form.cnpj && form.nome && form.preco);
-
-  /*
-    useEffect(() => {
-        onValidate?.(isValid);
-    }, [isValid]);
-    */
+  const isValid = Boolean(form.cnpj && form.nome && form.preco && form.incio && form.fim && form.duracao);
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen">
+        <CabecalhoBranco titulo="Cadastre seu Serviço"/>
       <div className="w-[45%] min-w-[300px] relative flex flex-col gap-3 justify-items-center">
+        
         <Formulario>
           <TextInput
             titulo="CNPJ"
@@ -61,9 +55,27 @@ function TelaCriarServico(/*{onValidate}: Props*/) {
             onChange={(value) => handleChange("preco", value)}
             required
           />
+          <div className="flex gap-3">
+            <TextInput
+            titulo="Inicio"
+            type="text"
+            onChange={(value) => handleChange("inicio", value)}
+            required
+            />
+            <TextInput
+                titulo="Fim"
+                type="text"
+                onChange={(value) => handleChange("fim", value)}
+                required
+            />
+          </div>
+          <TextInput
+            titulo="Duração"
+            type="text"
+            onChange={(value) => handleChange("duracao", value)}
+            required
+          />
         </Formulario>
-      </div>
-      <div>
         <button
           className={`
             w-full py-4 rounded-xl text-white font-semibold mb-10

@@ -51,4 +51,7 @@ export interface Servico {
     nome: string;
     descricao?: string;
     preco: number;
+    incio: string;
+    fim: string;
+    duracao: string;
 }

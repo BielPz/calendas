@@ -1,8 +1,8 @@
 import Logo from "../images/logo.png";
 
 interface Props {
-  tipo: "cliente" | "prestador";
-  setTipo: React.Dispatch<React.SetStateAction<"cliente" | "prestador">>;
+  tipo?: "cliente" | "prestador";
+  setTipo?: React.Dispatch<React.SetStateAction<"cliente" | "prestador">>;
   titulo: string;
 }
 function CabecalhoBranco({ tipo, setTipo, titulo }: Props) {
@@ -23,25 +23,32 @@ function CabecalhoBranco({ tipo, setTipo, titulo }: Props) {
           <div className="flex-grow border-t border-gray-400"></div>
         </div>
 
-        <div className="flex items-center justify-center w-full gap-4">
-          <button
-            onClick={() => setTipo("cliente")}
-            className={`flex-1 px-7 py-5 border border-gray-200 rounded-xl hover:bg-gray-300 cursor-pointer transition 
-                    ${tipo === "cliente" ? "bg-gray-300" : ""}`}
-          >
-            Cliente
-          </button>
+        {tipo !== undefined && setTipo !== undefined && (
+        <div>
+          <div className="relative flex items-center w-full min-w-[280px] bg-gray-100 rounded-full p-1 border border-gray-200 mb-5">
+            <div
+              className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white rounded-full shadow transition-all duration-300 ease-in-out
+                ${tipo === "cliente" ? "left-1" : "left-[calc(50%+3px)]"}`}
+            />
 
-          <button
-            onClick={() => setTipo("prestador")}
-            className={`flex-1 px-7 py-5 border border-gray-200 rounded-xl hover:bg-gray-300 cursor-pointer transition 
-                    ${tipo === "prestador" ? "bg-gray-300" : ""}`}
-          >
-            Prestador
-          </button>
-        </div>
+            <button
+              onClick={() => setTipo("cliente")}
+              className={`relative flex-1 px-4 py-3 rounded-full cursor-pointer transition-colors duration-300 font-medium z-10 whitespace-nowrap text-sm
+                ${tipo === "cliente" ? "text-gray-800" : "text-gray-400"}`}
+            >
+              Cliente
+            </button>
 
-        <hr className="border-t border-gray-400 my-2" />
+            <button
+              onClick={() => setTipo("prestador")}
+              className={`relative flex-1 px-4 py-3 rounded-full cursor-pointer transition-colors duration-300 font-medium z-10 whitespace-nowrap text-sm
+                ${tipo === "prestador" ? "text-gray-800" : "text-gray-400"}`}
+            >
+              Prestador
+            </button>
+          </div>
+          <hr className="border-t border-gray-400 my-2" />
+        </div>)}
       </div>
     </div>
   );
