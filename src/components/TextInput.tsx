@@ -11,6 +11,7 @@ interface Props {
   type?:
     | "text"
     | "date"
+    | "time"
     | "password"
     | "number"
     | "email"
@@ -50,6 +51,7 @@ function TextInput({
     email: "exemplo@email.com",
     password: "Digite sua senha",
     date: "dd/mm/aaaa",
+    time: "00:00",
     number: "0",
     text: "Digite seu " + titulo,
     file: "",
@@ -136,14 +138,22 @@ function TextInput({
           {...commonProps}
           onAccept={(value) => handleChange(value)}
         />
-      ) : (
+      ) : type === "time" ? (
+        <IMaskInput
+          mask="00:00"
+          {...commonProps}
+          onAccept={(value) => handleChange(value)}
+          onBlur={() => {
+            const horaValida = /^([01]\d|2[0-3]):[0-5]\d$/.test(valor);
+            setErro(!horaValida ? "Hora inválida." : validar(valor));
+          }}
+        />
+      ) : (   
         <input
           type={type}
           {...commonProps}
           value={valor}
           onChange={(e) => handleChange(e.target.value)}
-          //min={type === "date" ? hoje : undefined}
-          //max={type === "date" ? dataMinima : undefined}
           onWheel={
             type === "number"
               ? (e) => (e.currentTarget as HTMLInputElement).blur()
@@ -152,7 +162,7 @@ function TextInput({
         />
       )}
 
-      <div className="min-h-[20px] transition-all duration-200">
+      <div className="min-h-5 transition-all duration-200">
         {erro && <p className="text-red-500 text-sm">{erro}</p>}
       </div>
     </div>

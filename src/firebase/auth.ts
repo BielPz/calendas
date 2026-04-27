@@ -14,6 +14,7 @@ const salvarNoBanco = async (path: string, uid: string, dados: object) => {
 };
 
 export const registrarCliente = async (email: string, pass: string, dados: Usuario & Cliente) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { senha, rSenha, ...dadosParaSalvar } = dados;
 
   const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
@@ -24,6 +25,7 @@ export const registrarCliente = async (email: string, pass: string, dados: Usuar
 };
 
 export const registrarPrestador = async (email: string, pass: string, dados: Usuario) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { senha, rSenha, ...dadosParaSalvar } = dados;
 
   const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
@@ -71,6 +73,7 @@ export const redefinirSenha = async (email: string) => {
   try {
     await sendPasswordResetEmail(auth, email);
     return { success: true };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     return { success: false, message: error.message };
   }

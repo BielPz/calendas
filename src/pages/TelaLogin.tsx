@@ -66,7 +66,7 @@ function TelaLogin() {
             w-full py-4 rounded-xl text-white font-semibold mb-10
             ${
               isValid
-                ? "bg-gradient-to-br from-orange-500 to-purple-500 hover:from-orange-700 hover:to-purple-700 cursor-pointer"
+                ? "bg-linear-to-br from-orange-500 to-purple-500 hover:from-orange-700 hover:to-purple-700 cursor-pointer"
                 : "bg-gray-400 cursor-not-allowed opacity-70"
             }
           `}
