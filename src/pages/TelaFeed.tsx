@@ -32,6 +32,7 @@ function TelaFeed({ cor_fundo }: Props) {
           <div className="flex gap-2">
             <input
               type="text"
+              placeholder="Pesquisar"
               className="bg-white w-full p-3 rounded-lg border border-gray-300 focus:outline-none"
             />
             {usuario === "prestador" && (

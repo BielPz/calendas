@@ -28,6 +28,7 @@ export const criarServico = async (item: Servico, idEmpresa: string) => {
   }
 };
 
+// Pega as empresas de um prestador
 export const getEmpresasDoPrestador = async (): Promise<{ id: string; nome: string }[]> => {
   const auth = getAuth();
   const uid = auth.currentUser?.uid;
@@ -50,10 +51,38 @@ export const getEmpresasDoPrestador = async (): Promise<{ id: string; nome: stri
   return empresas;
 };
 
+// Pega a empresa or ID
 export const getEmpresaPorId = async (id: string) => {
   const snap = await get(ref(db, `empresas/${id}`));
   if (snap.exists()) {
     return snap.val();
   }
   return null;
+};
+
+
+export const getServicosDaEmpresa = async (idEmpresa: string): Promise<Servico[]> => {
+  try {
+    // 1. pega os IDs dos serviços da empresa
+    const servicosRef = ref(db, `empresas/${idEmpresa}/servicos`);
+    const snapshot = await get(servicosRef);
+
+    if (!snapshot.exists()) return [];
+
+    const ids = Object.keys(snapshot.val());
+
+    // 2. busca cada serviço no nó global
+    const servicos = await Promise.all(
+      ids.map(async (id) => {
+        const snap = await get(ref(db, `servicos/${id}`));
+        return snap.exists() ? { id, ...snap.val() } : null;
+      })
+    );
+
+    // 3. remove null (caso algum não exista)
+    return servicos.filter(Boolean) as Servico[];
+  } catch (error) {
+    console.error("Erro ao buscar serviços:", error);
+    return [];
+  }
 };
