@@ -15,16 +15,9 @@ function TelaLogin() {
 
   const handleLogin = async () => {
     if (!isValid) return;
-
     try {
       await login(email, senha, tipo);
-      if (tipo === "cliente") {
-        //navigate("/feed/cliente");
-        navigate("/feed");
-      } else {
-        //navigate("/feed/prestador");
-        navigate("/feed");
-      }
+      navigate("/feed");
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Erro desconhecido";

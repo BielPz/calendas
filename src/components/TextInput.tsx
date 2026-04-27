@@ -8,6 +8,8 @@ type Option = {
 
 interface Props {
   titulo: string;
+  value?: string;
+  disabled?: boolean;
   type?:
     | "text"
     | "date"
@@ -29,6 +31,8 @@ interface Props {
 
 function TextInput({
   titulo,
+  value,
+  disabled,
   type = "text",
   required,
   cep,
@@ -39,7 +43,10 @@ function TextInput({
   onChange,
 }: Props) {
   const [erro, setErro] = useState<string | null>(null);
-  const [valor, setValor] = useState("");
+  const [valorInterno, setValorInterno] = useState("");
+
+  // 👇 controlado ou não
+  const valor = value !== undefined ? value : valorInterno;
 
   const today = new Date();
   today.setFullYear(today.getFullYear() - 16);
@@ -64,9 +71,8 @@ function TextInput({
     if (tipoValidacao === "senha") {
       return validador !== value ? "As senhas não coincidem." : null;
     }
-    
-    if (tipoValidacao === "data") 
-    {
+
+    if (tipoValidacao === "data") {
       return value > hoje || value > dataMinima ? "Data invalida!" : null;
     }
 
@@ -77,23 +83,24 @@ function TextInput({
     return null;
   }
 
-  function handleChange(value: string) {
-    setValor(value);
-    onChange?.(value);
+  function handleChange(v: string) {
+    if (value === undefined) {
+      setValorInterno(v); // 👈 só atualiza interno se não for controlado
+    }
+    onChange?.(v);
   }
 
   const baseClass =
-    "w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none";
+    "w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none disabled:bg-gray-100";
 
   const commonProps = {
     id: titulo.toLowerCase(),
     name: titulo.toLowerCase(),
     placeholder: placeholderDinamico,
     className: `${baseClass} no-spinner appearance-none`,
-    onBlur: () => {
-      setErro(validar(valor));
-    },
+    onBlur: () => setErro(validar(valor)),
     required,
+    disabled,
   };
 
   return (
@@ -105,10 +112,9 @@ function TextInput({
 
       {type === "select" ? (
         <select
-          className={baseClass}
+          {...commonProps}
           value={valor}
           onChange={(e) => handleChange(e.target.value)}
-          onBlur={() => setErro(validar(valor))}
         >
           <option value="" disabled>
             {placeholderDinamico}
@@ -124,31 +130,35 @@ function TextInput({
         <IMaskInput
           mask="(00) 00000-0000"
           {...commonProps}
-          onAccept={(value) => handleChange(value)}
+          value={valor}
+          onAccept={(v) => handleChange(String(v))}
         />
       ) : cep ? (
         <IMaskInput
           mask="00000-000"
           {...commonProps}
-          onAccept={(value) => handleChange(value)}
+          value={valor}
+          onAccept={(v) => handleChange(String(v))}
         />
       ) : cnpj ? (
         <IMaskInput
           mask="00.000.000/0000-00"
           {...commonProps}
-          onAccept={(value) => handleChange(value)}
+          value={valor}
+          onAccept={(v) => handleChange(String(v))}
         />
       ) : type === "time" ? (
         <IMaskInput
           mask="00:00"
           {...commonProps}
-          onAccept={(value) => handleChange(value)}
+          value={valor}
+          onAccept={(v) => handleChange(String(v))}
           onBlur={() => {
             const horaValida = /^([01]\d|2[0-3]):[0-5]\d$/.test(valor);
             setErro(!horaValida ? "Hora inválida." : validar(valor));
           }}
         />
-      ) : (   
+      ) : (
         <input
           type={type}
           {...commonProps}

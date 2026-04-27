@@ -18,7 +18,7 @@ createRoot(document.getElementById("root")!).render(
       <Route path="/" element={<TelaInicial cor_fundo={gradiente} />} />
       <Route path="/login" element={<TelaLogin />} />
       <Route path="/cadastro" element={<TelaCadastro />} />
-      <Route path="/feed" element={<TelaFeed cor_fundo={gradiente} />} />
+      <Route path="/feed" element={<TelaFeed cor_fundo={gradiente}/>} />
       <Route
         path="/esqueci-senha"
         element={<TelaEsqueciSenha cor_fundo={gradiente} />}

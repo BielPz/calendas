@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Formulario from "../components/Formulario";
 import TextInput from "../components/TextInput";
 import type { Servico } from "../firebase/types";
 import CabecalhoBranco from "../components/CabecalhoBranco";
-import { criarServico } from "../firebase/database";
+import { criarServico, getEmpresaPorId } from "../firebase/database";
+import { useLocation } from "react-router";
 
 function TelaCriarServico() {
+  const location = useLocation();
+  const idEmpresa = location.state?.idEmpresa; // O ID que passamos no navigate
   const [form, setForm] = useState<Servico>({
     cnpj: "",
     nome: "",
@@ -16,6 +19,20 @@ function TelaCriarServico() {
     duracao: "",
   });
   const [erro, setErro] = useState("");
+
+  useEffect(() => {
+    if (idEmpresa) {
+      // Busca os dados da empresa para pegar o CNPJ
+      getEmpresaPorId(idEmpresa).then((dados) => {
+        if (dados && dados.cnpj) {
+          setForm((prev) => ({
+            ...prev,
+            cnpj: dados.cnpj // Preenche o CNPJ automaticamente no estado
+          }));
+        }
+      });
+    }
+  }, [idEmpresa]);
 
   const handleChange = (campo: string, value: string) => {
     setForm((prev) => ({
@@ -29,9 +46,9 @@ function TelaCriarServico() {
   );
 
   const handleConfirmar = async () => {
-    if (!isValid) return;
+    if (!isValid || !idEmpresa) return;
     try {
-      await criarServico(form);
+      await criarServico(form, idEmpresa);
       alert("Serviço criado com sucesso!");
     } catch (error) {
       const errorMessage =
@@ -46,11 +63,12 @@ function TelaCriarServico() {
       <div className="w-[45%] min-w-75 relative flex flex-col gap-3 justify-items-center">
         <Formulario>
           <TextInput
-            titulo="CNPJ"
+            titulo="CNPJ da Empresa"
             type="text"
-            onChange={(value) => handleChange("cnpj", value)}
+            value={form.cnpj} // Vincula o valor ao estado preenchido
+            onChange={() => {}} // Bloqueia edição manual se desejar
+            disabled // Deixa o campo desabilitado já que é automático
             cnpj
-            required
           />
           <TextInput
             titulo="Nome"

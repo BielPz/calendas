@@ -72,7 +72,7 @@ function CadastroUsuario() {
       // console.log("Iniciando cadastro para:", form.email);
       await registrarCliente(form.email, form.senha, form);
       // console.log("Cadastro e gravação no banco concluídos!");
-      navigate("/feed");
+      navigate("/login");
     } catch (error) {
       // Verificamos se ele é um objeto que tem a propriedade message
       const errorMessage =

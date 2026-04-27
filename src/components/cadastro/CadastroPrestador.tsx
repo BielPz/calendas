@@ -57,7 +57,7 @@ function CadastroUsuario() {
         dadosPrestador,
       );
       await registrarEmpresa(user.uid, dadosEmpresa);
-      navigate("/feed");
+      navigate("/login");
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Erro desconhecido";

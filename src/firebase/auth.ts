@@ -1,5 +1,5 @@
 import { auth, db } from "./config";
-import { createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword, sendPasswordResetEmail, getAuth } from "firebase/auth";
 import { ref, get, set, push } from "firebase/database";
 import type { Usuario, Cliente, Empresa } from "./types";
 
@@ -36,13 +36,20 @@ export const registrarPrestador = async (email: string, pass: string, dados: Usu
 };
 
 export const registrarEmpresa = async (uidPrestador: string, dados: Empresa) => {
+  // Cria a empresa no nó global "empresas"
   const novaEmpresaRef = push(ref(db, "empresas"));
   await set(novaEmpresaRef, {
     ...dados,
     uidDono: uidPrestador,
     dataCadastro: new Date().toISOString(),
   });
-  return novaEmpresaRef.key;
+
+  const idEmpresa = novaEmpresaRef.key!;
+
+  // Salva o ID da empresa dentro do prestador
+  await set(ref(db, `prestadores/${uidPrestador}/empresas/${idEmpresa}`), true);
+
+  return idEmpresa;
 };
 
 // Login
@@ -65,6 +72,21 @@ export const login = async (email: string, pass: string, tipo: "cliente" | "pres
   }
 
   return user;
+  
+};
+
+export const getTipoUsuario = async (): Promise<"cliente" | "prestador"> => {
+  const auth = getAuth();
+  const uid = auth.currentUser?.uid;
+  if (!uid) throw new Error("Usuário não logado");
+
+  const clienteSnap = await get(ref(db, `clientes/${uid}`));
+  if (clienteSnap.exists()) return "cliente";
+
+  const prestadorSnap = await get(ref(db, `prestadores/${uid}`));
+  if (prestadorSnap.exists()) return "prestador";
+
+  throw new Error("Usuário não encontrado");
 };
 
 // Esqueci senha
