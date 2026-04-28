@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import Cabecalho from "../components/Cabecalho";
 import { getTipoUsuario } from "../firebase/auth";
-import { getEmpresasDoPrestador } from "../firebase/database";
+import { getEmpresasDoPrestador, getTodosServicos } from "../firebase/database";
 import DisplayServicos from "../components/prestador/DisplayServicos";
+import ServicoItem from "../components/cliente/ServicoItem";
+import type { Servico } from "../firebase/types";
+import { getAuth } from "firebase/auth";
 
 interface Props {
   cor_fundo: string;
@@ -10,23 +13,32 @@ interface Props {
 
 function TelaFeed({ cor_fundo }: Props) {
   const [usuario, setUsuario] = useState<"cliente" | "prestador" | null>(null);
+  const [nomeUsuario, setNomeUsuario] = useState("");
   const [empresas, setEmpresas] = useState<{ id: string; nome: string }[]>([]);
   const [idEmpresaAtiva, setIdEmpresaAtiva] = useState("");
+  const [servicos, setServicos] = useState<Servico[]>([]);
 
   useEffect(() => {
-    getTipoUsuario().then(setUsuario).catch(console.error);
-    getEmpresasDoPrestador().then((lista) => {
-      setEmpresas(lista);
-      // selecionar a primeira empresa automaticamente
-      if (lista.length > 0) setIdEmpresaAtiva(lista[0].id);
-    }).catch(console.error);
-  }, []);
+    getTipoUsuario().then((tipo) => {
+      setUsuario(tipo);
+      const auth = getAuth();
+      setNomeUsuario(auth.currentUser?.displayName || "");
+      if (tipo === "cliente") {
+        getTodosServicos().then(setServicos).catch(console.error);
+      } else {
+        getEmpresasDoPrestador().then((lista) => {
+          setEmpresas(lista);
+          if (lista.length > 0) setIdEmpresaAtiva(lista[0].id);
+        }).catch(console.error);
+      }
+  }).catch(console.error);
+}, []);
 
   if (!usuario) return <p>Carregando...</p>;
 
   return (
     <div className={`${cor_fundo} min-h-screen w-full flex flex-col`}>
-      <Cabecalho perfil />
+      <Cabecalho perfil nome={nomeUsuario} />
       <div className="flex flex-col grow w-full items-center">
         <div className="flex flex-col w-full max-w-[95%] md:max-w-[80%] gap-4 p-4 grow">
           <div className="flex gap-2">
@@ -55,11 +67,18 @@ function TelaFeed({ cor_fundo }: Props) {
             <div className="flex flex-col gap-3 md:w-4/5">
               {usuario === "prestador" && (
                 <div className="bg-white p-3 rounded-lg">
-                  {/* 2. Passa o ID para o componente que contém o botão */}
                   <DisplayServicos idEmpresa={idEmpresaAtiva} />
                 </div>
               )}
-              <div className="bg-white p-3 rounded-lg grow"></div>
+              <div className="bg-white p-3 rounded-lg grow">
+                {usuario === "cliente" && (
+                  <div className="flex flex-col gap-3">
+                    {servicos.map((servico) => (
+                      <ServicoItem key={servico.id} servico={servico} />
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

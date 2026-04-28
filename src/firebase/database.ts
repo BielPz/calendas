@@ -3,6 +3,8 @@ import { ref, set, push, get} from "firebase/database";
 import type { Servico } from "./types";
 import { getAuth } from "firebase/auth";
 
+/* -----------------------------------------------------------------------------*/
+
 export const criarServico = async (item: Servico, idEmpresa: string) => {
   try {
     // 1. Cria uma nova referência com um ID único no nó global 'servicos'
@@ -28,6 +30,8 @@ export const criarServico = async (item: Servico, idEmpresa: string) => {
   }
 };
 
+/* -----------------------------------------------------------------------------*/
+
 // Pega as empresas de um prestador
 export const getEmpresasDoPrestador = async (): Promise<{ id: string; nome: string }[]> => {
   const auth = getAuth();
@@ -51,6 +55,8 @@ export const getEmpresasDoPrestador = async (): Promise<{ id: string; nome: stri
   return empresas;
 };
 
+/* -----------------------------------------------------------------------------*/
+
 // Pega a empresa or ID
 export const getEmpresaPorId = async (id: string) => {
   const snap = await get(ref(db, `empresas/${id}`));
@@ -60,6 +66,7 @@ export const getEmpresaPorId = async (id: string) => {
   return null;
 };
 
+/* -----------------------------------------------------------------------------*/
 
 export const getServicosDaEmpresa = async (idEmpresa: string): Promise<Servico[]> => {
   try {
@@ -81,6 +88,24 @@ export const getServicosDaEmpresa = async (idEmpresa: string): Promise<Servico[]
 
     // 3. remove null (caso algum não exista)
     return servicos.filter(Boolean) as Servico[];
+  } catch (error) {
+    console.error("Erro ao buscar serviços:", error);
+    return [];
+  }
+};
+
+/* -----------------------------------------------------------------------------*/
+
+export const getTodosServicos = async (): Promise<Servico[]> => {
+  try {
+    const snapshot = await get(ref(db, "servicos"));
+    if (!snapshot.exists()) return [];
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return Object.entries(snapshot.val()).map(([id, dados]: any) => ({
+      id,
+      ...dados,
+    }));
   } catch (error) {
     console.error("Erro ao buscar serviços:", error);
     return [];

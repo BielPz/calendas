@@ -47,6 +47,8 @@ export interface Empresa
 }
 
 export interface Servico {
+    id?: string;
+    idEmpresa?: string;
     cnpj: string;
     nome: string;
     descricao?: string;
