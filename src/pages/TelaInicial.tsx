@@ -1,11 +1,15 @@
 import Cabecalho from "../components/Cabecalho";
 import imgComputador from "../images/computador.png";
+import { useNavigate } from "react-router-dom";
+
 
 interface TelaInicialProps {
   cor_fundo: string;
 }
 
 function TelaInicial({ cor_fundo }: TelaInicialProps) {
+  const navigate = useNavigate(); 
+
   return (
     <div className={`${cor_fundo} h-screen w-screen`}>
       <Cabecalho />
@@ -17,7 +21,8 @@ function TelaInicial({ cor_fundo }: TelaInicialProps) {
           <h2 className="text-white font-bold text-2xl">
             Clique, Agende, Resolva
           </h2>
-          <button className="bg-gray-800 w-fit text-white font-bold px-4 py-3 rounded-lg cursor-pointer">
+          <button onClick={() => navigate("/login")} className="bg-gray-800 w-fit text-white font-bold px-4 py-3 rounded-lg cursor-pointer">
+            
             Agende seus Serviços
           </button>
         </div>
