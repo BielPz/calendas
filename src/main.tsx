@@ -9,6 +9,7 @@ import TelaFeed from "./pages/TelaFeed";
 import TelaEsqueciSenha from "./pages/TelaEsqueciSenha";
 import TelaCriarServico from "./pages/TelaCriarServico";
 import TelaResetSenha from "./pages/TelaResetSenha";
+import TelaPerfil from "./pages/TelaPerfil";
 
 const gradiente: string = "bg-gradient-to-br from-orange-400 to-purple-400";
 
@@ -28,6 +29,7 @@ createRoot(document.getElementById("root")!).render(
         element={<TelaResetSenha cor_fundo={gradiente} />}
       />
       <Route path="/cadastro-servico" element={<TelaCriarServico />} />
+      <Route path="/perfil" element={<TelaPerfil />} />
     </Routes>
   </BrowserRouter>,
 );

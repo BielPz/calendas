@@ -63,7 +63,9 @@ function TelaFeed({ cor_fundo }: Props) {
             )}
           </div>
           <div className="flex flex-col md:flex-row gap-3 grow">
-            <div className="hidden md:block bg-white md:w-1/5 p-3 rounded-lg"></div>
+            <div className="hidden md:block bg-white md:w-1/5 p-3 rounded-lg">
+            
+            </div>
             <div className="flex flex-col gap-3 md:w-4/5 w-full">
               {usuario === "prestador" && (
                 <div className="bg-white p-3 rounded-lg">
