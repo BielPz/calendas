@@ -32,16 +32,15 @@ function DisplayServicos({ idEmpresa }: DisplayProps) {
     }, [idEmpresa]);
 
   return (
-    <div className="flex flex-wrap gap-4">
+    <div className="flex flex-wrap gap-3">
       <div
         onClick={handleNovoServico}
-        className="flex h-32 w-32 cursor-pointer items-center justify-center rounded-lg bg-gray-200 hover:bg-gray-300 transition-colors"
+        className="flex h-24 w-24 sm:h-32 sm:w-32 cursor-pointer items-center justify-center rounded-lg bg-gray-200 hover:bg-gray-300 transition-colors"
       >
-        <span className="pb-3 text-8xl leading-0 text-gray-600 select-none">
+        <span className="pb-3 text-7xl sm:text-8xl leading-0 text-gray-600 select-none">
           +
         </span>
       </div>
-
       {servicos.map((servico, index) => (
         <ServicoCard key={index} servico={servico} />
       ))}

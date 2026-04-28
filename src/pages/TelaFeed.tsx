@@ -41,17 +41,17 @@ function TelaFeed({ cor_fundo }: Props) {
       <Cabecalho perfil nome={nomeUsuario} />
       <div className="flex flex-col grow w-full items-center">
         <div className="flex flex-col w-full max-w-[95%] md:max-w-[80%] gap-4 p-4 grow">
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <input
               type="text"
               placeholder="Pesquisar"
               className="bg-white w-full p-3 rounded-lg border border-gray-300 focus:outline-none"
             />
             {usuario === "prestador" && (
-              <select 
+              <select
                 value={idEmpresaAtiva}
                 onChange={(e) => setIdEmpresaAtiva(e.target.value)}
-                className="bg-white p-3 rounded-lg border border-gray-300 focus:outline-none"
+                className="bg-white p-3 rounded-lg border border-gray-300 focus:outline-none sm:w-48 w-full"
               >
                 <option value="">Selecione a empresa...</option>
                 {empresas.map((empresa) => (
@@ -63,8 +63,8 @@ function TelaFeed({ cor_fundo }: Props) {
             )}
           </div>
           <div className="flex flex-col md:flex-row gap-3 grow">
-            <div className="bg-white md:w-1/5 p-3 rounded-lg"></div>
-            <div className="flex flex-col gap-3 md:w-4/5">
+            <div className="hidden md:block bg-white md:w-1/5 p-3 rounded-lg"></div>
+            <div className="flex flex-col gap-3 md:w-4/5 w-full">
               {usuario === "prestador" && (
                 <div className="bg-white p-3 rounded-lg">
                   <DisplayServicos idEmpresa={idEmpresaAtiva} />
