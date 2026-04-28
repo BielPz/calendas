@@ -4,7 +4,7 @@ import TextInput from "../components/TextInput";
 import type { Servico } from "../firebase/types";
 import CabecalhoBranco from "../components/CabecalhoBranco";
 import { criarServico, getEmpresaPorId } from "../firebase/database";
-import { useLocation } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 
 function TelaCriarServico() {
   const location = useLocation();
@@ -45,11 +45,14 @@ function TelaCriarServico() {
     form.cnpj && form.nome && form.preco && form.inicio && form.fim && form.duracao
   );
 
+  const navigate = useNavigate();
+
   const handleConfirmar = async () => {
     if (!isValid || !idEmpresa) return;
     try {
       await criarServico(form, idEmpresa);
       alert("Serviço criado com sucesso!");
+      navigate("/feed");
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Erro desconhecido";
