@@ -6,6 +6,7 @@ import DisplayServicos from "../components/prestador/DisplayServicos";
 import ServicoItem from "../components/cliente/ServicoItem";
 import type { Servico } from "../firebase/types";
 import { getAuth } from "firebase/auth";
+import SideBarCliente from "../components/cliente/SideBarCliente";
 
 interface Props {
   cor_fundo: string;
@@ -31,8 +32,8 @@ function TelaFeed({ cor_fundo }: Props) {
           if (lista.length > 0) setIdEmpresaAtiva(lista[0].id);
         }).catch(console.error);
       }
-  }).catch(console.error);
-}, []);
+    }).catch(console.error);
+  }, []);
 
   if (!usuario) return <p>Carregando...</p>;
 
@@ -41,6 +42,8 @@ function TelaFeed({ cor_fundo }: Props) {
       <Cabecalho perfil nome={nomeUsuario} />
       <div className="flex flex-col grow w-full items-center">
         <div className="flex flex-col w-full max-w-[95%] md:max-w-[80%] gap-4 p-4 grow">
+
+          {/* Barra de pesquisa */}
           <div className="flex flex-col sm:flex-row gap-2">
             <input
               type="text"
@@ -62,11 +65,23 @@ function TelaFeed({ cor_fundo }: Props) {
               </select>
             )}
           </div>
-          <div className="flex flex-col md:flex-row gap-3 grow">
-            <div className="hidden md:block bg-white md:w-1/5 p-3 rounded-lg">
-            
+
+          {/* Barra horizontal de ícones — só mobile e só cliente */}
+          {usuario === "cliente" && (
+            <div className="md:hidden">
+              <SideBarCliente />
             </div>
-            <div className="flex flex-col gap-3 md:w-4/5 w-full">
+          )}
+
+          <div className="flex flex-col md:flex-row gap-3 grow">
+            {/* Sidebar vertical — só desktop e só cliente */}
+            {usuario === "cliente" && (
+              <div className="hidden md:block bg-white md:w-1/5 p-3 rounded-lg">
+                <SideBarCliente />
+              </div>
+            )}
+
+            <div className={`flex flex-col gap-3 w-full ${usuario === "cliente" ? "md:w-4/5" : "md:w-full"}`}>
               {usuario === "prestador" && (
                 <div className="bg-white p-3 rounded-lg">
                   <DisplayServicos idEmpresa={idEmpresaAtiva} />
@@ -83,6 +98,7 @@ function TelaFeed({ cor_fundo }: Props) {
               </div>
             </div>
           </div>
+
         </div>
       </div>
     </div>
