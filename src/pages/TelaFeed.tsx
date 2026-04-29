@@ -7,6 +7,7 @@ import ServicoItem from "../components/cliente/ServicoItem";
 import type { Servico } from "../firebase/types";
 import { getAuth } from "firebase/auth";
 import SideBarCliente from "../components/cliente/SideBarCliente";
+import SideBarPrestador from "../components/prestador/SideBarPrestador";
 
 interface Props {
   cor_fundo: string;
@@ -72,12 +73,22 @@ function TelaFeed({ cor_fundo }: Props) {
               <SideBarCliente />
             </div>
           )}
+          {usuario === "prestador" && (
+            <div className="md:hidden">
+              <SideBarPrestador />
+            </div>
+          )}
 
           <div className="flex flex-col md:flex-row gap-3 grow">
             {/* Sidebar vertical — só desktop e só cliente */}
             {usuario === "cliente" && (
               <div className="hidden md:block bg-white md:w-1/5 p-3 rounded-lg">
                 <SideBarCliente />
+              </div>
+            )}
+            {usuario === "prestador" && (
+              <div className="hidden md:block bg-white md:w-1/5 p-3 rounded-lg">
+                <SideBarPrestador />
               </div>
             )}
 
