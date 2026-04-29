@@ -39,13 +39,13 @@ function TelaFeed({ cor_fundo }: Props) {
   if (!usuario) return <p>Carregando...</p>;
 
   return (
-    <div className={`${cor_fundo} min-h-screen w-full flex flex-col`}>
+    <div className={`${cor_fundo} h-screen w-full flex flex-col overflow-hidden`}>
       <Cabecalho perfil nome={nomeUsuario} />
-      <div className="flex flex-col grow w-full items-center">
-        <div className="flex flex-col w-full max-w-[95%] md:max-w-[80%] gap-4 p-4 grow">
+      <div className="flex flex-col grow w-full items-center overflow-hidden">
+        <div className="flex flex-col w-full max-w-[95%] md:max-w-[80%] gap-4 p-4 grow overflow-hidden">
 
           {/* Barra de pesquisa */}
-          <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 shrink-0">
             <input
               type="text"
               placeholder="Pesquisar"
@@ -67,38 +67,39 @@ function TelaFeed({ cor_fundo }: Props) {
             )}
           </div>
 
-          {/* Barra horizontal de ícones — só mobile e só cliente */}
+          {/* Barra horizontal de ícones — só mobile */}
           {usuario === "cliente" && (
-            <div className="md:hidden">
+            <div className="md:hidden shrink-0">
               <SideBarCliente />
             </div>
           )}
           {usuario === "prestador" && (
-            <div className="md:hidden">
+            <div className="md:hidden shrink-0">
               <SideBarPrestador />
             </div>
           )}
 
-          <div className="flex flex-col md:flex-row gap-3 grow">
-            {/* Sidebar vertical — só desktop e só cliente */}
+          <div className="flex flex-col md:flex-row gap-3 grow min-h-0">
+
+            {/* Sidebar vertical — só desktop */}
             {usuario === "cliente" && (
-              <div className="hidden md:block bg-white md:w-1/5 p-3 rounded-lg">
+              <div className="hidden md:block bg-white md:w-1/5 p-3 rounded-lg shrink-0">
                 <SideBarCliente />
               </div>
             )}
             {usuario === "prestador" && (
-              <div className="hidden md:block bg-white md:w-1/5 p-3 rounded-lg">
+              <div className="hidden md:block bg-white md:w-1/5 p-3 rounded-lg shrink-0">
                 <SideBarPrestador />
               </div>
             )}
 
-            <div className={`flex flex-col gap-3 w-full ${usuario === "cliente" ? "md:w-4/5" : "md:w-full"}`}>
+            <div className="flex flex-col gap-3 w-full md:w-4/5 min-h-0">
               {usuario === "prestador" && (
-                <div className="bg-white p-3 rounded-lg">
+                <div className="bg-white p-3 rounded-lg overflow-x-auto shrink-0">
                   <DisplayServicos idEmpresa={idEmpresaAtiva} />
                 </div>
               )}
-              <div className="bg-white p-3 rounded-lg grow">
+              <div className="bg-white p-3 rounded-lg overflow-y-auto flex-1 min-h-0">
                 {usuario === "cliente" && (
                   <div className="flex flex-col gap-3">
                     {servicos.map((servico) => (
@@ -108,8 +109,8 @@ function TelaFeed({ cor_fundo }: Props) {
                 )}
               </div>
             </div>
-          </div>
 
+          </div>
         </div>
       </div>
     </div>
