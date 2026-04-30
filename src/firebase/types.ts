@@ -51,6 +51,7 @@ export interface Servico {
     idEmpresa?: string;
     cnpj: string;
     nome: string;
+    banner?: string;
     descricao?: string;
     preco: number;
     inicio: string;

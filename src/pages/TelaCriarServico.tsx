@@ -5,6 +5,7 @@ import type { Servico } from "../firebase/types";
 import CabecalhoBranco from "../components/CabecalhoBranco";
 import { criarServico, getEmpresaPorId } from "../firebase/database";
 import { useLocation, useNavigate } from "react-router";
+import UploadImagem from "../components/UploadImagem";
 
 function TelaCriarServico() {
   const location = useLocation();
@@ -12,6 +13,7 @@ function TelaCriarServico() {
   const [form, setForm] = useState<Servico>({
     cnpj: "",
     nome: "",
+    banner:"",
     descricao: "",
     preco: 0,
     inicio: "",
@@ -79,6 +81,7 @@ function TelaCriarServico() {
             onChange={(value) => handleChange("nome", value)}
             required
           />
+          <UploadImagem label="Imagem do Serviço" onUpload={(url) => handleChange("imagem", url)}/>
           <TextInput
             titulo="Descricao"
             type="text"

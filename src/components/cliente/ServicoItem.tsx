@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Servico } from "../../firebase/types";
 import { getEmpresaPorId } from "../../firebase/database";
+import imgErrorInternet from "../../images/erroInternet.jpg";
 
 interface Props {
   servico: Servico;
@@ -22,7 +23,22 @@ function ServicoItem({ servico }: Props) {
 
   return (
     <div className="flex flex-col sm:flex-row w-full bg-gray-100 rounded overflow-hidden">
-      <div className="bg-gray-200 sm:w-1/5 w-full min-h-20" />
+      {/* Imagem à esquerda — dentro do próprio container */}
+      <div className="bg-gray-200 sm:w-1/5 w-full min-h-20">
+        {servico.banner ? (
+          <img
+            src={servico.banner}
+            alt="banner do serviço"
+            className="w-full h-full object-cover"
+            loading="lazy"
+            onError={(e) => {
+              e.currentTarget.src = imgErrorInternet;
+            }}
+          />
+        ) : (
+          <div className="w-full h-full bg-gray-200" />
+        )}
+      </div>
 
       <div className="sm:w-4/5 w-full p-3 flex flex-col gap-1 relative">
 
