@@ -183,7 +183,7 @@ function CadastroUsuario() {
             }
           `}
           disabled={!isValid}
-          onClick={handleConfirmar} // <-- Mude de navigate para handleConfirmar
+          onClick={handleConfirmar} 
         >
           Confirmar
         </button>
