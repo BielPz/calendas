@@ -10,26 +10,29 @@ import TelaEsqueciSenha from "./pages/TelaEsqueciSenha";
 import TelaCriarServico from "./pages/TelaCriarServico";
 import TelaResetSenha from "./pages/TelaResetSenha";
 import TelaPerfil from "./pages/TelaPerfil";
+import { AlertaProvider } from "./provider/AlertContext";
 
 const gradiente: string = "bg-gradient-to-br from-orange-400 to-purple-400";
 
 createRoot(document.getElementById("root")!).render(
   <BrowserRouter>
-    <Routes>
-      <Route path="/" element={<TelaInicial cor_fundo={gradiente} />} />
-      <Route path="/login" element={<TelaLogin />} />
-      <Route path="/cadastro" element={<TelaCadastro />} />
-      <Route path="/feed" element={<TelaFeed cor_fundo={gradiente}/>} />
-      <Route
-        path="/esqueci-senha"
-        element={<TelaEsqueciSenha cor_fundo={gradiente} />}
-      />
-      <Route
-        path="/reset-senha"
-        element={<TelaResetSenha cor_fundo={gradiente} />}
-      />
-      <Route path="/cadastro-servico" element={<TelaCriarServico />} />
-      <Route path="/perfil" element={<TelaPerfil />} />
-    </Routes>
+    <AlertaProvider>
+      <Routes>
+        <Route path="/" element={<TelaInicial cor_fundo={gradiente} />} />
+        <Route path="/login" element={<TelaLogin />} />
+        <Route path="/cadastro" element={<TelaCadastro />} />
+        <Route path="/feed" element={<TelaFeed cor_fundo={gradiente} />} />
+        <Route
+          path="/esqueci-senha"
+          element={<TelaEsqueciSenha cor_fundo={gradiente} />}
+        />
+        <Route
+          path="/reset-senha"
+          element={<TelaResetSenha cor_fundo={gradiente} />}
+        />
+        <Route path="/cadastro-servico" element={<TelaCriarServico />} />
+        <Route path="/perfil" element={<TelaPerfil />} />
+      </Routes>
+    </AlertaProvider>
   </BrowserRouter>,
 );
