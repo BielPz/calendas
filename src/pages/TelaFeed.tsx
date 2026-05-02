@@ -8,6 +8,7 @@ import type { Servico } from "../firebase/types";
 import { getAuth } from "firebase/auth";
 import SideBarCliente from "../components/cliente/SideBarCliente";
 import SideBarPrestador from "../components/prestador/SideBarPrestador";
+import { useAlerta } from "../provider/AlertContext";
 
 interface Props {
   cor_fundo: string;
@@ -21,29 +22,57 @@ function TelaFeed({ cor_fundo }: Props) {
   const [servicos, setServicos] = useState<Servico[]>([]);
 
   useEffect(() => {
-    getTipoUsuario().then((tipo) => {
-      setUsuario(tipo);
-      const auth = getAuth();
-      setNomeUsuario(auth.currentUser?.displayName || "");
-      if (tipo === "cliente") {
-        getTodosServicos().then(setServicos).catch(console.error);
-      } else {
-        getEmpresasDoPrestador().then((lista) => {
-          setEmpresas(lista);
-          if (lista.length > 0) setIdEmpresaAtiva(lista[0].id);
-        }).catch(console.error);
-      }
-    }).catch(console.error);
+    getTipoUsuario()
+      .then((tipo) => {
+        setUsuario(tipo);
+        const auth = getAuth();
+        setNomeUsuario(auth.currentUser?.displayName || "");
+        if (tipo === "cliente") {
+          getTodosServicos()
+            .then(setServicos)
+            .catch((err) => {
+              console.error(err);
+              useAlerta().showAlerta(
+                "Erro",
+                "Erro ao carregar serviços. Por favor, tente novamente.",
+                "erro",
+              );
+            });
+        } else {
+          getEmpresasDoPrestador()
+            .then((lista) => {
+              setEmpresas(lista);
+              if (lista.length > 0) setIdEmpresaAtiva(lista[0].id);
+            })
+            .catch((err) => {
+              console.error(err);
+              useAlerta().showAlerta(
+                "Erro",
+                "Erro ao carregar empresas do prestador. Por favor, tente novamente.",
+                "erro",
+              );
+            });
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        useAlerta().showAlerta(
+          "Erro",
+          "Erro ao carregar tipo de usuário. Por favor, faça login novamente.",
+          "erro",
+        );
+      });
   }, []);
 
   if (!usuario) return <p>Carregando...</p>;
 
   return (
-    <div className={`${cor_fundo} h-screen w-full flex flex-col overflow-hidden`}>
+    <div
+      className={`${cor_fundo} h-screen w-full flex flex-col overflow-hidden`}
+    >
       <Cabecalho perfil nome={nomeUsuario} />
       <div className="flex flex-col grow w-full items-center overflow-hidden">
         <div className="flex flex-col w-full max-w-[95%] md:max-w-[80%] gap-4 p-4 grow overflow-hidden">
-
           {/* Barra de pesquisa */}
           <div className="flex flex-col sm:flex-row gap-2 shrink-0">
             <input
@@ -80,7 +109,6 @@ function TelaFeed({ cor_fundo }: Props) {
           )}
 
           <div className="flex flex-col md:flex-row gap-3 grow min-h-0">
-
             {/* Sidebar vertical — só desktop */}
             {usuario === "cliente" && (
               <div className="hidden md:block bg-white md:w-1/5 p-3 rounded-lg shrink-0">
@@ -109,7 +137,6 @@ function TelaFeed({ cor_fundo }: Props) {
                 )}
               </div>
             </div>
-
           </div>
         </div>
       </div>

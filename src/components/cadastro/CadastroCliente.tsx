@@ -6,10 +6,10 @@ import { useNavigate } from "react-router-dom";
 import Estados from "../../hooks/Estados";
 import Cidades from "../../hooks/Cidades";
 import { registrarCliente } from "../../firebase/auth";
-import type { Usuario , Cliente} from "../../firebase/types";
+import type { Usuario, Cliente } from "../../firebase/types";
+import { useAlerta } from "../../provider/AlertContext";
 
 function CadastroUsuario() {
-
   const [form, setForm] = useState<Usuario & Cliente>({
     // Credenciais
     email: "",
@@ -30,7 +30,7 @@ function CadastroUsuario() {
     bairro: "",
     cidade: "",
     estado: "",
-    tipo: "cliente"
+    tipo: "cliente",
   });
 
   const [checked, setChecked] = useState(false);
@@ -77,7 +77,8 @@ function CadastroUsuario() {
       // Verificamos se ele é um objeto que tem a propriedade message
       const errorMessage =
         error instanceof Error ? error.message : "Erro desconhecido";
-      alert("Erro: " + errorMessage);
+      // alert("Erro: " + errorMessage);
+      useAlerta().showAlerta("Erro no cadastro", errorMessage, "erro");
     }
   };
 
@@ -166,7 +167,7 @@ function CadastroUsuario() {
           type="select"
           options={cidades}
           onChange={(value) => handleChange("cidade", value)}
-        />   
+        />
       </Formulario>
       <CheckBox
         message="Declaro que os dados acima são legítimos"
@@ -183,7 +184,7 @@ function CadastroUsuario() {
             }
           `}
           disabled={!isValid}
-          onClick={handleConfirmar} 
+          onClick={handleConfirmar}
         >
           Confirmar
         </button>

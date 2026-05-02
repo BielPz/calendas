@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import Cabecalho from "../components/Cabecalho";
 import TextInput from "../components/TextInput";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Formulario from "../components/Formulario";
 import { verifyPasswordResetCode, confirmPasswordReset } from "firebase/auth";
 import { auth } from "../firebase/config";
+import { useAlerta } from "../provider/AlertContext";
 
 interface Props {
   cor_fundo: string;
@@ -41,7 +42,10 @@ function TelaResetSenha({ cor_fundo }: Props) {
     // Verifica o código de redefinição usando a função do Firebase e atualiza o estado com base no resultado
     verifyPasswordResetCode(auth, oobCode)
       .then(() => setCodigoValido(true)) // Código válido, permite que o usuário redefina a senha
-      .catch(() => setErro("Link inválido ou expirado")); // Código inválido ou expirado, exibe uma mensagem de erro
+      .catch(() => {
+        setErro("Link inválido ou expirado");
+        useAlerta().showAlerta("Erro", "Link inválido ou expirado", "erro");
+      }); // Código inválido ou expirado, exibe uma mensagem de erro
   }, [oobCode]); // Verifica o código de redefinição quando o componente é montado e quando o oobCode muda
 
   // Função para lidar com a redefinição da senha quando o usuário clica no botão "Continuar"
@@ -49,10 +53,15 @@ function TelaResetSenha({ cor_fundo }: Props) {
     try {
       // Tenta confirmar a redefinição da senha usando o código e a nova senha fornecida pelo usuário
       await confirmPasswordReset(auth, oobCode!, form.novaSenha);
-      alert("Senha redefinida com sucesso!"); // Exibe uma mensagem de sucesso para o usuário
+      useAlerta().showAlerta("Sucesso", "Senha redefinida com sucesso!"); // Exibe um alerta global de sucesso usando o contexto de alerta
       navigate("/login"); // Redireciona o usuário para a tela de login após redefinir a senha
     } catch (e) {
       setErro("Erro ao redefinir senha"); // Se ocorrer um erro durante a redefinição da senha, exibe uma mensagem de erro para o usuário
+      useAlerta().showAlerta(
+        "Erro",
+        "Não foi possível redefinir a senha. Tente novamente.",
+        "erro",
+      ); // Exibe um alerta global de erro usando o contexto de alerta para informar o usuário sobre o problema
     }
   };
 

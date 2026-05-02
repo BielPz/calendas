@@ -3,6 +3,7 @@ import CabecalhoBranco from "../components/CabecalhoBranco";
 import { Link, useNavigate } from "react-router-dom";
 import TextInput from "../components/TextInput";
 import { login } from "../firebase/auth";
+import { useAlerta } from "../provider/AlertContext";
 
 function TelaLogin() {
   const [email, setEmail] = useState("");
@@ -22,6 +23,7 @@ function TelaLogin() {
       const errorMessage =
         error instanceof Error ? error.message : "Erro desconhecido";
       setErro(errorMessage);
+      useAlerta().showAlerta("Erro", errorMessage, "erro"); // Exibe um alerta global de erro usando o contexto de alerta para informar o usuário sobre o problema de login
     }
   };
 

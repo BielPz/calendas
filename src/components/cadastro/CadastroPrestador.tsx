@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { registrarEmpresa, registrarPrestador } from "../../firebase/auth";
 import type { Usuario, Empresa } from "../../firebase/types";
 import Index from "./Index";
+import { useAlerta } from "../../provider/AlertContext";
 
 function CadastroUsuario() {
   const [isFormValid, setIsFormValid] = useState([false, false, false]); // 3 fases
@@ -61,7 +62,7 @@ function CadastroUsuario() {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Erro desconhecido";
-      alert("Erro: " + errorMessage);
+      useAlerta().showAlerta("Erro no cadastro", errorMessage, "erro");
     }
   };
 

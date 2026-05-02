@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import ServicoCard from "./ServicoCard";
 import type { Servico } from "../../firebase/types";
 import { getServicosDaEmpresa } from "../../firebase/database";
+import { useAlerta } from "../../provider/AlertContext";
 
 interface DisplayProps {
   idEmpresa: string;
@@ -14,7 +15,11 @@ function DisplayServicos({ idEmpresa }: DisplayProps) {
 
   const handleNovoServico = () => {
     if (!idEmpresa) {
-      alert("Por favor, selecione uma empresa no topo da página.");
+      useAlerta().showAlerta(
+        "Erro",
+        "Por favor, selecione uma empresa no topo da página.",
+        "erro",
+      );
       return;
     }
     navigate("/cadastro-servico", { state: { idEmpresa } });
@@ -24,12 +29,12 @@ function DisplayServicos({ idEmpresa }: DisplayProps) {
     if (!idEmpresa) return;
 
     async function carregar() {
-        const data = await getServicosDaEmpresa(idEmpresa);
-        setServicos(data);
+      const data = await getServicosDaEmpresa(idEmpresa);
+      setServicos(data);
     }
 
     carregar();
-    }, [idEmpresa]);
+  }, [idEmpresa]);
 
   return (
     <div className="flex gap-3 overflow-x-auto pb-2">

@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { use, useState } from "react";
 import Cabecalho from "../components/Cabecalho";
 import TextInput from "../components/TextInput";
 import { useNavigate } from "react-router-dom";
 import { redefinirSenha } from "../firebase/auth";
+import { useAlerta } from "../provider/AlertContext";
 
 interface Props {
   cor_fundo: string;
@@ -61,13 +62,17 @@ function TelaEsqueciSenha({ cor_fundo }: Props) {
             onClick={() =>
               redefinirSenha(form.email)
                 .then(() => {
-                  alert(
+                  useAlerta().showAlerta(
+                    "Sucesso",
                     "Email de redefinição enviado! Verifique sua caixa de entrada.",
+                    "sucesso",
                   );
                 })
                 .catch(() => {
-                  alert(
+                  useAlerta().showAlerta(
+                    "Erro",
                     "Erro ao enviar email de redefinição. Verifique o email informado.",
+                    "erro",
                   );
                 })
             }

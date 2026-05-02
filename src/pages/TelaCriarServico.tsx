@@ -6,6 +6,7 @@ import CabecalhoBranco from "../components/CabecalhoBranco";
 import { criarServico, getEmpresaPorId } from "../firebase/database";
 import { useLocation, useNavigate } from "react-router";
 import UploadImagem from "../components/UploadImagem";
+import { useAlerta } from "../provider/AlertContext";
 
 function TelaCriarServico() {
   const location = useLocation();
@@ -13,7 +14,7 @@ function TelaCriarServico() {
   const [form, setForm] = useState<Servico>({
     cnpj: "",
     nome: "",
-    banner:"",
+    banner: "",
     descricao: "",
     preco: 0,
     inicio: "",
@@ -29,7 +30,7 @@ function TelaCriarServico() {
         if (dados && dados.cnpj) {
           setForm((prev) => ({
             ...prev,
-            cnpj: dados.cnpj // Preenche o CNPJ automaticamente no estado
+            cnpj: dados.cnpj, // Preenche o CNPJ automaticamente no estado
           }));
         }
       });
@@ -44,7 +45,12 @@ function TelaCriarServico() {
   };
 
   const isValid = Boolean(
-    form.cnpj && form.nome && form.preco && form.inicio && form.fim && form.duracao
+    form.cnpj &&
+    form.nome &&
+    form.preco &&
+    form.inicio &&
+    form.fim &&
+    form.duracao,
   );
 
   const navigate = useNavigate();
@@ -53,12 +59,17 @@ function TelaCriarServico() {
     if (!isValid || !idEmpresa) return;
     try {
       await criarServico(form, idEmpresa);
-      alert("Serviço criado com sucesso!");
+      useAlerta().showAlerta(
+        "Sucesso",
+        "Serviço criado com sucesso!",
+        "sucesso",
+      );
       navigate("/feed");
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Erro desconhecido";
       setErro(errorMessage);
+      useAlerta().showAlerta("Erro", errorMessage, "erro");
     }
   };
 
@@ -81,7 +92,10 @@ function TelaCriarServico() {
             onChange={(value) => handleChange("nome", value)}
             required
           />
-          <UploadImagem label="Imagem do Serviço" onUpload={(url) => handleChange("imagem", url)}/>
+          <UploadImagem
+            label="Imagem do Serviço"
+            onUpload={(url) => handleChange("imagem", url)}
+          />
           <TextInput
             titulo="Descricao"
             type="text"
