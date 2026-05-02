@@ -11,6 +11,7 @@ import TelaCriarServico from "./pages/TelaCriarServico";
 import TelaResetSenha from "./pages/TelaResetSenha";
 import TelaPerfil from "./pages/TelaPerfil";
 import { AlertaProvider } from "./provider/AlertContext";
+import TelaCalendario from "./pages/TelaCalendario";
 
 const gradiente: string = "bg-gradient-to-br from-orange-400 to-purple-400";
 
@@ -32,6 +33,10 @@ createRoot(document.getElementById("root")!).render(
         />
         <Route path="/cadastro-servico" element={<TelaCriarServico />} />
         <Route path="/perfil" element={<TelaPerfil />} />
+        <Route
+          path="/calendario"
+          element={<TelaCalendario cor_fundo={gradiente} />}
+        />
       </Routes>
     </AlertaProvider>
   </BrowserRouter>,
