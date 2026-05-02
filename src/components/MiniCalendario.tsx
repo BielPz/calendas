@@ -1,10 +1,15 @@
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import { ptBR } from "date-fns/locale";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function MiniCalendario() {
   const [selected, setSelected] = useState<Date>();
+
+  useEffect(() => {
+    const today = new Date();
+    setSelected(today); // Define a data atual como selecionada inicialmente
+  }, []);
 
   return (
     <DayPicker
