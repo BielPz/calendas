@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { Servico } from "../../firebase/types";
 import { getEmpresaPorId } from "../../firebase/database";
 import imgErrorInternet from "../../images/erroInternet.jpg";
+import { useAlerta } from "../../provider/AlertContext";
 
 interface Props {
   servico: Servico;
@@ -12,12 +13,20 @@ function ServicoItem({ servico }: Props) {
   const [favorito, setFavorito] = useState(false);
   const [avaliacao, setAvaliacao] = useState(0);
   const [hover, setHover] = useState(0);
+  const { showAlerta } = useAlerta();
 
   useEffect(() => {
     if (servico.idEmpresa) {
       getEmpresaPorId(servico.idEmpresa)
         .then((empresa) => setNomeEmpresa(empresa?.nome ?? ""))
-        .catch(console.error);
+        .catch((err) => {
+          console.error("Erro ao carregar dados da empresa:", err);
+          showAlerta(
+            "Erro",
+            "Não foi possível carregar os dados da empresa.",
+            "erro",
+          );
+        });
     }
   }, [servico.idEmpresa]);
 
@@ -41,7 +50,6 @@ function ServicoItem({ servico }: Props) {
       </div>
 
       <div className="sm:w-4/5 w-full p-3 flex flex-col gap-1 relative">
-
         {/* Botão favoritar */}
         <button
           onClick={() => setFavorito(!favorito)}
@@ -56,7 +64,9 @@ function ServicoItem({ servico }: Props) {
 
         <div className="flex flex-wrap gap-3 text-sm text-gray-600 mt-1">
           <span>R$ {servico.preco}</span>
-          <span>{servico.inicio} - {servico.fim}</span>
+          <span>
+            {servico.inicio} - {servico.fim}
+          </span>
           <span>{servico.duracao}</span>
         </div>
 
@@ -76,14 +86,19 @@ function ServicoItem({ servico }: Props) {
                 onMouseLeave={() => setHover(0)}
                 className="text-xl transition-colors duration-150"
               >
-                <span className={(hover || avaliacao) >= estrela ? "text-yellow-400" : "text-gray-300"}>
+                <span
+                  className={
+                    (hover || avaliacao) >= estrela
+                      ? "text-yellow-400"
+                      : "text-gray-300"
+                  }
+                >
                   ★
                 </span>
               </button>
             ))}
           </div>
         </div>
-
       </div>
     </div>
   );

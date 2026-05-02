@@ -14,6 +14,7 @@ function CadastroUsuario() {
   const [checked, setChecked] = useState(false);
   const [fase, setFase] = useState(1);
   const navigate = useNavigate();
+  const { showAlerta } = useAlerta();
 
   const [dadosPrestador, setDadosPrestador] = useState<Usuario>({
     nome: "",
@@ -58,11 +59,12 @@ function CadastroUsuario() {
         dadosPrestador,
       );
       await registrarEmpresa(user.uid, dadosEmpresa);
+      showAlerta("Sucesso", "Cadastro realizado com sucesso!", "sucesso");
       navigate("/login");
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Erro desconhecido";
-      useAlerta().showAlerta("Erro no cadastro", errorMessage, "erro");
+      showAlerta("Erro no cadastro", errorMessage, "erro");
     }
   };
 

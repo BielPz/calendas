@@ -1,4 +1,4 @@
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Cabecalho from "../components/Cabecalho";
 import TextInput from "../components/TextInput";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -15,6 +15,7 @@ function TelaResetSenha({ cor_fundo }: Props) {
   const [form, setForm] = useState({ novaSenha: "", confirmarSenha: "" });
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { showAlerta } = useAlerta();
 
   const [codigoValido, setCodigoValido] = useState(false);
   const [erro, setErro] = useState("");
@@ -44,7 +45,7 @@ function TelaResetSenha({ cor_fundo }: Props) {
       .then(() => setCodigoValido(true)) // Código válido, permite que o usuário redefina a senha
       .catch(() => {
         setErro("Link inválido ou expirado");
-        useAlerta().showAlerta("Erro", "Link inválido ou expirado", "erro");
+        showAlerta("Erro", "Link inválido ou expirado", "erro");
       }); // Código inválido ou expirado, exibe uma mensagem de erro
   }, [oobCode]); // Verifica o código de redefinição quando o componente é montado e quando o oobCode muda
 
@@ -53,11 +54,11 @@ function TelaResetSenha({ cor_fundo }: Props) {
     try {
       // Tenta confirmar a redefinição da senha usando o código e a nova senha fornecida pelo usuário
       await confirmPasswordReset(auth, oobCode!, form.novaSenha);
-      useAlerta().showAlerta("Sucesso", "Senha redefinida com sucesso!"); // Exibe um alerta global de sucesso usando o contexto de alerta
+      showAlerta("Sucesso", "Senha redefinida com sucesso!"); // Exibe um alerta global de sucesso usando o contexto de alerta
       navigate("/login"); // Redireciona o usuário para a tela de login após redefinir a senha
     } catch (e) {
       setErro("Erro ao redefinir senha"); // Se ocorrer um erro durante a redefinição da senha, exibe uma mensagem de erro para o usuário
-      useAlerta().showAlerta(
+      showAlerta(
         "Erro",
         "Não foi possível redefinir a senha. Tente novamente.",
         "erro",

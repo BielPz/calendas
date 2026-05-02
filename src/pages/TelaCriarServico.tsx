@@ -54,22 +54,19 @@ function TelaCriarServico() {
   );
 
   const navigate = useNavigate();
+  const { showAlerta } = useAlerta();
 
   const handleConfirmar = async () => {
     if (!isValid || !idEmpresa) return;
     try {
       await criarServico(form, idEmpresa);
-      useAlerta().showAlerta(
-        "Sucesso",
-        "Serviço criado com sucesso!",
-        "sucesso",
-      );
+      showAlerta("Sucesso", "Serviço criado com sucesso!", "sucesso");
       navigate("/feed");
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Erro desconhecido";
       setErro(errorMessage);
-      useAlerta().showAlerta("Erro", errorMessage, "erro");
+      showAlerta("Erro", errorMessage, "erro");
     }
   };
 

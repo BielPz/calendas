@@ -54,6 +54,7 @@ function CadastroUsuario() {
     checked;
 
   const navigate = useNavigate();
+  const { showAlerta } = useAlerta();
 
   const estados = Estados();
   const cidades = Cidades(String(form.estado));
@@ -72,13 +73,13 @@ function CadastroUsuario() {
       // console.log("Iniciando cadastro para:", form.email);
       await registrarCliente(form.email, form.senha, form);
       // console.log("Cadastro e gravação no banco concluídos!");
+      showAlerta("Sucesso", "Cadastro realizado com sucesso!", "sucesso");
       navigate("/login");
     } catch (error) {
       // Verificamos se ele é um objeto que tem a propriedade message
       const errorMessage =
         error instanceof Error ? error.message : "Erro desconhecido";
-      // alert("Erro: " + errorMessage);
-      useAlerta().showAlerta("Erro no cadastro", errorMessage, "erro");
+      showAlerta("Erro no cadastro", errorMessage, "erro");
     }
   };
 

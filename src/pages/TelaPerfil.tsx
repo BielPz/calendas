@@ -11,6 +11,7 @@ import { useAlerta } from "../provider/AlertContext";
 function TelaPerfil() {
   const [tipo, setTipo] = useState<"cliente" | "prestador" | null>(null);
   const [dados, setDados] = useState<Record<string, string>>({});
+  const { showAlerta } = useAlerta();
 
   useEffect(() => {
     getTipoUsuario()
@@ -25,11 +26,7 @@ function TelaPerfil() {
       })
       .catch((err) => {
         console.error(err);
-        useAlerta().showAlerta(
-          "Erro",
-          "Erro ao carregar dados do perfil.",
-          "erro",
-        );
+        showAlerta("Erro", "Erro ao carregar dados do perfil.", "erro");
       });
   }, []);
 

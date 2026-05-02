@@ -11,6 +11,7 @@ function TelaLogin() {
   const [tipo, setTipo] = useState<"cliente" | "prestador">("cliente");
   const [erro, setErro] = useState("");
   const navigate = useNavigate();
+  const { showAlerta } = useAlerta();
 
   const isValid = Boolean(email && senha);
 
@@ -23,7 +24,7 @@ function TelaLogin() {
       const errorMessage =
         error instanceof Error ? error.message : "Erro desconhecido";
       setErro(errorMessage);
-      useAlerta().showAlerta("Erro", errorMessage, "erro"); // Exibe um alerta global de erro usando o contexto de alerta para informar o usuário sobre o problema de login
+      showAlerta("Erro", errorMessage, "erro"); // Exibe um alerta global de erro usando o contexto de alerta para informar o usuário sobre o problema de login
     }
   };
 

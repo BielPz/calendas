@@ -12,10 +12,11 @@ interface DisplayProps {
 function DisplayServicos({ idEmpresa }: DisplayProps) {
   const navigate = useNavigate();
   const [servicos, setServicos] = useState<Servico[]>([]);
+  const { showAlerta } = useAlerta();
 
   const handleNovoServico = () => {
     if (!idEmpresa) {
-      useAlerta().showAlerta(
+      showAlerta(
         "Erro",
         "Por favor, selecione uma empresa no topo da página.",
         "erro",

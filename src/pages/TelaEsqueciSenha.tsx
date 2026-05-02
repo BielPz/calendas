@@ -1,4 +1,4 @@
-import { use, useState } from "react";
+import { useState } from "react";
 import Cabecalho from "../components/Cabecalho";
 import TextInput from "../components/TextInput";
 import { useNavigate } from "react-router-dom";
@@ -22,6 +22,7 @@ function TelaEsqueciSenha({ cor_fundo }: Props) {
   };
 
   const navigate = useNavigate();
+  const { showAlerta } = useAlerta();
 
   return (
     <div
@@ -62,14 +63,14 @@ function TelaEsqueciSenha({ cor_fundo }: Props) {
             onClick={() =>
               redefinirSenha(form.email)
                 .then(() => {
-                  useAlerta().showAlerta(
+                  showAlerta(
                     "Sucesso",
                     "Email de redefinição enviado! Verifique sua caixa de entrada.",
                     "sucesso",
                   );
                 })
                 .catch(() => {
-                  useAlerta().showAlerta(
+                  showAlerta(
                     "Erro",
                     "Erro ao enviar email de redefinição. Verifique o email informado.",
                     "erro",

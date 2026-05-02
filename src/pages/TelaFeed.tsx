@@ -21,6 +21,8 @@ function TelaFeed({ cor_fundo }: Props) {
   const [idEmpresaAtiva, setIdEmpresaAtiva] = useState("");
   const [servicos, setServicos] = useState<Servico[]>([]);
 
+  const { showAlerta } = useAlerta();
+
   useEffect(() => {
     getTipoUsuario()
       .then((tipo) => {
@@ -32,7 +34,7 @@ function TelaFeed({ cor_fundo }: Props) {
             .then(setServicos)
             .catch((err) => {
               console.error(err);
-              useAlerta().showAlerta(
+              showAlerta(
                 "Erro",
                 "Erro ao carregar serviços. Por favor, tente novamente.",
                 "erro",
@@ -46,7 +48,7 @@ function TelaFeed({ cor_fundo }: Props) {
             })
             .catch((err) => {
               console.error(err);
-              useAlerta().showAlerta(
+              showAlerta(
                 "Erro",
                 "Erro ao carregar empresas do prestador. Por favor, tente novamente.",
                 "erro",
@@ -56,7 +58,7 @@ function TelaFeed({ cor_fundo }: Props) {
       })
       .catch((err) => {
         console.error(err);
-        useAlerta().showAlerta(
+        showAlerta(
           "Erro",
           "Erro ao carregar tipo de usuário. Por favor, faça login novamente.",
           "erro",
