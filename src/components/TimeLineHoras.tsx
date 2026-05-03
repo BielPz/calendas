@@ -1,9 +1,9 @@
 interface Props {
-  inicio?: number; // hora de início (0-23)
-  fim?: number; // hora de término (0-23)
+  inicio?: number; // hora de início (0-24)
+  fim?: number; // hora de término (0-24)
 }
 
-function TimelineHoras({ inicio = 0, fim = 23 }: Props) {
+function TimelineHoras({ inicio = 0, fim = 24 }: Props) {
   // Calcula a posição da linha do horário atual
   const agora = new Date();
   // Converte o horário atual para minutos desde o início do dia

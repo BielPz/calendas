@@ -4,14 +4,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { getAuth, signOut } from "firebase/auth";
 import imgLogout from "../images/logout.png";
 
-interface Props 
-{
-  perfil?: boolean
-  nome?: string
+interface Props {
+  perfil?: boolean;
+  nome?: string;
   fotoPerfil?: string;
 }
 
-function Cabecalho({perfil, nome, fotoPerfil}: Props) {
+function Cabecalho({ perfil, nome, fotoPerfil }: Props) {
   const [hovered, setHovered] = useState(false);
   const navigate = useNavigate();
 
@@ -19,20 +18,28 @@ function Cabecalho({perfil, nome, fotoPerfil}: Props) {
     await signOut(getAuth());
     navigate("/login");
   };
-  
+
   const iniciais = nome
-    ? nome.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()
+    ? nome
+        .split(" ")
+        .map((n) => n[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()
     : "?";
 
   return (
     <div className="w-full z-50 flex justify-center">
       <div className="w-[95%] border-b border-white flex items-center py-2 px-3">
-        
         <img
           src={imgLogo}
           alt="logo"
           className="w-24 cursor-pointer"
-          onClick={() => (window.location.href = "/")}
+          onClick={(perfil) => {
+            perfil === undefined
+              ? (window.location.href = "/")
+              : navigate("/feed");
+          }}
         />
         {perfil === undefined && (
           <div className="ml-auto flex gap-3">
@@ -75,9 +82,15 @@ function Cabecalho({perfil, nome, fotoPerfil}: Props) {
               </span>
               <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 flex items-center justify-center bg-gray-700">
                 {fotoPerfil ? (
-                  <img src={fotoPerfil} alt="perfil" className="w-full h-full object-cover" />
+                  <img
+                    src={fotoPerfil}
+                    alt="perfil"
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
-                  <span className="text-white text-sm font-bold">{iniciais}</span>
+                  <span className="text-white text-sm font-bold">
+                    {iniciais}
+                  </span>
                 )}
               </div>
             </Link>
@@ -91,7 +104,7 @@ function Cabecalho({perfil, nome, fotoPerfil}: Props) {
           </div>
         )}
       </div>
-</div>
+    </div>
   );
 }
 

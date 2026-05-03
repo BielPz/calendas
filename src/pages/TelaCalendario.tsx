@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { X, Search } from "lucide-react";
 import Cabecalho from "../components/Cabecalho";
 import { getAuth } from "firebase/auth";
 import MiniCalendario from "../components/MiniCalendario";
 import TimelineHoras from "../components/TimeLineHoras";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
   cor_fundo: string;
@@ -10,11 +12,12 @@ interface Props {
 
 function TelaCalendario({ cor_fundo }: Props) {
   const [nomeUsuario, setNomeUsuario] = useState("");
+  const navigate = useNavigate();
 
+  const auth = getAuth();
   useEffect(() => {
-    const auth = getAuth();
     setNomeUsuario(auth.currentUser?.displayName || "");
-  }, []);
+  }, [auth]);
 
   if (!nomeUsuario) return <p>Carregando...</p>;
 
@@ -27,11 +30,23 @@ function TelaCalendario({ cor_fundo }: Props) {
         <div className="flex flex-col w-full max-w-[95%] md:max-w-[80%] gap-4 p-4 grow overflow-hidden">
           {/* Barra de pesquisa */}
           <div className="flex flex-col sm:flex-row gap-2 shrink-0">
-            <input
-              type="text"
-              placeholder="Pesquisar"
-              className="bg-white w-full p-3 rounded-lg border border-gray-300 focus:outline-none"
-            />
+            <button
+              className="bg-white px-4  rounded-lg border border-gray-300 focus:outline-none"
+              onClick={() => navigate("/feed")}
+            >
+              <X size={20} strokeWidth={3} className="text-gray-500" />
+            </button>
+            <div className="relative flex items-center bg-white rounded-lg border border-gray-300 focus-within:ring-2 focus-within:ring-blue-500 w-full">
+              <Search
+                size={20}
+                className="absolute left-3 text-gray-500 pointer-events-none"
+              />
+              <input
+                type="text"
+                placeholder="Pesquisar"
+                className="w-full pl-10 pr-3 py-3 rounded-lg focus:outline-none bg-transparent"
+              />
+            </div>
           </div>
 
           {/* Barra horizontal de ícones — só mobile */}

@@ -1,7 +1,8 @@
 import { auth, db } from "./config";
-import { createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword, sendPasswordResetEmail, getAuth } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword, sendPasswordResetEmail, getAuth, onAuthStateChanged, type User } from "firebase/auth";
 import { ref, get, set, push } from "firebase/database";
 import type { Usuario, Cliente, Empresa } from "./types";
+import { useEffect, useState } from "react";
 
 // Cadastro
 
@@ -99,4 +100,23 @@ export const redefinirSenha = async (email: string) => {
   } catch (error: any) {
     return { success: false, message: error.message };
   }
+};
+
+// Ver se o usuário está logado
+// Talvez usaremos isso em algum lugar, talvez não, mas fica aqui pra quando precisar
+
+export const verificarUsuarioLogado = () => {
+  const [usuario, setUsuario] = useState<User | null>(null);
+  const [carregando, setCarregando] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUsuario(user);
+      setCarregando(false);
+    });
+
+    return () => unsubscribe(); // limpa o listener ao desmontar
+  }, []);
+  
+  return { usuario, carregando };
 };
