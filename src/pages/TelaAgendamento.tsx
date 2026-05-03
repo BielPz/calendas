@@ -29,7 +29,7 @@ function TelaAgendamento({ servico, empresa, cor_fundo }: Props) {
       <Cabecalho perfil nome={nomeUsuario} />
       <div className="flex flex-col grow w-full items-center overflow-hidden">
         <div className="flex flex-col w-full max-w-[95%] md:max-w-[80%] gap-4 p-4 grow overflow-hidden">
-          {/* Barra de pesquisa */}
+          {/* Mudar essa parte */}
           <div className="flex flex-col sm:flex-row gap-2 shrink-0">
             <button
               className="bg-white px-4 rounded-lg border border-gray-300 focus:outline-none"
@@ -49,6 +49,7 @@ function TelaAgendamento({ servico, empresa, cor_fundo }: Props) {
               />
             </div>
           </div>
+          {/* Mudar até aqui parte */}
 
           {/* Barra horizontal de ícones — só mobile */}
           <div className="md:hidden shrink-0"></div>
@@ -57,11 +58,12 @@ function TelaAgendamento({ servico, empresa, cor_fundo }: Props) {
             {/* Sidebar vertical — só desktop */}
             <div className="hidden md:block bg-white md:w-1/5 p-3 rounded-lg shrink-0">
               <MiniCalendario />
+              {/* Adicionar seleção de serviço e horário e botão para agendar */}
             </div>
 
             <div className="flex flex-col gap-3 w-full md:w-4/5 min-h-0">
               <div className="bg-white p-3 rounded-lg overflow-y-auto flex-1 min-h-0">
-                {/* Aqui é o conteúdo do calendário - timeline de horas */}
+                {/* Aqui é o conteúdo do calendário do principal da empresa */}
               </div>
             </div>
           </div>
