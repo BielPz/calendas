@@ -3,10 +3,12 @@ import Cabecalho from "../components/Cabecalho";
 import MiniCalendario from "../components/MiniCalendario";
 import { useNavigate } from "react-router-dom";
 import { getAuth } from "firebase/auth";
-import { Search, X } from "lucide-react";
+import { X } from "lucide-react";
+import type { Servico } from "../firebase/types";
+import TextInput from "../components/TextInput";
 
 interface Props {
-  servico?: string;
+  servico?: Servico;
   empresa?: string;
   cor_fundo: string;
 }
@@ -14,6 +16,20 @@ interface Props {
 function TelaAgendamento({ servico, empresa, cor_fundo }: Props) {
   const [nomeUsuario, setNomeUsuario] = useState("");
   const navigate = useNavigate();
+
+  const [form, setForm] = useState({
+      servico: "",
+      data: "",
+      horario: "",
+      obs: "",
+    });
+  
+    const handleChange = (campo: string, value: string) => {
+      setForm((prev) => ({
+        ...prev,
+        [campo]: value,
+      }));
+    };
 
   const auth = getAuth();
   useEffect(() => {
@@ -29,27 +45,17 @@ function TelaAgendamento({ servico, empresa, cor_fundo }: Props) {
       <Cabecalho perfil nome={nomeUsuario} />
       <div className="flex flex-col grow w-full items-center overflow-hidden">
         <div className="flex flex-col w-full max-w-[95%] md:max-w-[80%] gap-4 p-4 grow overflow-hidden">
-          {/* Mudar essa parte */}
           <div className="flex flex-col sm:flex-row gap-2 shrink-0">
             <button
-              className="bg-white px-4 rounded-lg border border-gray-300 focus:outline-none"
+              className="px-4 rounded-lg border border-gray-300 focus:outline-none bg-white"
               onClick={() => navigate("/feed")}
             >
               <X size={20} strokeWidth={3} className="text-gray-500" />
             </button>
-            <div className="relative flex items-center bg-white rounded-lg border border-gray-300 focus-within:ring-2 focus-within:ring-blue-500 w-full">
-              <Search
-                size={20}
-                className="absolute left-3 text-gray-500 pointer-events-none"
-              />
-              <input
-                type="text"
-                placeholder="Pesquisar"
-                className="w-full pl-10 pr-3 py-3 rounded-lg focus:outline-none bg-transparent"
-              />
+            <div className="relative flex items-center rounded-lg border border-gray-300 focus-within:ring-2 focus-within:ring-blue-500 w-full">
+              <h1>{empresa}</h1>
             </div>
           </div>
-          {/* Mudar até aqui parte */}
 
           {/* Barra horizontal de ícones — só mobile */}
           <div className="md:hidden shrink-0"></div>
@@ -59,6 +65,27 @@ function TelaAgendamento({ servico, empresa, cor_fundo }: Props) {
             <div className="hidden md:block bg-white md:w-1/5 p-3 rounded-lg shrink-0">
               <MiniCalendario />
               {/* Adicionar seleção de serviço e horário e botão para agendar */}
+              <TextInput
+                titulo="Serviço"
+                type="select"
+                onChange={(value) => handleChange("servico", value)}
+                selected={servico?.nome}
+              />
+              <TextInput
+                titulo="Data"
+                type="date"
+                onChange={(value) => handleChange("data", value)}
+              />
+              <TextInput
+                titulo="Horário"
+                type="select"
+                onChange={(value) => handleChange("horario", value)}
+              />
+              <TextInput
+                titulo="Observação"
+                type="text"
+                onChange={(value) => handleChange("obs", value)}
+              />
             </div>
 
             <div className="flex flex-col gap-3 w-full md:w-4/5 min-h-0">
