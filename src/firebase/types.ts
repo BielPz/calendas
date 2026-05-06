@@ -57,4 +57,5 @@ export interface Servico {
     inicio: string;
     fim: string;
     duracao: string;
+    tempo: string;
 }
