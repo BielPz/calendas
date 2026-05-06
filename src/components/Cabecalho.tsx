@@ -6,11 +6,12 @@ import imgLogout from "../images/logout.png";
 
 interface Props {
   perfil?: boolean;
+  none?: boolean;
   nome?: string;
   fotoPerfil?: string;
 }
 
-function Cabecalho({ perfil, nome, fotoPerfil }: Props) {
+function Cabecalho({ perfil, none, nome, fotoPerfil }: Props) {
   const [hovered, setHovered] = useState(false);
   const navigate = useNavigate();
 
@@ -41,7 +42,7 @@ function Cabecalho({ perfil, nome, fotoPerfil }: Props) {
               : navigate("/feed");
           }}
         />
-        {perfil === undefined && (
+        {perfil === undefined && none === undefined && (
           <div className="ml-auto flex gap-3">
             <Link
               to="/login"
