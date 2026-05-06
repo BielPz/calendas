@@ -10,6 +10,7 @@ import SideBarCliente from "../components/cliente/SideBarCliente";
 import SideBarPrestador from "../components/prestador/SideBarPrestador";
 import { useAlerta } from "../provider/AlertContext";
 import { Search } from "lucide-react";
+import { useNavigate } from "react-router";
 
 interface Props {
   cor_fundo: string;
@@ -23,6 +24,7 @@ function TelaFeed({ cor_fundo }: Props) {
   const [servicos, setServicos] = useState<Servico[]>([]);
 
   const { showAlerta } = useAlerta();
+  const navigate = useNavigate();
 
   useEffect(() => {
     getTipoUsuario()
@@ -68,6 +70,21 @@ function TelaFeed({ cor_fundo }: Props) {
   }, []);
 
   if (!usuario) return <p>Carregando...</p>;
+
+  
+  useEffect(() => {
+  const handleCtrlS = (e: KeyboardEvent) => {
+    if (e.ctrlKey && e.key === "s" ) {
+      e.preventDefault(); // evita o "Salvar" padrão do browser
+      navigate("/cadastro-servico");
+    }
+  };
+
+  window.addEventListener("keydown", handleCtrlS);
+
+  return () => window.removeEventListener("keydown", handleCtrlS); // cleanup
+}, [navigate]);
+
 
   return (
     <div
