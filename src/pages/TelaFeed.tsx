@@ -69,22 +69,21 @@ function TelaFeed({ cor_fundo }: Props) {
       });
   }, []);
 
-  if (!usuario) return <p>Carregando...</p>;
-
-  
   useEffect(() => {
-  const handleCtrlS = (e: KeyboardEvent) => {
-    if (e.ctrlKey && e.key === "s" ) {
-      e.preventDefault(); // evita o "Salvar" padrão do browser
-      navigate("/cadastro-servico");
-    }
-  };
+    const handleCtrlS = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === "s" && usuario === "prestador") {
+        e.preventDefault(); // evita o "Salvar" padrão do browser
+        navigate("/cadastro-servico");
+      }
+    };
 
-  window.addEventListener("keydown", handleCtrlS);
+    window.addEventListener("keydown", handleCtrlS);
 
-  return () => window.removeEventListener("keydown", handleCtrlS); // cleanup
-}, [navigate]);
+    return () => window.removeEventListener("keydown", handleCtrlS); // cleanup
+  }, [navigate, usuario]);
 
+
+  if (!usuario) return <p>Carregando...</p>;
 
   return (
     <div
