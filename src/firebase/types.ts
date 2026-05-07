@@ -46,12 +46,13 @@ export interface Servico {
   idEmpresa?: string;
   cnpj: string;
   nome: string;
-  banner?: string;
+  imagem?: string;
   descricao?: string;
   preco: number;
   inicio: string;
   fim: string;
   duracao: string;
+  tempo: string;
 }
 
 export interface Agendamento {

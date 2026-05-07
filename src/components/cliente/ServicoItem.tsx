@@ -36,9 +36,9 @@ function ServicoItem({ servico }: Props) {
     <div className="flex flex-col sm:flex-row w-full bg-gray-100 rounded overflow-hidden">
       {/* Imagem à esquerda — dentro do próprio container */}
       <div className="bg-gray-200 sm:w-1/5 w-full min-h-20">
-        {servico.banner ? (
+        {servico.imagem ? (
           <img
-            src={servico.banner}
+            src={servico.imagem}
             alt="banner do serviço"
             className="w-full h-full object-cover"
             loading="lazy"
