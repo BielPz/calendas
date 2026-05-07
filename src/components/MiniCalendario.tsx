@@ -40,7 +40,7 @@ interface Props {
   onChange?: (date: Date | undefined) => void;
 }
 
-function MiniCalendario({onChange}: Props) {
+function MiniCalendario({ onChange }: Props) {
   const [selected, setSelected] = useState<Date>();
 
   useEffect(() => {
@@ -48,8 +48,7 @@ function MiniCalendario({onChange}: Props) {
     setSelected(today); // Define a data atual como selecionada inicialmente
   }, []);
 
-  function handleChange(date: Date | undefined)
-  {
+  function handleChange(date: Date | undefined) {
     setSelected(date);
     onChange?.(date);
   }
@@ -60,10 +59,14 @@ function MiniCalendario({onChange}: Props) {
       selected={selected}
       onSelect={handleChange}
       locale={ptBR}
+      style={{ width: "100%" }}
       components={{
-        MonthCaption: CaptionComBotoes, // ← substitui o caption inteiro
+        MonthCaption: CaptionComBotoes, // substitui o caption inteiro
       }}
       classNames={{
+        root: "w-full",
+        month: "w-full",
+        month_grid: "w-full",
         nav: "hidden",
         weekdays: "grid grid-cols-7 text-center text-xs text-gray-500 mb-1",
         weeks: "grid",

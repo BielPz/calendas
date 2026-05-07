@@ -114,7 +114,7 @@ function TextInput({
 
       {type === "select" ? (
         <select
-          {...commonProps}
+          className={`${commonProps.className} appearance-auto`}
           value={valor || selected || ""}
           onChange={(e) => handleChange(e.target.value)}
         >

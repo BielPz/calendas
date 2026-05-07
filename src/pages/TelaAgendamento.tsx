@@ -74,8 +74,8 @@ function TelaAgendamento({ cor_fundo }: Props) {
             >
               <X size={20} strokeWidth={3} className="text-gray-500" />
             </button>
-            <div className="relative flex items-center rounded-lg border border-gray-300 focus-within:ring-2 focus-within:ring-blue-500 w-full">
-              <h1>{empresa}</h1>
+            <div className="relative flex items-center bg-white rounded-lg border border-gray-300 px-4 py-2 w-full">
+              <h1 className="text-gray-700 font-semibold">{empresa}</h1>
             </div>
           </div>
 
@@ -85,31 +85,38 @@ function TelaAgendamento({ cor_fundo }: Props) {
           <div className="flex flex-col md:flex-row gap-3 grow min-h-0">
             {/* Sidebar vertical — só desktop */}
             <div className="hidden md:block bg-white md:w-1/5 p-3 rounded-lg shrink-0">
-              <MiniCalendario />
+              <MiniCalendario
+                onChange={(date) =>
+                  handleChange("data", date?.toISOString().split("T")[0] ?? "")
+                }
+              />
               {/* Adicionar seleção de serviço e horário e botão para agendar */}
-              <TextInput
-                titulo="Serviço"
-                type="select"
-                onChange={(value) => handleChange("servico", value)}
-                selected={servico?.nome}
-                options={servicos}
-              />
-              <TextInput
-                titulo="Data"
-                type="date"
-                onChange={(value) => handleChange("data", value)}
-              />
-              <TextInput
-                titulo="Horário"
-                type="select"
-                onChange={(value) => handleChange("horario", value)}
-              />
-              <TextInput
-                titulo="Observação"
-                type="text"
-                onChange={(value) => handleChange("obs", value)}
-              />
-              <button onClick={() => console.log(form)}></button>
+              <div className="mt-6">
+                <TextInput
+                  titulo="Serviço"
+                  type="select"
+                  onChange={(value) => handleChange("servico", value)}
+                  selected={servico?.nome}
+                  options={servicos}
+                />
+                <TextInput
+                  titulo="Data"
+                  type="date"
+                  value={form.data === undefined ? undefined : form.data}
+                  onChange={(value) => handleChange("data", value)}
+                />
+                <TextInput
+                  titulo="Horário"
+                  type="time"
+                  onChange={(value) => handleChange("horario", value)}
+                />
+                <TextInput
+                  titulo="Observação"
+                  type="text"
+                  onChange={(value) => handleChange("obs", value)}
+                />
+                <button onClick={() => console.log(form)}></button>
+              </div>
             </div>
 
             <div className="flex flex-col gap-3 w-full md:w-4/5 min-h-0">
