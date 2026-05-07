@@ -1,139 +1,223 @@
 import { useEffect, useState } from "react";
-import CabecalhoBranco from "../components/CabecalhoBranco";
 import Formulario from "../components/Formulario";
 import TextInput from "../components/TextInput";
 import { getTipoUsuario } from "../firebase/auth";
-import { getAuth } from "firebase/auth";
-import { get, ref } from "firebase/database";
-import { db } from "../firebase/config";
+import { signOut } from "firebase/auth";
+import { get, ref, update } from "firebase/database";
+import { db, auth } from "../firebase/config"; 
 import { useAlerta } from "../provider/AlertContext";
+import { useNavigate } from "react-router-dom";
+import {
+  User,
+  Settings,
+  Shield,
+  Bell,
+  HelpCircle,
+  LogOut,
+  CreditCard,
+  ChevronRight,
+  Pencil,
+} from "lucide-react";
+import Cabecalho from "../components/Cabecalho";
+
+type Secao = "perfil" | "configuracoes" | "privacidade" | "notificacoes" | "pagamentos" | "ajuda";
+
+const itensMenu: { id: Secao; label: string; icon: React.ReactNode }[] = [
+  { id: "perfil", label: "Perfil", icon: <User size={18} /> },
+  { id: "configuracoes", label: "Configurações", icon: <Settings size={18} /> },
+  { id: "privacidade", label: "Privacidade", icon: <Shield size={18} /> },
+  { id: "notificacoes", label: "Notificações", icon: <Bell size={18} /> },
+  { id: "pagamentos", label: "Pagamentos", icon: <CreditCard size={18} /> },
+  { id: "ajuda", label: "Ajuda", icon: <HelpCircle size={18} /> },
+];
 
 function TelaPerfil() {
   const [tipo, setTipo] = useState<"cliente" | "prestador" | null>(null);
   const [dados, setDados] = useState<Record<string, string>>({});
+  const [secaoAtiva, setSecaoAtiva] = useState<Secao>("perfil");
+  const [editando, setEditando] = useState(false);
+  const [dadosEditados, setDadosEditados] = useState<Record<string, string>>({});
   const { showAlerta } = useAlerta();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    getTipoUsuario()
-      .then(async (t) => {
+    const carregarDados = async () => {
+      try {
+        const t = await getTipoUsuario();
         setTipo(t);
-        const uid = getAuth().currentUser?.uid;
+        const uid = auth.currentUser?.uid;
         if (!uid) return;
 
         const colecao = t === "cliente" ? "clientes" : "prestadores";
         const snap = await get(ref(db, `${colecao}/${uid}`));
-        if (snap.exists()) setDados(snap.val());
-      })
-      .catch((err) => {
+        
+        if (snap.exists()) {
+          setDados(snap.val());
+          setDadosEditados(snap.val());
+        }
+      } catch (err) {
         console.error(err);
-        showAlerta("Erro", "Erro ao carregar dados do perfil.", "erro");
-      });
+        showAlerta("Erro", "Erro ao carregar dados.", "erro");
+      }
+    };
+    carregarDados();
   }, []);
 
-  // Enquanto o tipo do usuário não for carregado, exibe uma mensagem de carregamento
-  // Trocar para um spinner ou algo mais visual depois
-  if (!tipo) return <p>Carregando...</p>;
+  const handleCampo = (campo: string, valor: string) => {
+    setDadosEditados((prev) => ({ ...prev, [campo]: valor }));
+  };
+
+  const handleSalvar = async () => {
+    const uid = auth.currentUser?.uid;
+    if (!uid || !tipo) return;
+
+    try {
+      const colecao = tipo === "cliente" ? "clientes" : "prestadores";
+      await update(ref(db, `${colecao}/${uid}`), dadosEditados);
+      
+      setDados(dadosEditados);
+      setEditando(false);
+      showAlerta("Sucesso", "Perfil atualizado!", "sucesso");
+    } catch (error) {
+      showAlerta("Erro", "Erro ao salvar dados.", "erro");
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate("/login"); 
+    } catch (error) {
+      showAlerta("Erro", "Erro ao sair.", "erro");
+    }
+  };
+
+  const handleCancelar = () => {
+    setDadosEditados(dados);
+    setEditando(false);
+  };
+
+  if (!tipo) return <div className="h-screen bg-orange-400 p-10 text-white">Carregando...</div>;
+
+  const iniciais = (dados.nome || "U").split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase();
 
   return (
-    <div className="flex flex-col items-center justify-start min-h-screen">
-      <CabecalhoBranco titulo="Informações do seu Perfil" />
-      <div className="w-[45%] min-w-75 relative flex flex-col gap-3 justify-items-center">
-        <Formulario>
-          {/* Campos comuns */}
-          <TextInput
-            titulo="Nome"
-            type="text"
-            value={dados.nome || ""}
-            onChange={() => {}}
-            disabled
-          />
-          <TextInput
-            titulo="E-mail"
-            type="email"
-            value={dados.email || ""}
-            onChange={() => {}}
-            disabled
-          />
-          <TextInput
-            titulo="Telefone"
-            type="tel"
-            value={dados.telefone || ""}
-            onChange={() => {}}
-            disabled
-          />
-          <TextInput
-            titulo="Data de Nascimento"
-            type="date"
-            value={dados.dtnasc || ""}
-            onChange={() => {}}
-            disabled
-          />
+    // h-screen e overflow-hidden para travar a tela externa
+    <div className="flex flex-col h-screen bg-gradient-to-br from-orange-400 to-purple-400 overflow-hidden">
+      <Cabecalho none />
 
-          {/* Campos exclusivos do cliente */}
-          {tipo === "cliente" && (
-            <>
-              <TextInput
-                titulo="CEP"
-                type="text"
-                value={dados.cep || ""}
-                onChange={() => {}}
-                disabled
-                cep
-              />
-              <TextInput
-                titulo="Logradouro"
-                type="text"
-                value={dados.logradouro || ""}
-                onChange={() => {}}
-                disabled
-              />
-              <div className="flex gap-3">
-                <TextInput
-                  titulo="Número"
-                  type="text"
-                  value={dados.numero || ""}
-                  onChange={() => {}}
-                  disabled
-                />
-                <TextInput
-                  titulo="Complemento"
-                  type="text"
-                  value={dados.complemento || ""}
-                  onChange={() => {}}
-                  disabled
-                />
-              </div>
-              <TextInput
-                titulo="Bairro"
-                type="text"
-                value={dados.bairro || ""}
-                onChange={() => {}}
-                disabled
-              />
-              <div className="flex gap-3">
-                <TextInput
-                  titulo="Cidade"
-                  type="text"
-                  value={dados.cidade || ""}
-                  onChange={() => {}}
-                  disabled
-                />
-                <TextInput
-                  titulo="Estado"
-                  type="text"
-                  value={dados.estado || ""}
-                  onChange={() => {}}
-                  disabled
-                />
-              </div>
-            </>
-          )}
+      <div className="flex flex-1 overflow-hidden w-full max-w-[1400px] mx-auto gap-4 p-4">
+        
+        {/* Sidebar Desktop - Fixa com scroll interno se necessário */}
+        <aside className="hidden md:flex flex-col bg-white rounded-2xl shadow-lg w-72 shrink-0 p-6 h-full overflow-hidden">
+          <div className="flex-1 overflow-y-auto pr-2">
+            {itensMenu.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setSecaoAtiva(item.id)}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all w-full text-left mb-2
+                  ${secaoAtiva === item.id ? "bg-blue-600 text-white shadow-md" : "text-gray-500 hover:bg-gray-50"}`}
+              >
+                {item.icon}
+                <span className="flex-1">{item.label}</span>
+                {secaoAtiva === item.id && <ChevronRight size={14} />}
+              </button>
+            ))}
+          </div>
 
-          {/* Campos exclusivos do prestador (por enquanto só os comuns) */}
-          {tipo === "prestador" && (
-            <>{/* adicionar campos de prestador aqui quando necessário */}</>
-          )}
-        </Formulario>
+          <button 
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-red-500 hover:bg-red-50 transition-colors w-full border-t border-gray-100 mt-4 pt-4"
+          >
+            <LogOut size={18} />
+            Sair
+          </button>
+        </aside>
+
+        {/* Área Central de Conteúdo */}
+        <div className="flex flex-col flex-1 min-w-0 h-full overflow-hidden">
+          
+          {/* Navegação Mobile Horizontal */}
+          <div className="md:hidden flex gap-2 overflow-x-auto pb-4 shrink-0">
+            {itensMenu.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setSecaoAtiva(item.id)}
+                className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap
+                  ${secaoAtiva === item.id ? "bg-white text-blue-600" : "bg-white/20 text-white"}`}
+              >
+                {item.icon} {item.label}
+              </button>
+            ))}
+          </div>
+
+          <main className="flex flex-col gap-4 h-full overflow-hidden">
+            {secaoAtiva === "perfil" ? (
+              <>
+                {/* Header do Perfil - Fixo no topo (shrink-0) */}
+                <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col sm:flex-row items-center gap-6 shrink-0">
+                  <div className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                    {iniciais}
+                  </div>
+                  <div className="flex-1 text-center sm:text-left">
+                    <h2 className="text-xl font-bold text-gray-800">{dados.nome || "Usuário"}</h2>
+                    <p className="text-gray-500 text-sm">{dados.email}</p>
+                    <span className="mt-2 inline-block px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-[10px] font-black uppercase">
+                      {tipo}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    {!editando ? (
+                      <button onClick={() => setEditando(true)} className="flex items-center gap-2 bg-blue-50 text-blue-600 px-5 py-2 rounded-xl font-bold hover:bg-blue-100 transition-all">
+                        <Pencil size={16} /> Editar
+                      </button>
+                    ) : (
+                      <>
+                        <button onClick={handleCancelar} className="px-4 py-2 text-gray-500 font-bold">Cancelar</button>
+                        <button onClick={handleSalvar} className="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold shadow-md">Salvar</button>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* CARD DO FORMULÁRIO - ÚNICO COM SCROLL (flex-1 overflow-y-auto) */}
+                <div className="bg-white rounded-2xl shadow-md p-8 flex-1 overflow-y-auto custom-scrollbar">
+                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-8 border-b pb-4">
+                    Informações Pessoais
+                  </h3>
+                  
+                  <Formulario>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <TextInput titulo="Nome" value={editando ? dadosEditados.nome : dados.nome} onChange={(v) => handleCampo("nome", v)} disabled={!editando} />
+                      <TextInput titulo="E-mail" value={editando ? dadosEditados.email : dados.email} onChange={(v) => handleCampo("email", v)} disabled={!editando} />
+                      <TextInput titulo="Telefone" value={editando ? dadosEditados.telefone : dados.telefone} onChange={(v) => handleCampo("telefone", v)} disabled={!editando} />
+                      <TextInput titulo="Data de Nascimento" type="date" value={editando ? dadosEditados.dtnasc : dados.dtnasc} onChange={(v) => handleCampo("dtnasc", v)} disabled={!editando} />
+                    </div>
+
+                    {tipo === "cliente" && (
+                      <div className="mt-8 pt-8 border-t border-gray-100">
+                        <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-6">Endereço</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <TextInput titulo="CEP" value={editando ? dadosEditados.cep : dados.cep} onChange={(v) => handleCampo("cep", v)} disabled={!editando} />
+                          <TextInput titulo="Logradouro" value={editando ? dadosEditados.logradouro : dados.logradouro} onChange={(v) => handleCampo("logradouro", v)} disabled={!editando} />
+                          <TextInput titulo="Bairro" value={editando ? dadosEditados.bairro : dados.bairro} onChange={(v) => handleCampo("bairro", v)} disabled={!editando} />
+                          <div className="grid grid-cols-2 gap-4">
+                             <TextInput titulo="Cidade" value={editando ? dadosEditados.cidade : dados.cidade} onChange={(v) => handleCampo("cidade", v)} disabled={!editando} />
+                             <TextInput titulo="Estado" value={editando ? dadosEditados.estado : dados.estado} onChange={(v) => handleCampo("estado", v)} disabled={!editando} />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </Formulario>
+                </div>
+              </>
+            ) : (
+              <div className="bg-white rounded-2xl shadow-md p-20 flex-1 flex flex-col items-center justify-center text-gray-400">
+                <p className="font-bold">Seção {secaoAtiva} em desenvolvimento.</p>
+              </div>
+            )}
+          </main>
+        </div>
       </div>
     </div>
   );

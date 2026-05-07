@@ -36,7 +36,11 @@ function CaptionComBotoes() {
   );
 }
 
-function MiniCalendario() {
+interface Props {
+  onChange?: (date: Date | undefined) => void;
+}
+
+function MiniCalendario({onChange}: Props) {
   const [selected, setSelected] = useState<Date>();
 
   useEffect(() => {
@@ -44,11 +48,17 @@ function MiniCalendario() {
     setSelected(today); // Define a data atual como selecionada inicialmente
   }, []);
 
+  function handleChange(date: Date | undefined)
+  {
+    setSelected(date);
+    onChange?.(date);
+  }
+
   return (
     <DayPicker
       mode="single"
       selected={selected}
-      onSelect={setSelected}
+      onSelect={handleChange}
       locale={ptBR}
       components={{
         MonthCaption: CaptionComBotoes, // ← substitui o caption inteiro
