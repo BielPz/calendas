@@ -26,7 +26,7 @@ interface Props {
   validador?: string;
   tipoValidacao?: "senha" | "data" | "padrão";
   options?: Option[];
-  selected?: string,
+  selected?: string;
   onChange?: (value: string) => void;
 }
 
@@ -42,7 +42,7 @@ function TextInput({
   tipoValidacao,
   options = [],
   onChange,
-  selected
+  selected,
 }: Props) {
   const [erro, setErro] = useState<string | null>(null);
   const [valorInterno, setValorInterno] = useState("");
@@ -115,10 +115,10 @@ function TextInput({
       {type === "select" ? (
         <select
           {...commonProps}
-          value={valor}
+          value={valor || selected || ""}
           onChange={(e) => handleChange(e.target.value)}
         >
-          <option value={selected == undefined ? selected : ""} disabled>
+          <option value="" disabled>
             {placeholderDinamico}
           </option>
 

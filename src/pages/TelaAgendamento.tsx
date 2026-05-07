@@ -1,35 +1,57 @@
 import { useEffect, useState } from "react";
 import Cabecalho from "../components/Cabecalho";
 import MiniCalendario from "../components/MiniCalendario";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { getAuth } from "firebase/auth";
 import { X } from "lucide-react";
-import type { Servico } from "../firebase/types";
+import type { Agendamento, Servico } from "../firebase/types";
 import TextInput from "../components/TextInput";
+import { getServicosDaEmpresa } from "../firebase/database";
 
 interface Props {
-  servico?: Servico;
-  empresa?: string;
   cor_fundo: string;
 }
 
-function TelaAgendamento({ servico, empresa, cor_fundo }: Props) {
+function TelaAgendamento({ cor_fundo }: Props) {
   const [nomeUsuario, setNomeUsuario] = useState("");
+  const [servicos, setServicos] = useState<{ label: string; value: string }[]>(
+    [],
+  );
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({
-      servico: "",
-      data: "",
-      horario: "",
-      obs: "",
-    });
-  
-    const handleChange = (campo: string, value: string) => {
-      setForm((prev) => ({
-        ...prev,
-        [campo]: value,
-      }));
-    };
+  const location = useLocation();
+  const { servico, empresa } = location.state as {
+    servico: Servico;
+    empresa: string;
+  };
+
+  const [form, setForm] = useState<Agendamento>({
+    servico: "",
+    data: "",
+    horario: "",
+    obs: "",
+  });
+
+  const handleChange = (campo: string, value: string) => {
+    setForm((prev) => ({
+      ...prev,
+      [campo]: value,
+    }));
+  };
+
+  useEffect(() => {
+    async function carregar() {
+      const data = await getServicosDaEmpresa(servico.idEmpresa!);
+      const opcoes = data
+        .filter((s) => s.id !== undefined)
+        .map((s) => ({
+          label: s.nome,
+          value: s.id!,
+        }));
+      setServicos(opcoes);
+    }
+    carregar();
+  }, []);
 
   const auth = getAuth();
   useEffect(() => {
@@ -70,6 +92,7 @@ function TelaAgendamento({ servico, empresa, cor_fundo }: Props) {
                 type="select"
                 onChange={(value) => handleChange("servico", value)}
                 selected={servico?.nome}
+                options={servicos}
               />
               <TextInput
                 titulo="Data"
@@ -86,6 +109,7 @@ function TelaAgendamento({ servico, empresa, cor_fundo }: Props) {
                 type="text"
                 onChange={(value) => handleChange("obs", value)}
               />
+              <button onClick={() => console.log(form)}></button>
             </div>
 
             <div className="flex flex-col gap-3 w-full md:w-4/5 min-h-0">

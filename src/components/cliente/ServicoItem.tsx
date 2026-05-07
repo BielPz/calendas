@@ -3,6 +3,7 @@ import type { Servico } from "../../firebase/types";
 import { getEmpresaPorId } from "../../firebase/database";
 import imgErrorInternet from "../../images/erroInternet.jpg";
 import { useAlerta } from "../../provider/AlertContext";
+import { useNavigate } from "react-router";
 
 interface Props {
   servico: Servico;
@@ -14,6 +15,7 @@ function ServicoItem({ servico }: Props) {
   const [avaliacao, setAvaliacao] = useState(0);
   const [hover, setHover] = useState(0);
   const { showAlerta } = useAlerta();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (servico.idEmpresa) {
@@ -72,7 +74,10 @@ function ServicoItem({ servico }: Props) {
 
         {/* Botão agendar e estrelas */}
         <div className="flex items-center justify-between mt-2 flex-wrap gap-2">
-          <button className="flex items-center gap-1 bg-white border border-gray-300 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+          <button className="flex items-center gap-1 bg-white border border-gray-300 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+          onClick={() => navigate("/agendamento", {
+            state: { servico: servico, empresa: nomeEmpresa }
+          })}>
             + Agendar
           </button>
 

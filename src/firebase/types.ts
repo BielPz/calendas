@@ -58,3 +58,11 @@ export interface Servico {
     fim: string;
     duracao: string;
 }
+
+export interface Agendamento {
+    id?: string,
+    servico: string,
+    data: string,
+    horario: string,
+    obs: string
+}
