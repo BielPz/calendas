@@ -67,9 +67,9 @@ function ServicoItem({ servico }: Props) {
         <div className="flex flex-wrap gap-3 text-sm text-gray-600 mt-1">
           <span>R$ {servico.preco}</span>
           <span>
-            {servico.inicio} - {servico.fim}
+            Início: {servico.inicio} Término: {servico.fim}
           </span>
-          <span>{servico.duracao}</span>
+          <span>Duração: {servico.duracao} {servico.tempo}</span>
         </div>
 
         {/* Botão agendar e estrelas */}

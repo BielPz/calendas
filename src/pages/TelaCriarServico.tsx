@@ -20,6 +20,7 @@ function TelaCriarServico() {
     inicio: "",
     fim: "",
     duracao: "",
+    tempo: "",
   });
   const [erro, setErro] = useState("");
 
@@ -70,6 +71,12 @@ function TelaCriarServico() {
     }
   };
 
+  const tempos = [
+    {label: "Dias", value: "dia"},
+    {label: "Horas", value: "hora"},
+    {label: "Minutos", value: "minuto"},
+  ];
+
   return (
     <div className="flex flex-col items-center justify-start min-h-screen">
       <CabecalhoBranco titulo="Cadastre seu Serviço" />
@@ -119,12 +126,21 @@ function TelaCriarServico() {
               required
             />
           </div>
+          <div className="flex gap-3">
           <TextInput
             titulo="Duração"
-            type="time"
+            type="number"
             onChange={(value) => handleChange("duracao", value)}
             required
           />
+          <TextInput
+            titulo="Tempo"
+            type="select"
+            options={tempos}
+            onChange={(value) => handleChange("tempo", value)}
+            required
+          />
+          </div>
         </Formulario>
 
         {erro && <p className="text-red-500 text-sm">{erro}</p>}
