@@ -1,7 +1,7 @@
 import { db } from "./config";
 import { ref, set, push, get} from "firebase/database";
 import type { Servico } from "./types";
-import { getAuth } from "firebase/auth";
+import { getAuth, updateProfile } from "firebase/auth";
 
 /* -----------------------------------------------------------------------------*/
 
@@ -110,4 +110,38 @@ export const getTodosServicos = async (): Promise<Servico[]> => {
     console.error("Erro ao buscar serviços:", error);
     return [];
   }
+};
+
+/* -----------------------------------------------------------------------------*/
+ 
+// Atualiza os dados de perfil de um cliente ou prestador
+// Campos protegidos (uid, dataCadastro, email, tipo) nunca são sobrescritos
+export const atualizarPerfil = async (
+  tipo: "cliente" | "prestador",
+  dadosEditados: Record<string, string>
+): Promise<void> => {
+  const auth = getAuth();
+  const user = auth.currentUser;
+  
+  if (!user) throw new Error("Usuário não logado");
+ 
+  const colecao = tipo === "cliente" ? "clientes" : "prestadores";
+  const dbRef = ref(db, `${colecao}/${user.uid}`);
+ 
+  const snap = await get(dbRef);
+  if (!snap.exists()) throw new Error("Perfil não encontrado no banco.");
+ 
+  // 1. Atualizar o Firebase Auth se o nome foi alterado
+  if (dadosEditados.nome && dadosEditados.nome !== user.displayName) {
+    await updateProfile(user, { displayName: dadosEditados.nome });
+  }
+
+  // 2. Preparar dados para o Realtime Database
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { uid: _u, dataCadastro: _dc, email: _e, tipo: _t, senha: _s, ...editaveis } = dadosEditados as Record<string, string>;
+ 
+  await set(dbRef, {
+    ...snap.val(),   
+    ...editaveis,    
+  });
 };
