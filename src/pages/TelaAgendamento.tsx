@@ -7,6 +7,7 @@ import { X } from "lucide-react";
 import type { Agendamento, Servico } from "../firebase/types";
 import TextInput from "../components/TextInput";
 import { getServicosDaEmpresa } from "../firebase/database";
+import GradeDisponibilidade from "../components/GradeDisponibilidade";
 
 interface Props {
   cor_fundo: string;
@@ -122,6 +123,19 @@ function TelaAgendamento({ cor_fundo }: Props) {
             <div className="flex flex-col gap-3 w-full md:w-4/5 min-h-0">
               <div className="bg-white p-3 rounded-lg overflow-y-auto flex-1 min-h-0">
                 {/* Aqui é o conteúdo do calendário do principal da empresa */}
+                <GradeDisponibilidade
+                  ano={2026}
+                  mes={4} // maio = 4
+                  disponibilidades={{
+                    12: "disponivel",
+                    13: "parcial",
+                    14: "sem-horario",
+                    15: "disponivel",
+                  }}
+                  onDiaSelecionado={(dia) =>
+                    console.log("Dia selecionado:", dia)
+                  }
+                />
               </div>
             </div>
           </div>

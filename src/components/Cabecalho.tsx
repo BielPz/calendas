@@ -36,7 +36,7 @@ function Cabecalho({ perfil, none, nome, fotoPerfil }: Props) {
           src={imgLogo}
           alt="logo"
           className="w-24 cursor-pointer"
-          onClick={(perfil) => {
+          onClick={() => {
             perfil === undefined
               ? (window.location.href = "/")
               : navigate("/feed");
