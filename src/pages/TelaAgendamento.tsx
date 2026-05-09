@@ -85,7 +85,7 @@ function TelaAgendamento({ cor_fundo }: Props) {
 
           <div className="flex flex-col md:flex-row gap-3 grow min-h-0">
             {/* Sidebar vertical — só desktop */}
-            <div className="hidden md:block bg-white md:w-1/5 p-3 rounded-lg shrink-0">
+            <div className="hidden md:block bg-white md:w-1/5 p-3 rounded-lg shrink-0 overflow-y-auto">
               <MiniCalendario
                 onChange={(date) =>
                   handleChange("data", date?.toISOString().split("T")[0] ?? "")
