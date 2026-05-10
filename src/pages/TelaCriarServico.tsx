@@ -14,7 +14,7 @@ function TelaCriarServico() {
   const [form, setForm] = useState<Servico>({
     cnpj: "",
     nome: "",
-    banner: "",
+    imagem: "",
     descricao: "",
     preco: 0,
     inicio: "",
@@ -72,9 +72,9 @@ function TelaCriarServico() {
   };
 
   const tempos = [
-    {label: "Dias", value: "dia"},
-    {label: "Horas", value: "hora"},
-    {label: "Minutos", value: "minuto"},
+    { label: "Dias", value: "dia" },
+    { label: "Horas", value: "hora" },
+    { label: "Minutos", value: "minuto" },
   ];
 
   return (
@@ -127,19 +127,19 @@ function TelaCriarServico() {
             />
           </div>
           <div className="flex gap-3">
-          <TextInput
-            titulo="Duração"
-            type="number"
-            onChange={(value) => handleChange("duracao", value)}
-            required
-          />
-          <TextInput
-            titulo="Tempo"
-            type="select"
-            options={tempos}
-            onChange={(value) => handleChange("tempo", value)}
-            required
-          />
+            <TextInput
+              titulo="Duração"
+              type="number"
+              onChange={(value) => handleChange("duracao", value)}
+              required
+            />
+            <TextInput
+              titulo="Tempo"
+              type="select"
+              options={tempos}
+              onChange={(value) => handleChange("tempo", value)}
+              required
+            />
           </div>
         </Formulario>
 
