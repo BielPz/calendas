@@ -91,22 +91,22 @@ function TelaFeed() {
         <div className="flex flex-col w-full max-w-[95%] md:max-w-[80%] gap-4 p-4 grow overflow-hidden">
           {/* Barra de pesquisa */}
           <div className="flex flex-col sm:flex-row gap-2 shrink-0">
-            <div className="relative flex items-center bg-white rounded-lg border border-gray-300 focus-within:ring-2 focus-within:ring-blue-500 w-full">
+            <div className="relative flex items-center bg-white dark:bg-zinc-800 rounded-lg border border-gray-300 dark:border-gray-200 focus-within:ring-2 focus-within:ring-blue-500 dark:focus-within:ring-blue-400 w-full">
               <Search
                 size={20}
-                className="absolute left-3 text-gray-500 pointer-events-none"
+                className="absolute left-3 text-gray-500 dark:text-gray-300 pointer-events-none"
               />
               <input
                 type="text"
                 placeholder="Pesquisar"
-                className="w-full pl-10 pr-3 py-3 rounded-lg focus:outline-none bg-transparent"
+                className="w-full pl-10 pr-3 py-3 rounded-lg focus:outline-none bg-transparent dark:text-white"
               />
             </div>
             {usuario === "prestador" && (
               <select
                 value={idEmpresaAtiva}
                 onChange={(e) => setIdEmpresaAtiva(e.target.value)}
-                className="bg-white p-3 rounded-lg border border-gray-300 focus:outline-none sm:w-48 w-full"
+                className="bg-white dark:bg-zinc-800 p-3 rounded-lg border border-gray-300 dark:border-gray-200 focus:outline-none sm:w-48 w-full dark:text-white"
               >
                 <option value="">Selecione a empresa...</option>
                 {empresas.map((empresa) => (
@@ -133,23 +133,23 @@ function TelaFeed() {
           <div className="flex flex-col md:flex-row gap-3 grow min-h-0">
             {/* Sidebar vertical — só desktop */}
             {usuario === "cliente" && (
-              <div className="hidden md:block bg-white md:w-1/5 p-3 rounded-lg shrink-0">
+              <div className="hidden md:block bg-white dark:bg-zinc-800 md:w-1/5 p-3 rounded-lg shrink-0">
                 <SideBarCliente />
               </div>
             )}
             {usuario === "prestador" && (
-              <div className="hidden md:block bg-white md:w-1/5 p-3 rounded-lg shrink-0">
+              <div className="hidden md:block bg-white dark:bg-zinc-800 md:w-1/5 p-3 rounded-lg shrink-0">
                 <SideBarPrestador />
               </div>
             )}
 
             <div className="flex flex-col gap-3 w-full md:w-4/5 min-h-0">
               {usuario === "prestador" && (
-                <div className="bg-white p-3 rounded-lg overflow-x-auto shrink-0">
+                <div className="bg-white dark:bg-zinc-800 p-3 rounded-lg overflow-x-auto shrink-0">
                   <DisplayServicos idEmpresa={idEmpresaAtiva} />
                 </div>
               )}
-              <div className="bg-white p-3 rounded-lg overflow-y-auto flex-1 min-h-0">
+              <div className="bg-white dark:bg-zinc-800 p-3 rounded-lg overflow-y-auto flex-1 min-h-0">
                 {usuario === "cliente" && (
                   <div className="flex flex-col gap-3">
                     {servicos.map((servico) => (

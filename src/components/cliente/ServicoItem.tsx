@@ -33,9 +33,9 @@ function ServicoItem({ servico }: Props) {
   }, [servico.idEmpresa]);
 
   return (
-    <div className="flex flex-col sm:flex-row w-full bg-gray-100 rounded overflow-hidden">
+    <div className="flex flex-col sm:flex-row w-full bg-gray-100 dark:bg-zinc-800 rounded overflow-hidden">
       {/* Imagem à esquerda — dentro do próprio container */}
-      <div className="bg-gray-200 sm:w-1/5 w-full min-h-20">
+      <div className="bg-gray-200 dark:bg-zinc-900 sm:w-1/5 w-full min-h-20">
         {servico.imagem ? (
           <img
             src={servico.imagem}
@@ -47,7 +47,7 @@ function ServicoItem({ servico }: Props) {
             }}
           />
         ) : (
-          <div className="w-full h-full bg-gray-200" />
+          <div className="w-full h-full bg-gray-200 dark:bg-zinc-900" />
         )}
       </div>
 
@@ -60,24 +60,34 @@ function ServicoItem({ servico }: Props) {
           {favorito ? "♥" : "♡"}
         </button>
 
-        <p className="font-semibold">{servico.nome}</p>
-        <p className="text-sm text-gray-400">{nomeEmpresa}</p>
-        <p className="text-sm text-gray-500">{servico.descricao}</p>
+        <p className="font-semibold dark:text-white">{servico.nome}</p>
+        <p className="text-sm text-gray-400 dark:text-gray-400">
+          {nomeEmpresa}
+        </p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          {servico.descricao}
+        </p>
 
         <div className="flex flex-wrap gap-3 text-sm text-gray-600 mt-1">
-          <span>R$ {servico.preco}</span>
-          <span>
+          <span className="dark:text-gray-300">R$ {servico.preco}</span>
+          <span className="dark:text-gray-300">
             Início: {servico.inicio} Término: {servico.fim}
           </span>
-          <span>Duração: {servico.duracao} {servico.tempo}</span>
+          <span className="dark:text-gray-300">
+            Duração: {servico.duracao} {servico.tempo}
+          </span>
         </div>
 
         {/* Botão agendar e estrelas */}
         <div className="flex items-center justify-between mt-2 flex-wrap gap-2">
-          <button className="flex items-center gap-1 bg-white border border-gray-300 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors duration-200"
-          onClick={() => navigate("/agendamento", {
-            state: { servico: servico, empresa: nomeEmpresa }
-          })}>
+          <button
+            className="flex items-center gap-1 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-600 transition-colors duration-200"
+            onClick={() =>
+              navigate("/agendamento", {
+                state: { servico: servico, empresa: nomeEmpresa },
+              })
+            }
+          >
             + Agendar
           </button>
 

@@ -15,7 +15,7 @@ function CaptionComBotoes() {
 
   return (
     <div className="flex items-center justify-between px-2 py-1">
-      <span className="font-semibold capitalize">
+      <span className="font-semibold capitalize dark:text-white">
         {mes} {ano}
       </span>
       <div className="flex gap-1">
@@ -23,13 +23,13 @@ function CaptionComBotoes() {
           onClick={() => previousMonth && goToMonth(previousMonth)}
           className="p-1 hover:bg-gray-100 rounded"
         >
-          <ChevronLeft size={16} />
+          <ChevronLeft size={16} className="dark:text-gray-100" />
         </button>
         <button
           onClick={() => nextMonth && goToMonth(nextMonth)}
           className="p-1 hover:bg-gray-100 rounded"
         >
-          <ChevronRight size={16} />
+          <ChevronRight size={16} className="dark:text-gray-100" />
         </button>
       </div>
     </div>
@@ -68,10 +68,11 @@ function MiniCalendario({ onChange }: Props) {
         month: "w-full",
         month_grid: "w-full",
         nav: "hidden",
-        weekdays: "grid grid-cols-7 text-center text-xs text-gray-500 mb-1",
+        weekdays:
+          "grid grid-cols-7 text-center text-xs text-gray-500 mb-1 dark:text-gray-200",
         weeks: "grid",
         week: "grid grid-cols-7",
-        day: "text-center text-sm p-1",
+        day: "text-center text-sm p-1 dark:text-gray-300",
         day_button:
           "w-6 h-6 rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center mx-auto",
         selected: "",

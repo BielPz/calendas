@@ -29,20 +29,24 @@ function TelaCalendario() {
           {/* Barra de pesquisa */}
           <div className="flex flex-col sm:flex-row gap-2 shrink-0">
             <button
-              className="bg-white px-4  rounded-lg border border-gray-300 focus:outline-none"
+              className="bg-white dark:bg-zinc-700 px-4  rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none"
               onClick={() => navigate("/feed")}
             >
-              <X size={20} strokeWidth={3} className="text-gray-500" />
+              <X
+                size={20}
+                strokeWidth={3}
+                className="text-gray-500 dark:text-gray-300"
+              />
             </button>
-            <div className="relative flex items-center bg-white rounded-lg border border-gray-300 focus-within:ring-2 focus-within:ring-blue-500 w-full">
+            <div className="relative flex items-center bg-white dark:bg-zinc-700 rounded-lg border border-gray-300 dark:border-gray-600 focus-within:ring-2 focus-within:ring-blue-500 w-full">
               <Search
                 size={20}
-                className="absolute left-3 text-gray-500 pointer-events-none"
+                className="absolute left-3 text-gray-500 dark:text-gray-300 pointer-events-none"
               />
               <input
                 type="text"
                 placeholder="Pesquisar"
-                className="w-full pl-10 pr-3 py-3 rounded-lg focus:outline-none bg-transparent"
+                className="w-full pl-10 pr-3 py-3 rounded-lg focus:outline-none bg-transparent dark:text-white"
               />
             </div>
           </div>
@@ -52,12 +56,12 @@ function TelaCalendario() {
 
           <div className="flex flex-col md:flex-row gap-3 grow min-h-0">
             {/* Sidebar vertical — só desktop */}
-            <div className="hidden md:block bg-white md:w-1/5 p-3 rounded-lg shrink-0">
+            <div className="hidden md:block bg-white dark:bg-zinc-700 md:w-1/5 p-3 rounded-lg shrink-0">
               <MiniCalendario />
             </div>
 
             <div className="flex flex-col gap-3 w-full md:w-4/5 min-h-0">
-              <div className="bg-white p-3 rounded-lg overflow-y-auto flex-1 min-h-0">
+              <div className="bg-white dark:bg-zinc-700 p-3 rounded-lg overflow-y-auto flex-1 min-h-0">
                 {/* Aqui é o conteúdo do calendário - timeline de horas */}
                 <TimelineHoras />
               </div>

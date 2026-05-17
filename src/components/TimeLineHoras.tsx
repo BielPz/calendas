@@ -22,9 +22,9 @@ function TimelineHoras({ inicio = 0, fim = 24 }: Props) {
       {horas.map((h) => (
         <div
           key={h}
-          className="flex items-start gap-2 h-14 border-b border-gray-100"
+          className="flex items-start gap-2 h-14 border-b border-gray-100 dark:border-zinc-700"
         >
-          <span className="text-xs text-gray-400 w-12 shrink-0 -translate-y-2">
+          <span className="text-xs text-gray-400 dark:text-gray-50 w-12 shrink-0 -translate-y-2">
             {String(h).padStart(2, "0")}:00
           </span>
           <div className="flex-1 border-t border-gray-200 mt-0" />

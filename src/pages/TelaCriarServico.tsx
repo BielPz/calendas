@@ -78,7 +78,7 @@ function TelaCriarServico() {
   ];
 
   return (
-    <div className="flex flex-col items-center justify-start min-h-screen">
+    <div className="flex flex-col items-center justify-start min-h-screen dark:bg-zinc-900">
       <CabecalhoBranco titulo="Cadastre seu Serviço" />
       <div className="w-[45%] min-w-75 relative flex flex-col gap-3 justify-items-center">
         <Formulario>
@@ -150,7 +150,7 @@ function TelaCriarServico() {
             w-full py-4 rounded-xl text-white font-semibold mb-10
             ${
               isValid
-                ? "bg-linear-to-br from-orange-500 to-purple-500 hover:from-orange-700 hover:to-purple-700 cursor-pointer"
+                ? "bg-linear-to-br from-orange-500 to-purple-500 hover:from-orange-700 hover:to-purple-700 dark:from-indigo-600 dark:to-zinc-600 dark:hover:from-indigo-950 dark:hover:to-zinc-950 cursor-pointer"
                 : "bg-gray-400 cursor-not-allowed opacity-70"
             }
           `}
