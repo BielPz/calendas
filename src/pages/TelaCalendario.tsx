@@ -5,14 +5,12 @@ import { getAuth } from "firebase/auth";
 import MiniCalendario from "../components/MiniCalendario";
 import TimelineHoras from "../components/TimeLineHoras";
 import { useNavigate } from "react-router-dom";
+import { useGradiente } from "../hooks/useGradiente";
 
-interface Props {
-  cor_fundo: string;
-}
-
-function TelaCalendario({ cor_fundo }: Props) {
+function TelaCalendario() {
   const [nomeUsuario, setNomeUsuario] = useState("");
   const navigate = useNavigate();
+  const cor_fundo = useGradiente();
 
   const auth = getAuth();
   useEffect(() => {

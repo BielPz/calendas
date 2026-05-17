@@ -4,10 +4,10 @@ import CadastroPrestador from "../components/cadastro/CadastroPrestador";
 import CadastroCliente from "../components/cadastro/CadastroCliente";
 
 function TelaCadastro() {
-    const [tipo, setTipo] = useState<"cliente" | "prestador">("cliente");  
-    
-    return (
-    <div className="flex flex-col items-center justify-start min-h-screen">
+  const [tipo, setTipo] = useState<"cliente" | "prestador">("cliente");
+
+  return (
+    <div className="flex flex-col items-center justify-start min-h-screen dark:bg-zinc-900">
       <CabecalhoBranco
         tipo={tipo}
         setTipo={setTipo}

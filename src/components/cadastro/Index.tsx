@@ -19,7 +19,7 @@ function Index({ qntPages, itemOn, onClick }: Props) {
           />
 
           {i + 1 < qntPages && (
-            <hr className="flex-1 border-t border-gray-400 mx-2" />
+            <hr className="flex-1 border-t border-gray-400 dark:border-zinc-600 mx-2" />
           )}
         </React.Fragment>
       ))}

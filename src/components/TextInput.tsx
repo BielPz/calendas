@@ -93,7 +93,7 @@ function TextInput({
   }
 
   const baseClass =
-    "w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none disabled:bg-gray-100";
+    "w-full px-4 py-3 border border-gray-300 rounded-xl dark:scheme-dark focus:outline-none disabled:bg-gray-100 dark:disabled:bg-zinc-800 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white transition-colors duration-200";
 
   const commonProps = {
     id: titulo.toLowerCase(),
@@ -107,7 +107,7 @@ function TextInput({
 
   return (
     <div className="w-full">
-      <p>
+      <p className="dark:text-white">
         {titulo}
         {required && <b className="text-red-400 font-semibold">*</b>}
       </p>

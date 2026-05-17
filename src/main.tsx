@@ -13,36 +13,25 @@ import TelaPerfil from "./pages/TelaPerfil";
 import { AlertaProvider } from "./provider/AlertContext";
 import TelaCalendario from "./pages/TelaCalendario";
 import TelaAgendamento from "./pages/TelaAgendamento";
-
-const gradiente: string = "bg-gradient-to-br from-orange-400 to-purple-400";
+import { ThemeProvider } from "./provider/ThemeContext";
 
 createRoot(document.getElementById("root")!).render(
   <BrowserRouter>
     <AlertaProvider>
-      <Routes>
-        <Route path="/" element={<TelaInicial cor_fundo={gradiente} />} />
-        <Route path="/login" element={<TelaLogin />} />
-        <Route path="/cadastro" element={<TelaCadastro />} />
-        <Route path="/feed" element={<TelaFeed cor_fundo={gradiente} />} />
-        <Route
-          path="/esqueci-senha"
-          element={<TelaEsqueciSenha cor_fundo={gradiente} />}
-        />
-        <Route
-          path="/reset-senha"
-          element={<TelaResetSenha cor_fundo={gradiente} />}
-        />
-        <Route path="/cadastro-servico" element={<TelaCriarServico />} />
-        <Route path="/perfil" element={<TelaPerfil />} />
-        <Route
-          path="/calendario"
-          element={<TelaCalendario cor_fundo={gradiente} />}
-        />
-        <Route
-          path="/agendamento"
-          element={<TelaAgendamento cor_fundo={gradiente} />}
-        />
-      </Routes>
+      <ThemeProvider>
+        <Routes>
+          <Route path="/" element={<TelaInicial />} />
+          <Route path="/login" element={<TelaLogin />} />
+          <Route path="/cadastro" element={<TelaCadastro />} />
+          <Route path="/feed" element={<TelaFeed />} />
+          <Route path="/esqueci-senha" element={<TelaEsqueciSenha />} />
+          <Route path="/reset-senha" element={<TelaResetSenha />} />
+          <Route path="/cadastro-servico" element={<TelaCriarServico />} />
+          <Route path="/perfil" element={<TelaPerfil />} />
+          <Route path="/calendario" element={<TelaCalendario />} />
+          <Route path="/agendamento" element={<TelaAgendamento />} />
+        </Routes>
+      </ThemeProvider>
     </AlertaProvider>
   </BrowserRouter>,
 );

@@ -11,12 +11,9 @@ import SideBarPrestador from "../components/prestador/SideBarPrestador";
 import { useAlerta } from "../provider/AlertContext";
 import { Search } from "lucide-react";
 import { useNavigate } from "react-router";
+import { useGradiente } from "../hooks/useGradiente";
 
-interface Props {
-  cor_fundo: string;
-}
-
-function TelaFeed({ cor_fundo }: Props) {
+function TelaFeed() {
   const [usuario, setUsuario] = useState<"cliente" | "prestador" | null>(null);
   const [nomeUsuario, setNomeUsuario] = useState("");
   const [empresas, setEmpresas] = useState<{ id: string; nome: string }[]>([]);
@@ -25,6 +22,7 @@ function TelaFeed({ cor_fundo }: Props) {
 
   const { showAlerta } = useAlerta();
   const navigate = useNavigate();
+  const cor_fundo = useGradiente();
 
   useEffect(() => {
     getTipoUsuario()
@@ -81,7 +79,6 @@ function TelaFeed({ cor_fundo }: Props) {
 
     return () => window.removeEventListener("keydown", handleCtrlS); // cleanup
   }, [navigate, usuario]);
-
 
   if (!usuario) return <p>Carregando...</p>;
 

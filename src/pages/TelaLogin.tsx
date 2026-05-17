@@ -29,7 +29,7 @@ function TelaLogin() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-start min-h-screen">
+    <div className="flex flex-col items-center justify-start min-h-screen dark:bg-zinc-900">
       <CabecalhoBranco tipo={tipo} setTipo={setTipo} titulo="Login" />
       <div className="w-[45%] min-w-75 relative">
         <div className="w-full flex flex-col gap-3">
@@ -48,7 +48,7 @@ function TelaLogin() {
           {erro && <p className="text-red-500 text-sm">{erro}</p>}
           <Link
             to="/esqueci-senha"
-            className="text-m text-blue-700 hover:text-black transition-colors duration-200 self-start mt-1 mb-5"
+            className="text-m text-blue-700 dark:text-blue-400 dark:hover:text-blue-50 hover:text-black transition-colors duration-200 self-start mt-1 mb-5"
           >
             Esqueci a senha
           </Link>
@@ -62,7 +62,7 @@ function TelaLogin() {
             w-full py-4 rounded-xl text-white font-semibold mb-10
             ${
               isValid
-                ? "bg-linear-to-br from-orange-500 to-purple-500 hover:from-orange-700 hover:to-purple-700 cursor-pointer"
+                ? "bg-linear-to-br from-orange-500 to-purple-500 dark:from-indigo-600 dark:to-zinc-600 dark:hover:from-indigo-950 dark:hover:to-zinc-950 hover:from-orange-700 hover:to-purple-700 cursor-pointer"
                 : "bg-gray-400 cursor-not-allowed opacity-70"
             }
           `}

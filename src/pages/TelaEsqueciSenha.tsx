@@ -4,12 +4,9 @@ import TextInput from "../components/TextInput";
 import { useNavigate } from "react-router-dom";
 import { redefinirSenha } from "../firebase/auth";
 import { useAlerta } from "../provider/AlertContext";
+import { useGradiente } from "../hooks/useGradiente";
 
-interface Props {
-  cor_fundo: string;
-}
-
-function TelaEsqueciSenha({ cor_fundo }: Props) {
+function TelaEsqueciSenha() {
   const [form, setForm] = useState({ email: "" });
   // Validação simples: o email deve ser preenchido e ter um formato básico (ex: aluno@gmail.com)
   const isValid = form.email.trim() !== "" && /\S+@\S+\.\S+/.test(form.email);
@@ -22,6 +19,7 @@ function TelaEsqueciSenha({ cor_fundo }: Props) {
   };
 
   const navigate = useNavigate();
+  const cor_fundo = useGradiente();
   const { showAlerta } = useAlerta();
 
   return (

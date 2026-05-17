@@ -8,17 +8,15 @@ import type { Agendamento, Servico } from "../firebase/types";
 import TextInput from "../components/TextInput";
 import { getServicosDaEmpresa } from "../firebase/database";
 import GradeDisponibilidade from "../components/GradeDisponibilidade";
+import { useGradiente } from "../hooks/useGradiente";
 
-interface Props {
-  cor_fundo: string;
-}
-
-function TelaAgendamento({ cor_fundo }: Props) {
+function TelaAgendamento() {
   const [nomeUsuario, setNomeUsuario] = useState("");
   const [servicos, setServicos] = useState<{ label: string; value: string }[]>(
     [],
   );
   const navigate = useNavigate();
+  const cor_fundo = useGradiente();
 
   const location = useLocation();
   const { servico, empresa } = location.state as {

@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@config "../tailwind.config.js";
+@variant dark (&:where(.dark, .dark *));
 
 /* Remove setinhas no Chrome, Safari, Edge */
 .no-spinner::-webkit-inner-spin-button,
@@ -11,3 +13,4 @@
 .no-spinner {
   -moz-appearance: textfield;
 }
+

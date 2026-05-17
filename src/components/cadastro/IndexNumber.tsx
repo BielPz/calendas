@@ -10,8 +10,8 @@ function IndexNumber({ index, atived, onClick }: Props) {
       <div
         className={`w-20 h-20 rounded-full border flex items-center justify-center font-bold text-4xl transition ${
           atived
-            ? "bg-gradient-to-br from-orange-400 to-purple-400 text-white"
-            : "border-gray-400 text-gray-600 hover:bg-gray-200 cursor-pointer"
+            ? "bg-gradient-to-br from-orange-400 to-purple-400 dark:from-indigo-950 dark:to-zinc-950 text-white dark:border-zinc-600"
+            : "border-gray-400 dark:border-zinc-400 text-gray-600 dark:text-gray-400 hover:bg-gray-200 cursor-pointer"
         }`}
         onClick={onClick}
       >

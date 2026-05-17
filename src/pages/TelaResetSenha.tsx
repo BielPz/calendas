@@ -6,15 +6,13 @@ import Formulario from "../components/Formulario";
 import { verifyPasswordResetCode, confirmPasswordReset } from "firebase/auth";
 import { auth } from "../firebase/config";
 import { useAlerta } from "../provider/AlertContext";
+import { useGradiente } from "../hooks/useGradiente";
 
-interface Props {
-  cor_fundo: string;
-}
-
-function TelaResetSenha({ cor_fundo }: Props) {
+function TelaResetSenha() {
   const [form, setForm] = useState({ novaSenha: "", confirmarSenha: "" });
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const cor_fundo = useGradiente();
   const { showAlerta } = useAlerta();
 
   const [codigoValido, setCodigoValido] = useState(false);
