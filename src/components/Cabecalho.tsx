@@ -40,7 +40,7 @@ function Cabecalho({ perfil, none, nome, fotoPerfil }: Props) {
           alt="logo"
           className="w-24 cursor-pointer"
           onClick={() => {
-            perfil === undefined
+            perfil === undefined && none === undefined
               ? (window.location.href = "/")
               : navigate("/feed");
           }}

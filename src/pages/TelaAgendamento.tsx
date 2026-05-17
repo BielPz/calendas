@@ -68,13 +68,19 @@ function TelaAgendamento() {
         <div className="flex flex-col w-full max-w-[95%] md:max-w-[80%] gap-4 p-4 grow overflow-hidden">
           <div className="flex flex-col sm:flex-row gap-2 shrink-0">
             <button
-              className="px-4 rounded-lg border border-gray-300 focus:outline-none bg-white"
+              className="px-4 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none bg-white dark:bg-zinc-700"
               onClick={() => navigate("/feed")}
             >
-              <X size={20} strokeWidth={3} className="text-gray-500" />
+              <X
+                size={20}
+                strokeWidth={3}
+                className="text-gray-500 dark:text-gray-300"
+              />
             </button>
-            <div className="relative flex items-center bg-white rounded-lg border border-gray-300 px-4 py-2 w-full">
-              <h1 className="text-gray-700 font-semibold">{empresa}</h1>
+            <div className="relative flex items-center bg-white dark:bg-zinc-700 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 w-full">
+              <h1 className="text-gray-700 dark:text-gray-50 font-semibold">
+                {empresa}
+              </h1>
             </div>
           </div>
 
@@ -83,7 +89,7 @@ function TelaAgendamento() {
 
           <div className="flex flex-col md:flex-row gap-3 grow min-h-0">
             {/* Sidebar vertical — só desktop */}
-            <div className="hidden md:block bg-white md:w-1/5 p-3 rounded-lg shrink-0 overflow-y-auto">
+            <div className="hidden md:block bg-white dark:bg-zinc-700 md:w-1/5 p-3 rounded-lg shrink-0 overflow-y-auto">
               <MiniCalendario
                 onChange={(date) =>
                   handleChange("data", date?.toISOString().split("T")[0] ?? "")
@@ -119,7 +125,7 @@ function TelaAgendamento() {
             </div>
 
             <div className="flex flex-col gap-3 w-full md:w-4/5 min-h-0">
-              <div className="bg-white p-3 rounded-lg overflow-y-auto flex-1 min-h-0">
+              <div className="bg-white dark:bg-zinc-700 p-3 rounded-lg overflow-y-auto flex-1 min-h-0">
                 {/* Aqui é o conteúdo do calendário do principal da empresa */}
                 <GradeDisponibilidade
                   ano={2026}
@@ -129,6 +135,7 @@ function TelaAgendamento() {
                     13: "parcial",
                     14: "sem-horario",
                     15: "disponivel",
+                    19: "disponivel",
                   }}
                   onDiaSelecionado={(dia) =>
                     console.log("Dia selecionado:", dia)

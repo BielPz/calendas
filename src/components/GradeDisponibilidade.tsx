@@ -19,7 +19,7 @@ const STATUS_CLASSES: Record<StatusDia, string> = {
   "sem-horario": "bg-red-300 text-red-900 cursor-pointer hover:opacity-80",
   parcial: "bg-amber-300 text-amber-900 cursor-pointer hover:opacity-80",
   disponivel: "bg-green-300 text-green-900 cursor-pointer hover:opacity-80",
-  vazio: "",
+  vazio: "dark:bg-zinc-700",
 };
 
 function GradeDisponibilidade({
@@ -51,7 +51,10 @@ function GradeDisponibilidade({
       {/* Cabeçalho */}
       <div className="grid grid-cols-7 gap-1 mb-1">
         {DIAS_SEMANA.map((d) => (
-          <div key={d} className="text-center text-xs text-gray-500 py-1">
+          <div
+            key={d}
+            className="text-center text-xs text-gray-500 dark:text-gray-200 py-1"
+          >
             {d}
           </div>
         ))}
@@ -69,7 +72,7 @@ function GradeDisponibilidade({
             }
             className={`aspect-square rounded-lg flex items-end justify-end p-1.5 text-xs font-medium
               ${STATUS_CLASSES[celula.status]}
-              ${mesAtual && celula.dia === diaHoje ? "ring-2 ring-gray-800 ring-offset-1" : ""}
+              ${mesAtual && celula.dia === diaHoje ? "ring-2 ring-gray-800 dark:ring-white ring-offset-1" : ""}
             `}
           >
             {celula.dia > 0 ? celula.dia : ""}
@@ -87,7 +90,7 @@ function GradeDisponibilidade({
         ].map(({ cor, label }) => (
           <div
             key={label}
-            className="flex items-center gap-1.5 text-xs text-gray-500"
+            className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-200"
           >
             <div className={`w-3 h-3 rounded ${cor}`} />
             {label}
