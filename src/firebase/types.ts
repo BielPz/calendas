@@ -41,6 +41,12 @@ export interface Empresa {
   imagem?: string;
 }
 
+export interface DiaDisponivel {
+  ativo: boolean;
+  inicio: string;
+  fim: string;
+}
+
 export interface Servico {
   id?: string;
   idEmpresa?: string;
@@ -49,10 +55,9 @@ export interface Servico {
   imagem?: string;
   descricao?: string;
   preco: number;
-  inicio: string;
-  fim: string;
   duracao: string;
   tempo: string;
+  diasDisponiveis: DiaDisponivel[]; // [Dom, Seg, Ter, Qua, Qui, Sex, Sáb]
 }
 
 export interface Agendamento {

@@ -1,43 +1,59 @@
 import { useEffect, useState } from "react";
 import Formulario from "../components/Formulario";
 import TextInput from "../components/TextInput";
-import type { Servico } from "../firebase/types";
+import type { Servico, DiaDisponivel } from "../firebase/types";
 import CabecalhoBranco from "../components/CabecalhoBranco";
 import { criarServico, getEmpresaPorId } from "../firebase/database";
 import { useLocation, useNavigate } from "react-router";
 import UploadImagem from "../components/UploadImagem";
 import { useAlerta } from "../provider/AlertContext";
 
+// ─── Configuração dos dias da semana ─────────────────────────────────────────
+const DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+// Dias úteis (Seg–Sex) ativos por padrão
+const diasPadrao = (): DiaDisponivel[] =>
+  DIAS_SEMANA.map((_, i) => ({
+    ativo: i >= 1 && i <= 5,
+    inicio: "",
+    fim: "",
+  }));
+
+// ─── Componente ──────────────────────────────────────────────────────────────
 function TelaCriarServico() {
   const location = useLocation();
-  const idEmpresa = location.state?.idEmpresa; // O ID que passamos no navigate
+  const navigate = useNavigate();
+  const { showAlerta } = useAlerta();
+  const idEmpresa = location.state?.idEmpresa;
+
   const [form, setForm] = useState<Servico>({
     cnpj: "",
     nome: "",
     imagem: "",
     descricao: "",
     preco: 0,
-    inicio: "",
-    fim: "",
     duracao: "",
     tempo: "",
+    diasDisponiveis: diasPadrao(),
   });
   const [erro, setErro] = useState("");
 
+  // Flag para saber se o usuário ainda não editou manualmente cada campo dos dias
+  // Enquanto true, ao digitar em qualquer dia, propaga para todos os outros ativos
+  const [propagouInicio, setPropagouInicio] = useState(false);
+  const [propagouFim, setPropagouFim] = useState(false);
+
   useEffect(() => {
     if (idEmpresa) {
-      // Busca os dados da empresa para pegar o CNPJ
       getEmpresaPorId(idEmpresa).then((dados) => {
-        if (dados && dados.cnpj) {
-          setForm((prev) => ({
-            ...prev,
-            cnpj: dados.cnpj, // Preenche o CNPJ automaticamente no estado
-          }));
+        if (dados?.cnpj) {
+          setForm((prev) => ({ ...prev, cnpj: dados.cnpj }));
         }
       });
     }
   }, [idEmpresa]);
 
+  // ── Handlers gerais ────────────────────────────────────────────────────────
   const handleChange = (campo: string, value: string) => {
     setForm((prev) => ({
       ...prev,
@@ -45,18 +61,72 @@ function TelaCriarServico() {
     }));
   };
 
+  // ── Handlers dos dias ─────────────────────────────────────────────────────
+  const toggleDia = (index: number) => {
+    setForm((prev) => {
+      const dias = [...prev.diasDisponiveis];
+      dias[index] = { ...dias[index], ativo: !dias[index].ativo };
+      return { ...prev, diasDisponiveis: dias };
+    });
+  };
+
+  const handleHorarioDia = (
+    index: number,
+    campo: "inicio" | "fim",
+    valor: string
+  ) => {
+    setForm((prev) => {
+      const dias = [...prev.diasDisponiveis];
+
+      // Primeira digitação neste campo: propaga para todos os dias ativos
+      if (campo === "inicio" && !propagouInicio) {
+        setPropagouInicio(true);
+        return {
+          ...prev,
+          diasDisponiveis: dias.map((d, i) =>
+            i === index
+              ? { ...d, inicio: valor }
+              : d.ativo
+              ? { ...d, inicio: valor }
+              : d
+          ),
+        };
+      }
+
+      if (campo === "fim" && !propagouFim) {
+        setPropagouFim(true);
+        return {
+          ...prev,
+          diasDisponiveis: dias.map((d, i) =>
+            i === index
+              ? { ...d, fim: valor }
+              : d.ativo
+              ? { ...d, fim: valor }
+              : d
+          ),
+        };
+      }
+
+      // Edições posteriores: só altera o dia específico
+      dias[index] = { ...dias[index], [campo]: valor };
+      return { ...prev, diasDisponiveis: dias };
+    });
+  };
+
+  // ── Validação ──────────────────────────────────────────────────────────────
+  const diasAtivos = form.diasDisponiveis.filter((d) => d.ativo);
+  const diasValidos = diasAtivos.every((d) => d.inicio && d.fim);
+
   const isValid = Boolean(
     form.cnpj &&
-    form.nome &&
-    form.preco &&
-    form.inicio &&
-    form.fim &&
-    form.duracao,
+      form.nome &&
+      form.preco &&
+      form.duracao &&
+      diasAtivos.length > 0 &&
+      diasValidos
   );
 
-  const navigate = useNavigate();
-  const { showAlerta } = useAlerta();
-
+  // ── Submit ─────────────────────────────────────────────────────────────────
   const handleConfirmar = async () => {
     if (!isValid || !idEmpresa) return;
     try {
@@ -77,6 +147,7 @@ function TelaCriarServico() {
     { label: "Minutos", value: "minuto" },
   ];
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col items-center justify-start min-h-screen dark:bg-zinc-900">
       <CabecalhoBranco titulo="Cadastre seu Serviço" />
@@ -85,9 +156,9 @@ function TelaCriarServico() {
           <TextInput
             titulo="CNPJ da Empresa"
             type="text"
-            value={form.cnpj} // Vincula o valor ao estado preenchido
-            onChange={() => {}} // Bloqueia edição manual se desejar
-            disabled // Deixa o campo desabilitado já que é automático
+            value={form.cnpj}
+            onChange={() => {}}
+            disabled
             cnpj
           />
           <TextInput
@@ -101,7 +172,7 @@ function TelaCriarServico() {
             onUpload={(url) => handleChange("imagem", url)}
           />
           <TextInput
-            titulo="Descricao"
+            titulo="Descrição"
             type="text"
             onChange={(value) => handleChange("descricao", value)}
             required
@@ -112,20 +183,6 @@ function TelaCriarServico() {
             onChange={(value) => handleChange("preco", value)}
             required
           />
-          <div className="flex gap-3">
-            <TextInput
-              titulo="Inicio"
-              type="time"
-              onChange={(value) => handleChange("inicio", value)}
-              required
-            />
-            <TextInput
-              titulo="Fim"
-              type="time"
-              onChange={(value) => handleChange("fim", value)}
-              required
-            />
-          </div>
           <div className="flex gap-3">
             <TextInput
               titulo="Duração"
@@ -140,6 +197,69 @@ function TelaCriarServico() {
               onChange={(value) => handleChange("tempo", value)}
               required
             />
+          </div>
+
+          {/* ── Dias disponíveis ────────────────────────────────────────── */}
+          <div className="flex flex-col gap-1">
+            <span className="text-sm font-medium text-gray-700">
+              Dias disponíveis
+            </span>
+            <p className="text-xs text-gray-400 mb-2">
+              Ao preencher o horário de um dia, ele será aplicado a todos os
+              outros dias ativos automaticamente.
+            </p>
+
+            <div className="flex flex-col gap-2">
+              {DIAS_SEMANA.map((dia, i) => {
+                const d = form.diasDisponiveis[i];
+                return (
+                  <div key={dia} className="flex items-center gap-3">
+                    {/* Bolinha do dia */}
+                    <button
+                      type="button"
+                      onClick={() => toggleDia(i)}
+                      className={`w-10 h-10 rounded-full text-xs font-bold shrink-0 transition-all border-2
+                        ${
+                          d.ativo
+                            ? "bg-blue-600 text-white border-blue-600 shadow-md"
+                            : "bg-white text-gray-400 border-gray-300 hover:border-blue-300"
+                        }`}
+                    >
+                      {dia}
+                    </button>
+
+                    {/* Campos de horário — desabilitados se dia inativo */}
+                    <div
+                      className={`flex gap-2 flex-1 transition-opacity ${
+                        d.ativo ? "opacity-100" : "opacity-30 pointer-events-none"
+                      }`}
+                    >
+                      <TextInput
+                        titulo="Início"
+                        type="time"
+                        value={d.inicio}
+                        onChange={(v) => handleHorarioDia(i, "inicio", v)}
+                        disabled={!d.ativo}
+                      />
+                      <TextInput
+                        titulo="Fim"
+                        type="time"
+                        value={d.fim}
+                        onChange={(v) => handleHorarioDia(i, "fim", v)}
+                        disabled={!d.ativo}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Aviso se nenhum dia ativo */}
+            {diasAtivos.length === 0 && (
+              <p className="text-xs text-red-500 mt-1">
+                Selecione ao menos um dia disponível.
+              </p>
+            )}
           </div>
         </Formulario>
 
