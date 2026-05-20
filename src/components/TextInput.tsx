@@ -23,6 +23,7 @@ interface Props {
   required?: boolean;
   cep?: boolean;
   cnpj?: boolean;
+  agendamento?: boolean;
   validador?: string;
   tipoValidacao?: "senha" | "data" | "padrão";
   options?: Option[];
@@ -38,6 +39,7 @@ function TextInput({
   required,
   cep,
   cnpj,
+  agendamento,
   validador,
   tipoValidacao,
   options = [],
@@ -50,10 +52,12 @@ function TextInput({
   // 👇 controlado ou não
   const valor = value !== undefined ? value : valorInterno;
 
-  const today = new Date();
-  today.setFullYear(today.getFullYear() - 16);
-  const dataMinima = today.toLocaleDateString("en-CA");
-  const hoje = new Date().toLocaleDateString("en-CA");
+  const novaData = new Date();
+  novaData.setFullYear(novaData.getFullYear() - 16);
+  const dataMinima = novaData.toLocaleDateString("en-CA");
+  const hojeString = new Date().toLocaleDateString("en-CA");
+  const hoje = new Date();
+  const minDate = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}-${String(hoje.getDate()).padStart(2, "0")}`;
 
   const placeholders = {
     tel: "(xx) xxxxx-xxxx",
@@ -75,7 +79,7 @@ function TextInput({
     }
 
     if (tipoValidacao === "data") {
-      return value > hoje || value > dataMinima ? "Data invalida!" : null;
+      return value > hojeString || value > dataMinima ? "Data invalida!" : null;
     }
 
     if (required && !value) {
@@ -165,7 +169,23 @@ function TextInput({
           type={type}
           {...commonProps}
           value={valor}
+          min={agendamento ? minDate : undefined}
           onChange={(e) => handleChange(e.target.value)}
+          onBlur={(e) => {
+            if (agendamento) {
+              const [ano, mes, dia] = e.target.value.split("-").map(Number);
+              const dataSelecionada = new Date(ano, mes - 1, dia);
+              const hoje = new Date();
+              hoje.setHours(0, 0, 0, 0);
+              if (dataSelecionada < hoje) {
+                e.target.setCustomValidity(
+                  "Selecione uma data a partir de hoje",
+                );
+                e.target.reportValidity();
+                setTimeout(() => e.target.setCustomValidity(""), 2000);
+              }
+            }
+          }}
           onWheel={
             type === "number"
               ? (e) => (e.currentTarget as HTMLInputElement).blur()

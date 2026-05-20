@@ -38,6 +38,8 @@ function TelaAgendamento() {
     }));
   };
 
+  const isValid = Boolean(form.servico && form.data && form.horario);
+
   useEffect(() => {
     async function carregar() {
       const data = await getServicosDaEmpresa(servico.idEmpresa!);
@@ -94,6 +96,7 @@ function TelaAgendamento() {
                 onChange={(date) =>
                   handleChange("data", date?.toISOString().split("T")[0] ?? "")
                 }
+                agendamento
               />
               {/* Adicionar seleção de serviço e horário e botão para agendar */}
               <div className="mt-6">
@@ -109,6 +112,7 @@ function TelaAgendamento() {
                   type="date"
                   value={form.data === undefined ? undefined : form.data}
                   onChange={(value) => handleChange("data", value)}
+                  agendamento
                 />
                 <TextInput
                   titulo="Horário"
@@ -120,7 +124,19 @@ function TelaAgendamento() {
                   type="text"
                   onChange={(value) => handleChange("obs", value)}
                 />
-                <button onClick={() => console.log(form)}></button>
+                <button
+                  onClick={() => console.log(form)}
+                  className={`
+                  w-full py-4 rounded-xl text-white font-semibold mb-10
+                  ${
+                    isValid
+                      ? "bg-gradient-to-br from-orange-500 to-purple-500 hover:from-orange-700 hover:to-purple-700 cursor-pointer"
+                      : "bg-gray-400 cursor-not-allowed opacity-70"
+                  }
+                `}
+                >
+                  Agendar
+                </button>
               </div>
             </div>
 
