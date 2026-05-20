@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Formulario from "../components/Formulario";
 import TextInput from "../components/TextInput";
 import type { Servico, DiaDisponivel } from "../firebase/types";
@@ -38,10 +38,10 @@ function TelaCriarServico() {
   });
   const [erro, setErro] = useState("");
 
-  // Flag para saber se o usuário ainda não editou manualmente cada campo dos dias
-  // Enquanto true, ao digitar em qualquer dia, propaga para todos os outros ativos
-  const [propagouInicio, setPropagouInicio] = useState(false);
-  const [propagouFim, setPropagouFim] = useState(false);
+  // Refs síncronas para gravar qual índice de dia ativou a propagação inicial.
+  // Evita lags de estado assíncrono entre keystrokes rápidas.
+  const origemPropagacaoInicio = useRef<number | null>(null);
+  const origemPropagacaoFim = useRef<number | null>(null);
 
   useEffect(() => {
     if (idEmpresa) {
@@ -63,6 +63,10 @@ function TelaCriarServico() {
 
   // ── Handlers dos dias ─────────────────────────────────────────────────────
   const toggleDia = (index: number) => {
+    // Se desativar o dia que estava controlando a propagação, limpa a referência
+    if (origemPropagacaoInicio.current === index) origemPropagacaoInicio.current = null;
+    if (origemPropagacaoFim.current === index) origemPropagacaoFim.current = null;
+
     setForm((prev) => {
       const dias = [...prev.diasDisponiveis];
       dias[index] = { ...dias[index], ativo: !dias[index].ativo };
@@ -75,39 +79,35 @@ function TelaCriarServico() {
     campo: "inicio" | "fim",
     valor: string
   ) => {
+    if (campo === "inicio") {
+      // Se for a primeira digitação geral da tela, este campo vira o "master" da propagação
+      if (origemPropagacaoInicio.current === null) {
+        origemPropagacaoInicio.current = index;
+      }
+    } else {
+      if (origemPropagacaoFim.current === null) {
+        origemPropagacaoFim.current = index;
+      }
+    }
+
     setForm((prev) => {
       const dias = [...prev.diasDisponiveis];
 
-      // Primeira digitação neste campo: propaga para todos os dias ativos
-      if (campo === "inicio" && !propagouInicio) {
-        setPropagouInicio(true);
+      // Só propaga se o usuário continuar digitando no MESMO campo que iniciou tudo
+      const podePropagar = campo === "inicio"
+        ? (origemPropagacaoInicio.current === index)
+        : (origemPropagacaoFim.current === index);
+
+      if (podePropagar) {
         return {
           ...prev,
-          diasDisponiveis: dias.map((d, i) =>
-            i === index
-              ? { ...d, inicio: valor }
-              : d.ativo
-              ? { ...d, inicio: valor }
-              : d
+          diasDisponiveis: dias.map((d) =>
+            d.ativo ? { ...d, [campo]: valor } : d
           ),
         };
       }
 
-      if (campo === "fim" && !propagouFim) {
-        setPropagouFim(true);
-        return {
-          ...prev,
-          diasDisponiveis: dias.map((d, i) =>
-            i === index
-              ? { ...d, fim: valor }
-              : d.ativo
-              ? { ...d, fim: valor }
-              : d
-          ),
-        };
-      }
-
-      // Edições posteriores: só altera o dia específico
+      // Se ele trocou de campo ou mudou de dia (individualização), altera estritamente o alvo
       dias[index] = { ...dias[index], [campo]: valor };
       return { ...prev, diasDisponiveis: dias };
     });
@@ -130,7 +130,15 @@ function TelaCriarServico() {
   const handleConfirmar = async () => {
     if (!isValid || !idEmpresa) return;
     try {
-      await criarServico(form, idEmpresa);
+      // Correção do Bug 2: Limpa horários de dias inativos antes de salvar no Firebase
+      const formSanitizado: Servico = {
+        ...form,
+        diasDisponiveis: form.diasDisponiveis.map((d) =>
+          d.ativo ? d : { ...d, inicio: "", fim: "" }
+        ),
+      };
+
+      await criarServico(formSanitizado, idEmpresa);
       showAlerta("Sucesso", "Serviço criado com sucesso!", "sucesso");
       navigate("/feed");
     } catch (error) {
