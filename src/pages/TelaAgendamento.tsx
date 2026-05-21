@@ -6,9 +6,10 @@ import { getAuth } from "firebase/auth";
 import { X } from "lucide-react";
 import type { Agendamento, Servico } from "../firebase/types";
 import TextInput from "../components/TextInput";
-import { getServicosDaEmpresa } from "../firebase/database";
+import { agendarServico, getServicosDaEmpresa } from "../firebase/database";
 import GradeDisponibilidade from "../components/GradeDisponibilidade";
 import { useGradiente } from "../hooks/useGradiente";
+import { useAlerta } from "../provider/AlertContext";
 
 function TelaAgendamento() {
   const [nomeUsuario, setNomeUsuario] = useState("");
@@ -17,6 +18,7 @@ function TelaAgendamento() {
   );
   const navigate = useNavigate();
   const cor_fundo = useGradiente();
+  const { showAlerta } = useAlerta();
 
   const location = useLocation();
   const { servico, empresa } = location.state as {
@@ -25,7 +27,7 @@ function TelaAgendamento() {
   };
 
   const [form, setForm] = useState<Agendamento>({
-    servico: "",
+    servico: servico,
     data: "",
     horario: "",
     obs: "",
@@ -36,6 +38,31 @@ function TelaAgendamento() {
       ...prev,
       [campo]: value,
     }));
+  };
+
+  const handleClickAgendar = () => {
+    if (form.servico && form.data && form.horario) {
+      const auth = getAuth();
+      agendarServico(form, auth.currentUser!.uid)
+        .then(() => {
+          alert("Agendamento realizado com sucesso!");
+          navigate("/feed");
+        })
+        .catch((error) => {
+          console.error("Erro ao agendar serviço:", error);
+          showAlerta(
+            "Erro",
+            "Não foi possível realizar o agendamento. Tente novamente.",
+            "erro",
+          );
+        });
+    } else {
+      showAlerta(
+        "info",
+        "Por favor, preencha todos os campos obrigatórios.",
+        "info",
+      );
+    }
   };
 
   const isValid = Boolean(form.servico && form.data && form.horario);
@@ -97,6 +124,7 @@ function TelaAgendamento() {
                   handleChange("data", date?.toISOString().split("T")[0] ?? "")
                 }
                 agendamento
+                value={form.data === undefined ? undefined : form.data}
               />
               {/* Adicionar seleção de serviço e horário e botão para agendar */}
               <div className="mt-6">
@@ -125,7 +153,7 @@ function TelaAgendamento() {
                   onChange={(value) => handleChange("obs", value)}
                 />
                 <button
-                  onClick={() => console.log(form)}
+                  onClick={handleClickAgendar}
                   className={`
                   w-full py-4 rounded-xl text-white font-semibold mb-10
                   ${

@@ -26,6 +26,7 @@ export interface Prestador {
   // add algo depois?
 }
 
+// Adicionar o ID da empresa para facilitar consultas
 export interface Empresa {
   nome: string;
   cnpj: string;
@@ -62,7 +63,7 @@ export interface Servico {
 
 export interface Agendamento {
   id?: string;
-  servico: string;
+  servico: Servico;
   data: string;
   horario: string;
   obs: string;

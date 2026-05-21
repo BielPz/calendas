@@ -3,7 +3,6 @@ import { DayPicker, useDayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import { ptBR } from "date-fns/locale";
 import { useEffect, useState } from "react";
-import { isToday } from "date-fns";
 
 // Componente customizado para o caption do mês, incluindo os botões de navegação
 function CaptionComBotoes() {
@@ -40,9 +39,10 @@ function CaptionComBotoes() {
 interface Props {
   onChange?: (date: Date | undefined) => void;
   agendamento?: boolean;
+  value?: string;
 }
 
-function MiniCalendario({ onChange, agendamento }: Props) {
+function MiniCalendario({ onChange, agendamento, value }: Props) {
   const [selected, setSelected] = useState<Date>();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -66,7 +66,11 @@ function MiniCalendario({ onChange, agendamento }: Props) {
   return (
     <DayPicker
       mode="single"
-      selected={selected}
+      selected={
+        value
+          ? new Date(new Date(value).setDate(new Date(value).getDate() + 1)) // Ajusta a data para o fuso horário local
+          : selected
+      }
       onSelect={handleChange}
       locale={ptBR}
       style={{ width: "100%" }}
@@ -82,14 +86,14 @@ function MiniCalendario({ onChange, agendamento }: Props) {
           "grid grid-cols-7 text-center text-xs text-gray-500 mb-1 dark:text-gray-200",
         weeks: "grid",
         week: "grid grid-cols-7",
-        day: "text-center text-sm p-1 dark:text-gray-300",
+        day: "text-center text-sm p-1 dark:text-gray-300 w-full flex items-center justify-center rounded-lg transition-colors",
         day_button:
-          "w-6 h-6 rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center mx-auto",
+          "w-10 h-6 rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center",
         selected: "",
         today: "font-bold",
       }}
       modifiersClassNames={{
-        selected: "!bg-gray-900 !text-white !rounded-full !mx-auto",
+        selected: "!bg-gray-900 !text-white !rounded-full",
       }}
     />
   );

@@ -1,6 +1,6 @@
 import { db } from "./config";
-import { ref, set, push, get} from "firebase/database";
-import type { Servico } from "./types";
+import { ref, set, push, get, remove } from "firebase/database";
+import type { Agendamento, Servico } from "./types";
 import { getAuth, updateProfile } from "firebase/auth";
 
 /* -----------------------------------------------------------------------------*/
@@ -8,19 +8,22 @@ import { getAuth, updateProfile } from "firebase/auth";
 export const criarServico = async (item: Servico, idEmpresa: string) => {
   try {
     // 1. Cria uma nova referência com um ID único no nó global 'servicos'
-    const itemListRef = ref(db, 'servicos');
+    const itemListRef = ref(db, "servicos");
     const newItemRef = push(itemListRef);
     const idServico = newItemRef.key!;
-    
+
     // 2. Salva os dados do serviço (incluindo o idEmpresa para referência reversa)
     await set(newItemRef, {
       ...item,
-      idEmpresa: idEmpresa // opcional, mas boa prática para saber a quem o serviço pertence
+      idEmpresa: idEmpresa, // opcional, mas boa prática para saber a quem o serviço pertence
     });
-    
+
     // 3. Salva o ID do serviço dentro do nó da empresa selecionada
     // Isso cria a lista: empresas -> {idEmpresa} -> servicos -> {idServico}: true
-    const empresaServicoRef = ref(db, `empresas/${idEmpresa}/servicos/${idServico}`);
+    const empresaServicoRef = ref(
+      db,
+      `empresas/${idEmpresa}/servicos/${idServico}`,
+    );
     await set(empresaServicoRef, true);
 
     return idServico;
@@ -33,7 +36,9 @@ export const criarServico = async (item: Servico, idEmpresa: string) => {
 /* -----------------------------------------------------------------------------*/
 
 // Pega as empresas de um prestador
-export const getEmpresasDoPrestador = async (): Promise<{ id: string; nome: string }[]> => {
+export const getEmpresasDoPrestador = async (): Promise<
+  { id: string; nome: string }[]
+> => {
   const auth = getAuth();
   const uid = auth.currentUser?.uid;
   if (!uid) throw new Error("Usuário não logado");
@@ -49,7 +54,7 @@ export const getEmpresasDoPrestador = async (): Promise<{ id: string; nome: stri
     ids.map(async (id) => {
       const snap = await get(ref(db, `empresas/${id}`));
       return { id, nome: snap.val()?.nome ?? "Sem nome" };
-    })
+    }),
   );
 
   return empresas;
@@ -68,7 +73,9 @@ export const getEmpresaPorId = async (id: string) => {
 
 /* -----------------------------------------------------------------------------*/
 
-export const getServicosDaEmpresa = async (idEmpresa: string): Promise<Servico[]> => {
+export const getServicosDaEmpresa = async (
+  idEmpresa: string,
+): Promise<Servico[]> => {
   try {
     // 1. pega os IDs dos serviços da empresa
     const servicosRef = ref(db, `empresas/${idEmpresa}/servicos`);
@@ -83,7 +90,7 @@ export const getServicosDaEmpresa = async (idEmpresa: string): Promise<Servico[]
       ids.map(async (id) => {
         const snap = await get(ref(db, `servicos/${id}`));
         return snap.exists() ? { id, ...snap.val() } : null;
-      })
+      }),
     );
 
     // 3. remove null (caso algum não exista)
@@ -113,24 +120,24 @@ export const getTodosServicos = async (): Promise<Servico[]> => {
 };
 
 /* -----------------------------------------------------------------------------*/
- 
+
 // Atualiza os dados de perfil de um cliente ou prestador
 // Campos protegidos (uid, dataCadastro, email, tipo) nunca são sobrescritos
 export const atualizarPerfil = async (
   tipo: "cliente" | "prestador",
-  dadosEditados: Record<string, string>
+  dadosEditados: Record<string, string>,
 ): Promise<void> => {
   const auth = getAuth();
   const user = auth.currentUser;
-  
+
   if (!user) throw new Error("Usuário não logado");
- 
+
   const colecao = tipo === "cliente" ? "clientes" : "prestadores";
   const dbRef = ref(db, `${colecao}/${user.uid}`);
- 
+
   const snap = await get(dbRef);
   if (!snap.exists()) throw new Error("Perfil não encontrado no banco.");
- 
+
   // 1. Atualizar o Firebase Auth se o nome foi alterado
   if (dadosEditados.nome && dadosEditados.nome !== user.displayName) {
     await updateProfile(user, { displayName: dadosEditados.nome });
@@ -138,10 +145,78 @@ export const atualizarPerfil = async (
 
   // 2. Preparar dados para o Realtime Database
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { uid: _u, dataCadastro: _dc, email: _e, tipo: _t, senha: _s, ...editaveis } = dadosEditados as Record<string, string>;
- 
+  const {
+    uid: _u,
+    dataCadastro: _dc,
+    email: _e,
+    tipo: _t,
+    senha: _s,
+    ...editaveis
+  } = dadosEditados as Record<string, string>;
+
   await set(dbRef, {
-    ...snap.val(),   
-    ...editaveis,    
+    ...snap.val(),
+    ...editaveis,
   });
+};
+
+/* -----------------------------------------------------------------------------*/
+
+// Agenda um serviço para um cliente, salvando no nó "agendamentos" e associando ao cliente e prestador
+export const agendarServico = async (
+  agendamento: Agendamento,
+  idCliente: string,
+) => {
+  try {
+    // 1. Cria um novo agendamento com ID único
+    const agendamentoRef = ref(db, "agendamentos");
+    const newAgendamentoRef = push(agendamentoRef);
+    const idAgendamento = newAgendamentoRef.key!;
+
+    // 2. Salva os dados do agendamento (incluindo referências ao serviço, cliente e prestador)
+    const { servico, data, horario, obs } = agendamento;
+    const idServico = servico.id!;
+    await set(newAgendamentoRef, {
+      idServico,
+      idCliente,
+      data,
+      horario,
+      status: "agendado",
+      obs,
+    });
+
+    // 3. Associa o agendamento ao cliente (para facilitar consultas futuras do cliente)
+    try {
+      const clienteAgendamentoRef = ref(
+        db,
+        `clientes/${idCliente}/agendamentos/${idAgendamento}`,
+      );
+      await set(clienteAgendamentoRef, true);
+    } catch (error) {
+      console.error("Erro ao associar agendamento ao cliente:", error);
+      // Remover o agendamento criado se essa associação falhar
+      await remove(newAgendamentoRef);
+    }
+
+    // 4. Associa o agendamento ao serviço (para facilitar consultas futuras do prestador)
+    try {
+      const servicoAgendamentoRef = ref(
+        db,
+        `servicos/${idServico}/agendamentos/${idAgendamento}`,
+      );
+      await set(servicoAgendamentoRef, true);
+    } catch (error) {
+      console.error("Erro ao associar agendamento ao serviço:", error);
+      // Remover o agendamento criado e a associação com o cliente se essa associação falhar
+      await remove(newAgendamentoRef);
+      await remove(
+        ref(db, `clientes/${idCliente}/agendamentos/${idAgendamento}`),
+      );
+    }
+
+    return idAgendamento;
+  } catch (error) {
+    console.error("Erro ao agendar serviço:", error);
+    throw error;
+  }
 };
