@@ -3,6 +3,7 @@ import { DayPicker, useDayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import { ptBR } from "date-fns/locale";
 import { useEffect, useState } from "react";
+import { isToday } from "date-fns";
 
 // Componente customizado para o caption do mês, incluindo os botões de navegação
 function CaptionComBotoes() {
@@ -38,19 +39,28 @@ function CaptionComBotoes() {
 
 interface Props {
   onChange?: (date: Date | undefined) => void;
+  agendamento?: boolean;
 }
 
-function MiniCalendario({ onChange }: Props) {
+function MiniCalendario({ onChange, agendamento }: Props) {
   const [selected, setSelected] = useState<Date>();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   useEffect(() => {
-    const today = new Date();
     setSelected(today); // Define a data atual como selecionada inicialmente
   }, []);
 
   function handleChange(date: Date | undefined) {
-    setSelected(date);
-    onChange?.(date);
+    if (agendamento) {
+      if (date && date >= today) {
+        setSelected(date);
+        onChange?.(date);
+      }
+    } else {
+      setSelected(date);
+      onChange?.(date);
+    }
   }
 
   return (
