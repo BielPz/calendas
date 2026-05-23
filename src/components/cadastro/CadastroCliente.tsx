@@ -209,7 +209,7 @@ function CadastroUsuario() {
       <div>
         <button
           className={`
-            w-full py-4 rounded-xl text-white font-semibold mb-10
+            w-full py-4 rounded-xl text-white font-semibold mb-3
             ${
               isValid
                 ? "bg-gradient-to-br from-orange-500 to-purple-500 hover:from-orange-700 hover:to-purple-700 cursor-pointer"

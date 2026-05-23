@@ -59,7 +59,7 @@ function TelaLogin() {
             disabled={!isValid}
             onClick={handleLogin}
             className={`
-            w-full py-4 rounded-xl text-white font-semibold mb-10
+            w-full py-4 rounded-xl text-white font-semibold mb-3
             ${
               isValid
                 ? "bg-linear-to-br from-orange-500 to-purple-500 dark:from-indigo-600 dark:to-zinc-600 dark:hover:from-indigo-950 dark:hover:to-zinc-950 hover:from-orange-700 hover:to-purple-700 cursor-pointer"
@@ -70,6 +70,16 @@ function TelaLogin() {
             Continuar
           </button>
         </div>
+        <div className="border-t border-gray-300 dark:border-gray-700 my-3" />
+        <p className="text-start text-m mb-10">
+          Não tem uma conta?{" "}
+          <Link
+            to="/cadastro"
+            className="text-blue-700 dark:text-blue-400 dark:hover:text-blue-50 hover:text-black transition-colors duration-200 font-semibold"
+          >
+            Cadastre-se
+          </Link>
+        </p>
       </div>
     </div>
   );

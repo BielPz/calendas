@@ -2,6 +2,7 @@ import { useState } from "react";
 import CabecalhoBranco from "../components/CabecalhoBranco";
 import CadastroPrestador from "../components/cadastro/CadastroPrestador";
 import CadastroCliente from "../components/cadastro/CadastroCliente";
+import { Link } from "react-router-dom";
 
 function TelaCadastro() {
   const [tipo, setTipo] = useState<"cliente" | "prestador">("cliente");
@@ -22,6 +23,17 @@ function TelaCadastro() {
         <div className={`w-full ${tipo === "prestador" ? "block" : "hidden"}`}>
           <CadastroPrestador />
         </div>
+
+        <div className="border-t border-gray-300 dark:border-gray-700 my-3" />
+        <p className="text-start text-m mb-10">
+          Já tem uma conta?{" "}
+          <Link
+            to="/login"
+            className="text-blue-700 dark:text-blue-400 dark:hover:text-blue-50 hover:text-black transition-colors duration-200 font-semibold"
+          >
+            Faça login
+          </Link>
+        </p>
       </div>
     </div>
   );
