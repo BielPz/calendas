@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Formulario from "../Formulario";
 import TextInput from "../TextInput";
 import UploadImagem from "../UploadImagem";
 import Estados from "../../hooks/Estados";
 import Cidades from "../../hooks/Cidades";
 import type { Empresa } from "../../firebase/types";
+import ConsultarCEP from "../../hooks/ConsultarCEP";
+import { useAlerta } from "../../provider/AlertContext";
 
 interface Props {
   onValidate?: (valid: boolean) => void;
@@ -49,8 +51,38 @@ function Fase2({ onValidate, onChange }: Props) {
     form.estado,
   );
 
+  const { showAlerta } = useAlerta();
+
   const estados = Estados();
   const cidades = Cidades(String(form.estado));
+
+  const CEPdados = useMemo(
+    () => (form.cep?.length === 9 ? ConsultarCEP(form.cep) : null),
+    [form.cep],
+  );
+
+  // Atualiza os campos de endereço quando o CEP é consultado
+  useEffect(() => {
+    if (!CEPdados) return;
+
+    CEPdados.then((dados) => {
+      if (!dados || dados.erro) {
+        showAlerta(
+          "Falha na consulta",
+          "Não foi possível consultar o CEP. Verifique o número e tente novamente.",
+          "desconect",
+        );
+        return;
+      }
+      setForm((prev) => ({
+        ...prev,
+        logradouro: dados.logradouro || "",
+        bairro: dados.bairro || "",
+        cidade: dados.localidade || "",
+        estado: dados.uf || "",
+      }));
+    });
+  }, [CEPdados]);
 
   useEffect(() => {
     onValidate?.(isValid);
@@ -103,6 +135,7 @@ function Fase2({ onValidate, onChange }: Props) {
           titulo="Logradouro"
           type="text"
           onChange={(value) => handleChange("logradouro", value)}
+          value={form.logradouro === undefined ? undefined : form.logradouro}
           required
         />
         <TextInput
@@ -115,6 +148,7 @@ function Fase2({ onValidate, onChange }: Props) {
           titulo="Bairro"
           type="text"
           onChange={(value) => handleChange("bairro", value)}
+          value={form.bairro === undefined ? undefined : form.bairro}
           required
         />
         <TextInput
@@ -122,6 +156,7 @@ function Fase2({ onValidate, onChange }: Props) {
           type="select"
           options={estados}
           onChange={(value) => handleChange("estado", value)}
+          value={form.estado === undefined ? undefined : form.estado}
           required
         />
         <TextInput
@@ -129,6 +164,7 @@ function Fase2({ onValidate, onChange }: Props) {
           type="select"
           options={cidades}
           onChange={(value) => handleChange("cidade", value)}
+          value={form.cidade === undefined ? undefined : form.cidade}
           required
         />
       </Formulario>
