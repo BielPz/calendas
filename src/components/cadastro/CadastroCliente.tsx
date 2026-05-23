@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Formulario from "../Formulario";
 import TextInput from "../TextInput";
 import CheckBox from "../CheckBox";
@@ -8,6 +8,7 @@ import Cidades from "../../hooks/Cidades";
 import { registrarCliente } from "../../firebase/auth";
 import type { Usuario, Cliente } from "../../firebase/types";
 import { useAlerta } from "../../provider/AlertContext";
+import ConsultarCEP from "../../hooks/ConsultarCEP";
 
 function CadastroUsuario() {
   const [form, setForm] = useState<Usuario & Cliente>({
@@ -58,6 +59,33 @@ function CadastroUsuario() {
 
   const estados = Estados();
   const cidades = Cidades(String(form.estado));
+  const CEPdados = useMemo(
+    () => (form.cep?.length === 9 ? ConsultarCEP(form.cep) : null),
+    [form.cep],
+  );
+
+  // Atualiza os campos de endereço quando o CEP é consultado
+  useEffect(() => {
+    if (!CEPdados) return;
+
+    CEPdados.then((dados) => {
+      if (!dados || dados.erro) {
+        showAlerta(
+          "Falha na consulta",
+          "Não foi possível consultar o CEP. Verifique o número e tente novamente.",
+          "erro",
+        );
+        return;
+      }
+      setForm((prev) => ({
+        ...prev,
+        logradouro: dados.logradouro || "",
+        bairro: dados.bairro || "",
+        cidade: dados.localidade || "",
+        estado: dados.uf || "",
+      }));
+    });
+  }, [CEPdados]);
 
   const handleChange = (campo: string, value: string) => {
     setForm((prev) => ({
@@ -145,6 +173,7 @@ function CadastroUsuario() {
         <TextInput
           titulo="Logradouro"
           type="text"
+          value={form.logradouro === undefined ? undefined : form.logradouro}
           onChange={(value) => handleChange("logradouro", value)}
         />
         <TextInput
@@ -155,18 +184,21 @@ function CadastroUsuario() {
         <TextInput
           titulo="Bairro"
           type="text"
+          value={form.bairro === undefined ? undefined : form.bairro}
           onChange={(value) => handleChange("bairro", value)}
         />
         <TextInput
           titulo="Estado"
           type="select"
           options={estados}
+          value={form.estado === undefined ? undefined : form.estado}
           onChange={(value) => handleChange("estado", value)}
         />
         <TextInput
           titulo="Cidade"
           type="select"
           options={cidades}
+          value={form.cidade === undefined ? undefined : form.cidade}
           onChange={(value) => handleChange("cidade", value)}
         />
       </Formulario>
