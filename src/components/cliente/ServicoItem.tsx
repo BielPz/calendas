@@ -28,133 +28,135 @@ function ServicoItem({ servico }: Props) {
           showAlerta("Erro", "Não foi possível carregar os dados da empresa.", "erro");
         });
     }
-  }, [servico.idEmpresa]);
+  }, [servico.idEmpresa, showAlerta]);
+
+  const estrelas = (
+    <div className="flex gap-0.5">
+      {[1,2,3,4,5].map((e) => (
+        <button key={e} onClick={() => setAvaliacao(e)} onMouseEnter={() => setHover(e)} onMouseLeave={() => setHover(0)} className="text-sm leading-none">
+          <span className={(hover || avaliacao) >= e ? "text-yellow-400" : "text-gray-300 dark:text-zinc-600"}>★</span>
+        </button>
+      ))}
+    </div>
+  );
 
   return (
-    <div className="flex flex-row w-full bg-gray-100 dark:bg-zinc-800 rounded overflow-hidden items-stretch border border-gray-200 dark:border-zinc-700 shadow-xs">
-      
-      {/* Imagem — Ocupa 100% da altura total da div de conteúdo */}
-      <div className="w-52 shrink-0 bg-gray-200 dark:bg-zinc-900">
-        {servico.imagem ? (
-          <img
-            src={servico.imagem}
-            alt="banner do serviço"
-            className="w-full h-full object-cover"
-            loading="lazy"
-            onError={(e) => { e.currentTarget.src = imgErrorInternet; }}
-          />
-        ) : (
-          <div className="w-full h-full bg-gray-300 dark:bg-zinc-700 flex items-center justify-center text-gray-500 text-sm">
-            Sem Imagem
-          </div>
-        )}
-      </div>
+    <>
+      {/* ── DESKTOP (md+) ─────────────────────────────────────────────── */}
+      <div className="hidden md:flex flex-row w-full bg-white dark:bg-zinc-800 rounded-lg overflow-hidden border border-gray-200 dark:border-zinc-700">
 
-      {/* Grid de Conteúdo Dividido em Duas Colunas */}
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 p-5">
-        
-        {/* COLUNA 1: Dados do Serviço (Empresa, Descrição, Valor, etc.) */}
-        <div className="flex flex-col justify-between h-full">
-          <div>
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0 flex-1">
-                <p className="font-bold text-xl dark:text-white truncate">{servico.nome}</p>
-                <p className="text-sm text-blue-600 dark:text-blue-400 font-bold mt-0.5">{nomeEmpresa}</p>
-              </div>
-              
-              {/* Coração Antigo / Simples */}
-              <button
-                onClick={() => setFavorito(!favorito)}
-                className="text-2xl transition-transform active:scale-90 cursor-pointer p-1 shrink-0"
-              >
-                {favorito ? "♥" : "♡"}
-              </button>
+        {/* Imagem */}
+        <div className="w-24 shrink-0 bg-gray-100 dark:bg-zinc-900 self-stretch">
+          {servico.imagem ? (
+            <img src={servico.imagem} alt={servico.nome} className="w-full h-full object-cover" loading="lazy"
+              onError={(e) => { e.currentTarget.src = imgErrorInternet; }} />
+          ) : (
+            <div className="w-full h-full bg-gray-100 dark:bg-zinc-700" />
+          )}
+        </div>
+
+        {/* Info principal */}
+        <div className="flex-1 min-w-0 px-3 py-2 flex flex-col">
+          {/* Topo: nome + favorito */}
+          <div className="flex items-start justify-between gap-1">
+            <div className="min-w-0">
+              <p className="font-semibold text-sm dark:text-white truncate">{servico.nome}</p>
+              <p className="text-xs text-blue-500 truncate">{nomeEmpresa}</p>
             </div>
-
-            <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-3 mt-3 leading-relaxed">
-              {servico.descricao || "Nenhuma descrição informada."}
-            </p>
+            <button onClick={() => setFavorito(!favorito)} className="text-base shrink-0 pt-0.5 text-gray-400 hover:text-red-400 transition-colors">
+              {favorito ? "♥" : "♡"}
+            </button>
           </div>
 
-          <div className="mt-4 flex flex-col gap-3">
-            {/* Bloco de Valor e Tempo */}
-            <div className="flex flex-wrap gap-3 text-sm font-bold text-gray-800 dark:text-gray-200 gap-5">
-              <span className="bg-white dark:bg-zinc-700 px-3 py-1 rounded border border-gray-200 dark:border-zinc-600 shadow-xs">
-                R$ {Number(servico.preco).toFixed(2)}
-              </span>
-              <span className="bg-white dark:bg-zinc-700 px-3 py-1 rounded border border-gray-200 dark:border-zinc-600 shadow-xs">
-                {servico.duracao} {servico.tempo}
-              </span>
-              <div className="flex gap-3">
-                {[1, 2, 3, 4, 5].map((estrela) => (
-                <button
-                  key={estrela}
-                  onClick={() => setAvaliacao(estrela)}
-                  onMouseEnter={() => setHover(estrela)}
-                  onMouseLeave={() => setHover(0)}
-                  className="text-xl cursor-pointer transition-transform hover:scale-110"
-                >
-                  <span className={(hover || avaliacao) >= estrela ? "text-yellow-400" : "text-gray-300 dark:text-zinc-600"}>
-                    ★
-                  </span>
-                </button>
-              ))}
-              </div>
-              
-            </div>
+          {/* Descrição cresce para empurrar o rodapé */}
+          <p className="text-xs text-gray-400 dark:text-gray-500 line-clamp-2 mt-1 leading-relaxed flex-1">
+            {servico.descricao || "Sem descrição."}
+          </p>
 
-            {/* Botão de Agendar Antigo / Padrão */}
+          {/* Rodapé: preço, duração, estrelas, botão */}
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
+            <span className="text-xs font-semibold text-gray-700 dark:text-gray-200">R$ {Number(servico.preco).toFixed(2)}</span>
+            <span className="text-gray-300 dark:text-zinc-600 text-xs">•</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">{servico.duracao} {servico.tempo}</span>
+            <span className="text-gray-300 dark:text-zinc-600 text-xs">•</span>
+            {estrelas}
             <button
-              className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-all active:scale-98 text-center text-sm cursor-pointer shadow-xs"
+              className="ml-auto text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded transition-colors"
               onClick={() => navigate("/agendamento", { state: { servico, empresa: nomeEmpresa } })}
             >
-              Agendar Horário
+              + Agendar
             </button>
           </div>
         </div>
 
-        {/* COLUNA 2: Lista dos 7 Dias na Vertical (Bolas Azuis / Cinzas) */}
-        <div className="flex flex-col justify-center border-l border-gray-200 dark:border-zinc-700 pl-6 gap-2">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-            Horários Disponíveis:
-          </p>
-          
-          <div className="flex flex-col gap-2">
-            {DIAS_SEMANA.map((dia, i) => {
-              const d = servico.diasDisponiveis?.[i];
-              const isAtivo = !!d?.ativo;
-
-              return (
-                <div key={dia} className="flex items-center gap-3">
-                  {/* Bola do Dia: Azul se true, Cinza se false */}
-                  <div
-                    className={`w-9 h-9 rounded-full font-bold text-xs flex items-center justify-center transition-colors shrink-0 text-white shadow-xs
-                      ${isAtivo 
-                        ? "bg-blue-600 border border-blue-700" 
-                        : "bg-gray-400 border border-gray-500 dark:bg-zinc-600 dark:border-zinc-500"
-                      }`}
-                  >
-                    {dia}
-                  </div>
-                  
-                  {/* Horário na frente */}
-                  <span
-                    className={`text-sm font-semibold transition-colors
-                      ${isAtivo 
-                        ? "text-gray-800 dark:text-gray-200" 
-                        : "text-gray-400 dark:text-zinc-500 font-normal"
-                      }`}
-                  >
-                    {isAtivo ? `${d.inicio} às ${d.fim}` : "Fechado"}
-                  </span>
+        {/* Dias */}
+        <div className="shrink-0 border-l border-gray-100 dark:border-zinc-700 px-3 py-2 flex flex-col gap-0.5 justify-center">
+          {DIAS_SEMANA.map((dia, i) => {
+            const d = servico.diasDisponiveis?.[i];
+            const ativo = !!d?.ativo;
+            return (
+              <div key={dia} className="flex items-center gap-1.5">
+                <div className={`w-6 h-6 rounded-full text-[9px] font-bold flex items-center justify-center shrink-0
+                  ${ativo ? "bg-blue-600 text-white" : "bg-gray-100 dark:bg-zinc-700 text-gray-400"}`}>
+                  {dia}
                 </div>
-              );
-            })}
-          </div>
+                <span className={`text-[10px] whitespace-nowrap ${ativo ? "text-gray-600 dark:text-gray-300" : "text-gray-300 dark:text-zinc-600"}`}>
+                  {ativo ? `${d.inicio} – ${d.fim}` : "—"}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── MOBILE (< md) ─────────────────────────────────────────────── */}
+      <div className="flex md:hidden flex-row w-full bg-white dark:bg-zinc-800 rounded-lg overflow-hidden border border-gray-200 dark:border-zinc-700">
+
+        {/* Imagem */}
+        <div className="w-20 shrink-0 bg-gray-100 dark:bg-zinc-900 self-stretch">
+          {servico.imagem ? (
+            <img src={servico.imagem} alt={servico.nome} className="w-full h-full object-cover" loading="lazy"
+              onError={(e) => { e.currentTarget.src = imgErrorInternet; }} />
+          ) : (
+            <div className="w-full h-full bg-gray-100 dark:bg-zinc-700" />
+          )}
         </div>
 
+        {/* Info */}
+        <div className="flex-1 min-w-0 px-3 py-2 flex flex-col">
+          {/* Topo */}
+          <div className="flex items-start justify-between gap-1">
+            <div className="min-w-0">
+              <p className="font-semibold text-sm dark:text-white truncate">{servico.nome}</p>
+              <p className="text-xs text-blue-500 truncate">{nomeEmpresa}</p>
+            </div>
+            <button onClick={() => setFavorito(!favorito)} className="text-base shrink-0 pt-0.5 text-gray-400 hover:text-red-400 transition-colors">
+              {favorito ? "♥" : "♡"}
+            </button>
+          </div>
+
+          {/* Descrição */}
+          <p className="text-xs text-gray-400 dark:text-gray-500 line-clamp-2 mt-1 leading-relaxed flex-1">
+            {servico.descricao || "Sem descrição."}
+          </p>
+
+          {/* Rodapé */}
+          <div className="flex items-center justify-between mt-2 gap-2">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-xs font-semibold text-gray-700 dark:text-gray-200">R$ {Number(servico.preco).toFixed(2)}</span>
+              <span className="text-gray-300 text-xs">•</span>
+              <span className="text-xs text-gray-500">{servico.duracao} {servico.tempo}</span>
+            </div>
+            <button
+              className="shrink-0 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded transition-colors"
+              onClick={() => navigate("/agendamento", { state: { servico, empresa: nomeEmpresa } })}
+            >
+              + Agendar
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

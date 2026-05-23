@@ -103,7 +103,7 @@ function TelaPerfil() {
     try {
       await signOut(auth);
       navigate("/login");
-    } catch (error) {
+    } catch {
       showAlerta("Erro", "Erro ao sair.", "erro");
     }
   };
@@ -131,7 +131,7 @@ function TelaPerfil() {
     <div className={`flex flex-col h-screen ${cor_fundo} overflow-hidden`}>
       <Cabecalho none />
 
-      <div className="flex flex-1 overflow-hidden w-full max-w-[1400px] mx-auto gap-4 p-4">
+      <div className="flex flex-1 overflow-hidden w-full max-w-350 mx-auto gap-4 p-4">
         {/* Sidebar Desktop */}
         <aside className="hidden md:flex flex-col bg-white dark:bg-zinc-700 rounded-2xl shadow-lg w-72 shrink-0 p-6 h-full overflow-hidden">
           <div className="flex-1 overflow-y-auto pr-2">
