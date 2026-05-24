@@ -103,18 +103,26 @@ function TelaFeed() {
               />
             </div>
             {usuario === "prestador" && (
-              <select
-                value={idEmpresaAtiva}
-                onChange={(e) => setIdEmpresaAtiva(e.target.value)}
-                className="bg-white dark:bg-zinc-800 p-3 rounded-lg border border-gray-300 dark:border-gray-200 focus:outline-none sm:w-48 w-full dark:text-white"
-              >
-                <option value="">Selecione a empresa...</option>
-                {empresas.map((empresa) => (
-                  <option key={empresa.id} value={empresa.id}>
-                    {empresa.nome}
-                  </option>
-                ))}
-              </select>
+              <div className="flex gap-2">
+                <select
+                  value={idEmpresaAtiva}
+                  onChange={(e) => setIdEmpresaAtiva(e.target.value)}
+                  className="bg-white dark:bg-zinc-800 p-3 rounded-lg border border-gray-300 dark:border-gray-200 focus:outline-none sm:w-48 w-full dark:text-white flex-1"
+                >
+                  <option value="">Selecione a empresa...</option>
+                  {empresas.map((empresa) => (
+                    <option key={empresa.id} value={empresa.id}>
+                      {empresa.nome}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  onClick={() => navigate("/cadastro-empresa")}
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors shrink-0"
+                >
+                  + Nova
+                </button>
+              </div>
             )}
           </div>
 

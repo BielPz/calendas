@@ -14,6 +14,7 @@ import { AlertaProvider } from "./provider/AlertContext";
 import TelaCalendario from "./pages/TelaCalendario";
 import TelaAgendamento from "./pages/TelaAgendamento";
 import { ThemeProvider } from "./provider/ThemeContext";
+import TelaCriarEmpresa from "./pages/TelaCriarEmpresa";
 
 createRoot(document.getElementById("root")!).render(
   <BrowserRouter>
@@ -30,6 +31,7 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/perfil" element={<TelaPerfil />} />
           <Route path="/calendario" element={<TelaCalendario />} />
           <Route path="/agendamento" element={<TelaAgendamento />} />
+          <Route path="/cadastro-empresa" element={<TelaCriarEmpresa />} />
         </Routes>
       </ThemeProvider>
     </AlertaProvider>
