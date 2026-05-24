@@ -63,6 +63,14 @@ function TelaAgendamento() {
   >([]);
   const [atualizarDisponibilidade, setAtualizarDisponibilidade] =
     useState<Disponibilidade | null>(null);
+  const [modalMobileAberto, setModalMobileAberto] = useState(false);
+
+  // Converte dia numérico (ex: 15) + ano/mes atual para ISO string e abre modal mobile
+  const handleDiaSelecionadoMobile = (dia: number) => {
+    const dataISO = `${ano}-${String(mes + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+    handleChange("data", dataISO);
+    setModalMobileAberto(true);
+  };
 
   const handleChange = (campo: string, value: string) => {
     setForm((prev) => ({
@@ -227,8 +235,7 @@ function TelaAgendamento() {
             </div>
           </div>
 
-          {/* Barra horizontal de ícones — só mobile */}
-          <div className="md:hidden shrink-0"></div>
+
 
           <div className="flex flex-col md:flex-row gap-3 grow min-h-0">
             {/* Sidebar vertical — só desktop */}
@@ -291,13 +298,77 @@ function TelaAgendamento() {
                   mes={mes}
                   diasFuncionamento={diasDisponiveis}
                   disponibilidades={atualizarDisponibilidade || {}} // Passa as disponibilidades para a grade
-                  onDiaSelecionado={() =>
-                    console.log(getAgendamentosDoServico(form.servico!.id!))
-                  } // Para teste, loga os agendamentos do serviço ao clicar em um dia
+                  onDiaSelecionado={handleDiaSelecionadoMobile}
                 />
               </div>
             </div>
           </div>
+
+          {/* ── Bottom sheet mobile — aparece ao clicar num dia disponível ── */}
+          {modalMobileAberto && (
+            <div className="md:hidden fixed inset-0 z-50 flex flex-col justify-end">
+              {/* Overlay */}
+              <div
+                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                onClick={() => setModalMobileAberto(false)}
+              />
+
+              {/* Painel */}
+              <div className="relative bg-white dark:bg-zinc-800 rounded-t-2xl p-5 flex flex-col gap-3 shadow-xl max-h-[85vh] overflow-y-auto">
+                {/* Handle + cabeçalho */}
+                <div className="w-10 h-1 rounded-full bg-gray-300 dark:bg-zinc-600 mx-auto mb-1" />
+                <div className="flex items-center justify-between">
+                  <h2 className="font-semibold text-gray-800 dark:text-gray-100 text-sm">Agendar horário</h2>
+                  <button
+                    onClick={() => setModalMobileAberto(false)}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
+                  >
+                    <X size={18} className="text-gray-500 dark:text-gray-400" />
+                  </button>
+                </div>
+
+                <TextInput
+                  titulo="Serviço"
+                  type="select"
+                  onChange={(value) => handleChange("servico", value)}
+                  selected={servico?.nome}
+                  options={servicos}
+                />
+                <TextInput
+                  titulo="Data"
+                  type="date"
+                  value={form.data === undefined ? undefined : form.data}
+                  onChange={(value) => handleChange("data", value)}
+                  agendamento
+                />
+                <TextInput
+                  titulo="Horário"
+                  type="select"
+                  onChange={(value) => handleChange("horario", value)}
+                  options={horariosDisponiveis}
+                />
+                <TextInput
+                  titulo="Observação"
+                  type="text"
+                  onChange={(value) => handleChange("obs", value)}
+                />
+
+                <button
+                  onClick={() => {
+                    handleClickAgendar();
+                    setModalMobileAberto(false);
+                  }}
+                  className={`w-full py-3 rounded-xl text-white text-sm font-semibold transition-all
+                    ${isValid
+                      ? "bg-gradient-to-br from-orange-500 to-purple-500 hover:from-orange-700 hover:to-purple-700 cursor-pointer shadow-md"
+                      : "bg-gray-300 dark:bg-zinc-600 cursor-not-allowed opacity-60"
+                    }`}
+                >
+                  Agendar
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
