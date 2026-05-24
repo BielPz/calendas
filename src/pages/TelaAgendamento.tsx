@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Cabecalho from "../components/Cabecalho";
 import MiniCalendario from "../components/MiniCalendario";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -6,10 +6,20 @@ import { getAuth } from "firebase/auth";
 import { X } from "lucide-react";
 import type { Agendamento, Servico } from "../firebase/types";
 import TextInput from "../components/TextInput";
-import { agendarServico, getServicosDaEmpresa } from "../firebase/database";
+import {
+  agendarServico,
+  getAgendamentosDoServico,
+  getDisponibilidadeMensal,
+  getServicosDaEmpresa,
+} from "../firebase/database";
 import GradeDisponibilidade from "../components/GradeDisponibilidade";
 import { useGradiente } from "../hooks/useGradiente";
 import { useAlerta } from "../provider/AlertContext";
+import Loading from "../components/Loading";
+
+interface Disponibilidade {
+  [dia: number]: "sem-horario" | "parcial" | "disponivel";
+}
 
 function TelaAgendamento() {
   const [nomeUsuario, setNomeUsuario] = useState("");
@@ -33,6 +43,27 @@ function TelaAgendamento() {
     obs: "",
   });
 
+  const hoje = new Date();
+  const mes = form.data
+    ? new Date(form.data + "T12:00:00").getMonth()
+    : hoje.getMonth(); // 0-11
+  const ano = form.data
+    ? new Date(form.data + "T12:00:00").getFullYear()
+    : hoje.getFullYear();
+
+  const diasDisponiveis = useMemo(() => {
+    if (!form.servico) return [];
+    return form.servico.diasDisponiveis
+      .map((dia, index) => (dia.ativo ? index : -1))
+      .filter((i) => i !== -1);
+  }, [form.servico]);
+
+  const [horariosDisponiveis, setHorariosDisponiveis] = useState<
+    { label: string; value: string }[]
+  >([]);
+  const [atualizarDisponibilidade, setAtualizarDisponibilidade] =
+    useState<Disponibilidade | null>(null);
+
   const handleChange = (campo: string, value: string) => {
     setForm((prev) => ({
       ...prev,
@@ -45,7 +76,11 @@ function TelaAgendamento() {
       const auth = getAuth();
       agendarServico(form, auth.currentUser!.uid)
         .then(() => {
-          alert("Agendamento realizado com sucesso!");
+          showAlerta(
+            "Sucesso",
+            "Agendamento realizado com sucesso!",
+            "sucesso",
+          );
           navigate("/feed");
         })
         .catch((error) => {
@@ -67,26 +102,104 @@ function TelaAgendamento() {
 
   const isValid = Boolean(form.servico && form.data && form.horario);
 
+  // Carrega os serviços da empresa para preencher o dropdown de seleção
   useEffect(() => {
     async function carregar() {
-      const data = await getServicosDaEmpresa(servico.idEmpresa!);
-      const opcoes = data
+      const data = await getServicosDaEmpresa(servico.idEmpresa!); // Garantindo que idEmpresa não é undefined
+      const opcoes = data // Filtra serviços sem ID e mapeia para o formato esperado pelo TextInput
         .filter((s) => s.id !== undefined)
         .map((s) => ({
-          label: s.nome,
-          value: s.id!,
+          label: s.nome, // Exibe o nome do serviço
+          value: s.id!, // Usa o ID do serviço como valor
         }));
       setServicos(opcoes);
     }
     carregar();
   }, []);
 
+  useEffect(() => {
+    setForm((prev) => ({ ...prev, servico })); // Atualiza o serviço selecionado no formulário
+  }, [servico]);
+
+  // Atualiza o serviço no formulário quando a data ou horário mudar (para refletir disponibilidade)
+  useEffect(() => {
+    if (form.servico) {
+      setForm((prev) => ({
+        ...prev,
+        servico: { ...prev.servico, ...servico },
+      })); // Atualiza os dados do serviço no formulário, mantendo o que já estava preenchido (como ID e nome) e atualizando os diasDisponiveis
+    }
+  }, [form.data, form.horario]);
+
+  // Atualiza os dias de funcionamento com base no serviço selecionado ou na data selecionada
+  useEffect(() => {
+    if (form.servico) {
+      diasDisponiveis.length = 0; // Limpa o array antes de preenchê-lo
+      form.servico.diasDisponiveis.forEach((dia, index) => {
+        if (dia.ativo) {
+          diasDisponiveis.push(index); // Adiciona o índice do dia da semana (0-6) ao array de dias de funcionamento
+        }
+      });
+    }
+  }, [form.servico]);
+
+  // Atualiza os horários disponíveis
+  useEffect(() => {
+    if (!form.servico) return;
+
+    const duracaoNum = Number(form.servico.duracao);
+    const unidade = form.servico.tempo.toLowerCase();
+    const intervaloMs = unidade.startsWith("hora")
+      ? duracaoNum * 60 * 60 * 1000
+      : unidade.startsWith("dia")
+        ? duracaoNum * 24 * 60 * 60 * 1000
+        : duracaoNum * 60 * 1000; // minuto (default)
+
+    const novosHorarios: { label: string; value: string }[] = [];
+    form.servico.diasDisponiveis.forEach((dia) => {
+      if (dia.ativo) {
+        const inicioMs = new Date(`1970-01-01T${dia.inicio}:00Z`).getTime();
+        const fimMs = new Date(`1970-01-01T${dia.fim}:00Z`).getTime();
+        const quantidade = Math.floor((fimMs - inicioMs) / intervaloMs);
+
+        for (let i = 0; i < quantidade; i++) {
+          const horario = new Date(inicioMs + i * intervaloMs)
+            .toISOString()
+            .substring(11, 16);
+          if (!novosHorarios.find((h) => h.value === horario)) {
+            novosHorarios.push({ label: horario, value: horario });
+          }
+        }
+      }
+    });
+    setHorariosDisponiveis(novosHorarios);
+  }, [form.servico]);
+
+  // Busca disponibilidade — só roda quando horariosDisponiveis já está populado
+  useEffect(() => {
+    if (!form.servico?.id || !ano || horariosDisponiveis.length === 0) return;
+
+    const atualizar = async () => {
+      const agendamentos = await getAgendamentosDoServico(form.servico!.id!);
+      const disponibilidade = await getDisponibilidadeMensal(
+        form.servico!.id!,
+        ano,
+        mes + 1, // 1-12
+        horariosDisponiveis.map((h) => h.value),
+        agendamentos,
+      );
+      setAtualizarDisponibilidade(disponibilidade);
+    };
+
+    atualizar();
+  }, [ano, mes, form.servico, horariosDisponiveis]);
+
   const auth = getAuth();
   useEffect(() => {
     setNomeUsuario(auth.currentUser?.displayName || "");
   }, [auth]);
 
-  if (!nomeUsuario) return <p>Carregando...</p>;
+  if (!nomeUsuario) return <Loading />;
 
   return (
     <div
@@ -144,8 +257,9 @@ function TelaAgendamento() {
                 />
                 <TextInput
                   titulo="Horário"
-                  type="time"
+                  type="select"
                   onChange={(value) => handleChange("horario", value)}
+                  options={horariosDisponiveis}
                 />
                 <TextInput
                   titulo="Observação"
@@ -172,18 +286,13 @@ function TelaAgendamento() {
               <div className="bg-white dark:bg-zinc-700 p-3 rounded-lg overflow-y-auto flex-1 min-h-0">
                 {/* Aqui é o conteúdo do calendário do principal da empresa */}
                 <GradeDisponibilidade
-                  ano={2026}
-                  mes={4} // maio = 4
-                  disponibilidades={{
-                    12: "disponivel",
-                    13: "parcial",
-                    14: "sem-horario",
-                    15: "disponivel",
-                    19: "disponivel",
-                  }}
-                  onDiaSelecionado={(dia) =>
-                    console.log("Dia selecionado:", dia)
-                  }
+                  ano={ano}
+                  mes={mes}
+                  diasFuncionamento={diasDisponiveis}
+                  disponibilidades={atualizarDisponibilidade || {}} // Passa as disponibilidades para a grade
+                  onDiaSelecionado={() =>
+                    console.log(getAgendamentosDoServico(form.servico!.id!))
+                  } // Para teste, loga os agendamentos do serviço ao clicar em um dia
                 />
               </div>
             </div>

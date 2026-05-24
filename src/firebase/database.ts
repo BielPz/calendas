@@ -162,6 +162,57 @@ export const atualizarPerfil = async (
 
 /* -----------------------------------------------------------------------------*/
 
+// Calcula a disponibilidade mensal de um serviço, considerando os horários disponíveis e os agendamentos já feitos
+export const getDisponibilidadeMensal = async (
+  idServico: string,
+  ano: number,
+  mes: number, 
+  horariosDisponiveis: string[],
+  agendamentos: Agendamento[],
+): Promise<Record<number, "sem-horario" | "parcial" | "disponivel">> => {
+  const servicoSnap = await get(ref(db, `servicos/${idServico}`));
+  if (!servicoSnap.exists()) return {};
+  const servico = servicoSnap.val() as Servico;
+
+  if (horariosDisponiveis.length === 0) {
+    const diasNoMes = new Date(ano, mes, 0).getDate();
+    return Object.fromEntries(
+      Array.from({ length: diasNoMes }, (_, i) => [i + 1, "sem-horario"]),
+    );
+  }
+
+  const agendadosPorDia: Record<string, Set<string>> = {};
+  for (const ag of agendamentos) {
+    if (!agendadosPorDia[ag.data]) agendadosPorDia[ag.data] = new Set();
+    agendadosPorDia[ag.data].add(ag.horario);
+  }
+
+  const resultado: Record<number, "sem-horario" | "parcial" | "disponivel"> = {};
+  const diasNoMes = new Date(ano, mes, 0).getDate();
+
+  for (let dia = 1; dia <= diasNoMes; dia++) {
+    const diaSemana = new Date(ano, mes - 1, dia).getDay();
+    const diaDisponivel = servico.diasDisponiveis[diaSemana];
+
+    if (!diaDisponivel?.ativo) {
+      resultado[dia] = "sem-horario";
+      continue;
+    }
+
+    const dataStr = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+    const agendadosNoDia = agendadosPorDia[dataStr] ?? new Set<string>();
+    const slotsOcupados = horariosDisponiveis.filter((h) => agendadosNoDia.has(h)).length;
+
+    if (slotsOcupados === 0) resultado[dia] = "disponivel";
+    else if (slotsOcupados >= horariosDisponiveis.length) resultado[dia] = "sem-horario";
+    else resultado[dia] = "parcial";
+  }
+
+  return resultado;
+};
+
+/* -----------------------------------------------------------------------------*/
+
 // Agenda um serviço para um cliente, salvando no nó "agendamentos" e associando ao cliente e prestador
 export const agendarServico = async (
   agendamento: Agendamento,
@@ -218,5 +269,41 @@ export const agendarServico = async (
   } catch (error) {
     console.error("Erro ao agendar serviço:", error);
     throw error;
+  }
+};
+
+/* -----------------------------------------------------------------------------*/
+
+// pegar todos os agendamentos de um serviço específico (para o prestador ver os agendamentos do serviço)
+export const getAgendamentosDoServico = async (
+  idServico: string,
+): Promise<Agendamento[]> => {
+  try {
+    const agendamentosRef = ref(db, `servicos/${idServico}/agendamentos`);
+    const snapshot = await get(agendamentosRef);
+    if (!snapshot.exists()) return [];
+
+    const data = snapshot.val() as Record<string, Agendamento>;
+    return Object.entries(data).map(([id, ag]) => ({ ...ag, id }));
+  } catch (error) {
+    console.error("Erro ao buscar agendamentos do serviço:", error);
+    return [];
+  }
+};
+
+/* -----------------------------------------------------------------------------*/
+
+// buscar um agendamento específico
+export const getAgendamento = async (idAgendamento: string): Promise<Agendamento | null> => {
+  try {
+    const agendamentoRef = ref(db, `agendamentos/${idAgendamento}`);
+    const snapshot = await get(agendamentoRef);
+    if (!snapshot.exists()) return null;
+
+    const data = snapshot.val() as Agendamento;
+    return { ...data, id: idAgendamento };
+  } catch (error) {
+    console.error("Erro ao buscar agendamento:", error);
+    return null;
   }
 };

@@ -12,6 +12,7 @@ import { useAlerta } from "../provider/AlertContext";
 import { Search } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useGradiente } from "../hooks/useGradiente";
+import Loading from "../components/Loading";
 
 function TelaFeed() {
   const [usuario, setUsuario] = useState<"cliente" | "prestador" | null>(null);
@@ -80,7 +81,7 @@ function TelaFeed() {
     return () => window.removeEventListener("keydown", handleCtrlS); // cleanup
   }, [navigate, usuario]);
 
-  if (!usuario) return <p>Carregando...</p>;
+  if (!usuario) return <Loading />;
 
   return (
     <div

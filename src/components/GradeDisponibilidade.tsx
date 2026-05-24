@@ -8,6 +8,7 @@ interface DiaDisponibilidade {
 interface Props {
   ano: number;
   mes: number; // 0-11
+  diasFuncionamento: number[]; // [0-6] representando os dias da semana em que o serviço funciona
   disponibilidades: Record<number, "sem-horario" | "parcial" | "disponivel">;
   onDiaSelecionado?: (dia: number) => void;
 }
@@ -25,6 +26,7 @@ const STATUS_CLASSES: Record<StatusDia, string> = {
 function GradeDisponibilidade({
   ano,
   mes,
+  diasFuncionamento,
   disponibilidades,
   onDiaSelecionado,
 }: Props) {
@@ -39,9 +41,16 @@ function GradeDisponibilidade({
     ...Array.from({ length: diasNoMes }, (_, i) => {
       const dia = i + 1;
       const passado = mesAtual ? dia < diaHoje : new Date(ano, mes) < hoje;
+      const funcionamento = diasFuncionamento.includes(
+        new Date(ano, mes, dia).getDay(),
+      );
       return {
         dia,
-        status: passado ? "passado" : (disponibilidades[dia] ?? "sem-horario"),
+        status: passado
+          ? "passado"
+          : funcionamento
+            ? (disponibilidades[dia] ?? "sem-horario")
+            : "sem-horario",
       } as DiaDisponibilidade;
     }),
   ];

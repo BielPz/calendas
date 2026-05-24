@@ -1,3 +1,4 @@
+import { CalendarDays } from "lucide-react";
 import { useGradiente } from "../hooks/useGradiente";
 
 function Loading() {
@@ -74,89 +75,7 @@ function Loading() {
         {/* Ícone de calendário centralizado */}
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center border border-white/15 bg-white/[0.06]">
-            <svg width="22" height="22" viewBox="0 0 28 28" fill="none">
-              <rect
-                x="2"
-                y="4"
-                width="24"
-                height="22"
-                rx="3"
-                stroke="white"
-                strokeWidth="1.8"
-              />
-              <line
-                x1="2"
-                y1="10"
-                x2="26"
-                y2="10"
-                stroke="white"
-                strokeWidth="1.8"
-                strokeOpacity="0.6"
-              />
-              <line
-                x1="8"
-                y1="2"
-                x2="8"
-                y2="7"
-                stroke="white"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              />
-              <line
-                x1="20"
-                y1="2"
-                x2="20"
-                y2="7"
-                stroke="white"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              />
-              <rect
-                x="7"
-                y="14"
-                width="4"
-                height="3"
-                rx="1"
-                fill="white"
-                fillOpacity="0.9"
-              />
-              <rect
-                x="12"
-                y="14"
-                width="4"
-                height="3"
-                rx="1"
-                fill="white"
-                fillOpacity="0.5"
-              />
-              <rect
-                x="17"
-                y="14"
-                width="4"
-                height="3"
-                rx="1"
-                fill="white"
-                fillOpacity="0.25"
-              />
-              <rect
-                x="7"
-                y="19"
-                width="4"
-                height="3"
-                rx="1"
-                fill="white"
-                fillOpacity="0.25"
-              />
-              <rect
-                x="12"
-                y="19"
-                width="4"
-                height="3"
-                rx="1"
-                fill="white"
-                fillOpacity="0.5"
-              />
-            </svg>
+            <CalendarDays size={24} />
           </div>
         </div>
       </div>
