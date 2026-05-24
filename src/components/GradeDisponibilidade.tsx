@@ -16,11 +16,11 @@ interface Props {
 const DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 const STATUS_CLASSES: Record<StatusDia, string> = {
-  passado: "bg-gray-300 text-gray-600",
-  "sem-horario": "bg-red-300 text-red-900 cursor-pointer hover:opacity-80",
-  parcial: "bg-amber-300 text-amber-900 cursor-pointer hover:opacity-80",
-  disponivel: "bg-green-300 text-green-900 cursor-pointer hover:opacity-80",
-  vazio: "dark:bg-zinc-700",
+  passado: "bg-gray-200 dark:bg-zinc-700 text-gray-400 dark:text-gray-500 cursor-not-allowed",
+  "sem-horario": "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 cursor-pointer hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors",
+  parcial: "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 cursor-pointer hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors",
+  disponivel: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 cursor-pointer hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors shadow-sm",
+  vazio: "bg-transparent",
 };
 
 function GradeDisponibilidade({
@@ -56,13 +56,13 @@ function GradeDisponibilidade({
   ];
 
   return (
-    <div>
+    <div className="w-full">
       {/* Cabeçalho */}
-      <div className="grid grid-cols-7 gap-1 mb-1">
+      <div className="grid grid-cols-7 gap-2 mb-3">
         {DIAS_SEMANA.map((d) => (
           <div
             key={d}
-            className="text-center text-xs text-gray-500 dark:text-gray-200 py-1"
+            className="text-center text-xs font-semibold text-gray-600 dark:text-gray-300 py-2"
           >
             {d}
           </div>
@@ -70,39 +70,40 @@ function GradeDisponibilidade({
       </div>
 
       {/* Grade */}
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-2 mb-4">
         {celulas.map((celula, i) => (
-          <div
+          <button
             key={i}
             onClick={() =>
               celula.status !== "vazio" &&
               celula.status !== "passado" &&
               onDiaSelecionado?.(celula.dia)
             }
-            className={`aspect-square rounded-lg flex items-end justify-end p-1.5 text-xs font-medium
+            disabled={celula.status === "vazio" || celula.status === "passado"}
+            className={`aspect-square rounded-lg flex items-center justify-center text-sm font-semibold
               ${STATUS_CLASSES[celula.status]}
-              ${mesAtual && celula.dia === diaHoje ? "ring-2 ring-gray-800 dark:ring-white ring-offset-1" : ""}
+              ${mesAtual && celula.dia === diaHoje ? "ring-2 ring-blue-500 dark:ring-blue-400 ring-offset-2 dark:ring-offset-zinc-800" : ""}
             `}
           >
             {celula.dia > 0 ? celula.dia : ""}
-          </div>
+          </button>
         ))}
       </div>
 
       {/* Legenda */}
-      <div className="flex flex-wrap gap-3 mt-3">
+      <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-100 dark:border-zinc-700">
         {[
-          { cor: "bg-gray-300", label: "Dias passados" },
-          { cor: "bg-red-300", label: "Sem horários" },
-          { cor: "bg-amber-300", label: "Parcialmente disponível" },
-          { cor: "bg-green-300", label: "Totalmente disponível" },
+          { cor: "bg-gray-200 dark:bg-zinc-700", label: "Dias passados" },
+          { cor: "bg-red-100 dark:bg-red-900/30", label: "Sem horários" },
+          { cor: "bg-amber-100 dark:bg-amber-900/30", label: "Parcialmente disponível" },
+          { cor: "bg-green-100 dark:bg-green-900/30", label: "Totalmente disponível" },
         ].map(({ cor, label }) => (
           <div
             key={label}
-            className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-200"
+            className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300"
           >
             <div className={`w-3 h-3 rounded ${cor}`} />
-            {label}
+            <span>{label}</span>
           </div>
         ))}
       </div>

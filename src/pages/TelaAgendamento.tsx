@@ -134,6 +134,7 @@ function TelaAgendamento() {
   // Atualiza os dias de funcionamento com base no serviço selecionado ou na data selecionada
   useEffect(() => {
     if (form.servico) {
+      // eslint-disable-next-line react-hooks/immutability
       diasDisponiveis.length = 0; // Limpa o array antes de preenchê-lo
       form.servico.diasDisponiveis.forEach((dia, index) => {
         if (dia.ativo) {

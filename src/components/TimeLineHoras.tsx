@@ -22,12 +22,12 @@ function TimelineHoras({ inicio = 0, fim = 24 }: Props) {
       {horas.map((h) => (
         <div
           key={h}
-          className="flex items-start gap-2 h-14 border-b border-gray-100 dark:border-zinc-700"
+          className="flex items-start gap-3 h-16 border-b border-gray-100 dark:border-zinc-700/50"
         >
-          <span className="text-xs text-gray-400 dark:text-gray-50 w-12 shrink-0 -translate-y-2">
+          <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 w-14 shrink-0 -translate-y-3 text-right pr-2">
             {String(h).padStart(2, "0")}:00
           </span>
-          <div className="flex-1 border-t border-gray-200 mt-0" />
+          <div className="flex-1 border-t border-gray-200 dark:border-zinc-700 mt-0" />
         </div>
       ))}
 
@@ -37,9 +37,9 @@ function TimelineHoras({ inicio = 0, fim = 24 }: Props) {
           className="absolute left-0 right-0 flex items-center pointer-events-none"
           style={{ top: `${percentual}%` }}
         >
-          <span className="w-12 shrink-0" /> {/* espaço da coluna de hora */}
-          <div className="w-3 h-3 rounded-full bg-orange-500 -ml-1.5 shrink-0" />
-          <div className="flex-1 h-px bg-orange-500" />
+          <span className="w-14 shrink-0" /> {/* espaço da coluna de hora */}
+          <div className="w-2.5 h-2.5 rounded-full bg-orange-500 dark:bg-orange-400 -ml-2 shrink-0 shadow-md" />
+          <div className="flex-1 h-0.5 bg-orange-500 dark:bg-orange-400" />
         </div>
       )}
     </div>
