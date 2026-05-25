@@ -55,7 +55,7 @@ function TelaCalendario() {
           <div className="md:hidden shrink-0"></div>
 
           <div className="flex flex-col md:flex-row gap-3 grow min-h-0">
-            {/* Sidebar vertical — só desktop */}
+            {/* Sidebar vertical — só desktop - precisa ser ajustado */}
             <div className="hidden md:block bg-white dark:bg-zinc-700 md:w-1/5 p-3 rounded-lg shrink-0">
               <MiniCalendario />
             </div>
