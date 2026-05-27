@@ -2,6 +2,7 @@ import { db } from "./config";
 import { ref, set, push, get, remove } from "firebase/database";
 import type { Agendamento, Disponibilidade, Servico } from "./types";
 import { getAuth, updateProfile } from "firebase/auth";
+import { getTipoUsuario } from "./auth";
 
 /* -----------------------------------------------------------------------------*/
 
@@ -347,5 +348,98 @@ export const getAgendamento = async (
   } catch (error) {
     console.error("Erro ao buscar agendamento:", error);
     return null;
+  }
+};
+
+/* -----------------------------------------------------------------------------*/
+
+// buscar agendamentos do cliente
+// Retorna Promise<Agendamento[]> pois um usuário pode ter vários agendamentos
+export const getAgendamentosCliente = async (
+  id: string,
+): Promise<Agendamento[]> => {
+  try {
+    // Busca os IDs dos agendamentos do cliente
+    const idsSnap = await get(ref(db, `clientes/${id}/agendamentos`));
+    if (!idsSnap.exists()) return [];
+
+    const ids = Object.keys(idsSnap.val() as Record<string, true>);
+
+    // Busca os dados de cada agendamento em paralelo
+    const agendamentos = await Promise.all(
+      ids.map(async (idAg) => {
+        const snap = await get(ref(db, `agendamentos/${idAg}`));
+        if (!snap.exists()) return null;
+        return { id: idAg, ...snap.val() } as Agendamento;
+      }),
+    );
+
+    return agendamentos.filter((ag): ag is Agendamento => ag !== null);
+  } catch (error) {
+    console.error("Erro ao buscar agendamentos do cliente:", error);
+    return [];
+  }
+};
+
+/* -----------------------------------------------------------------------------*/
+
+// buscar agendamentos do Prestador
+export const getAgendamentosPrestador = async (
+  id: string,
+): Promise<Agendamento[]> => {
+  try {
+    // Busca as empresas do prestador
+    const empresasSnap = await get(ref(db, `prestadores/${id}/empresas`));
+    if (!empresasSnap.exists()) return [];
+
+    const idEmpresas = Object.keys(empresasSnap.val() as Record<string, true>);
+
+    // Para cada empresa, busca os IDs dos serviços
+    const idServicos = (
+      await Promise.all(
+        idEmpresas.map(async (idEmpresa) => {
+          const snap = await get(ref(db, `empresas/${idEmpresa}/servicos`));
+          if (!snap.exists()) return [];
+          return Object.keys(snap.val() as Record<string, true>);
+        }),
+      )
+    ).flat();
+
+    // Para cada serviço, busca os agendamentos
+    const agendamentos = (
+      await Promise.all(
+        idServicos.map(async (idServico) => {
+          const snap = await get(ref(db, `servicos/${idServico}/agendamentos`));
+          if (!snap.exists()) return [];
+          const data = snap.val() as Record<string, Agendamento>;
+          return Object.entries(data).map(([idAg, ag]) => ({
+            ...ag,
+            id: idAg,
+          })) as Agendamento[];
+        }),
+      )
+    ).flat();
+
+    return agendamentos;
+  } catch (error) {
+    console.error("Erro ao buscar agendamentos do prestador:", error);
+    return [];
+  }
+};
+
+/* -----------------------------------------------------------------------------*/
+
+// buscar agendamentos do usuário
+export const getAgendamentosUsuario = async (
+  id: string,
+): Promise<Agendamento[]> => {
+  try {
+    const tipo = await getTipoUsuario();
+    return tipo === "cliente"
+      ? getAgendamentosCliente(id)
+      : getAgendamentosPrestador(id);
+  } catch (error) {
+    console.error("Erro ao buscar agendamentos do usuário:", error);
+    return [];
   }
 };

@@ -6,18 +6,27 @@ import MiniCalendario from "../components/MiniCalendario";
 import TimelineHoras from "../components/TimeLineHoras";
 import { useNavigate } from "react-router-dom";
 import { useGradiente } from "../hooks/useGradiente";
+import Loading from "../components/Loading";
+import { getAgendamentosUsuario } from "../firebase/database";
+import { Agendamento } from "../firebase/types";
 
 function TelaCalendario() {
   const [nomeUsuario, setNomeUsuario] = useState("");
   const navigate = useNavigate();
   const cor_fundo = useGradiente();
+  const [agendamento, setAgendamentos] = useState<Agendamento[]>();
 
   const auth = getAuth();
+  const id = auth.currentUser?.uid;
   useEffect(() => {
     setNomeUsuario(auth.currentUser?.displayName || "");
   }, [auth]);
 
-  if (!nomeUsuario) return <p>Carregando...</p>;
+  if (!nomeUsuario) return <Loading />;
+
+  useEffect(() => {
+    // setAgendamentos(getAgendamentosUsuario(id!));
+  }, []);
 
   return (
     <div
