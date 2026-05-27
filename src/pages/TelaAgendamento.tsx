@@ -4,11 +4,12 @@ import MiniCalendario from "../components/MiniCalendario";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getAuth } from "firebase/auth";
 import { X } from "lucide-react";
-import type { Agendamento, Servico } from "../firebase/types";
+import type { Agendamento, Disponibilidade, Servico } from "../firebase/types";
 import TextInput from "../components/TextInput";
 import {
   agendarServico,
   getAgendamentosDoServico,
+  getDisponibilidadeDiaria,
   getDisponibilidadeMensal,
   getServicosDaEmpresa,
 } from "../firebase/database";
@@ -16,10 +17,6 @@ import GradeDisponibilidade from "../components/GradeDisponibilidade";
 import { useGradiente } from "../hooks/useGradiente";
 import { useAlerta } from "../provider/AlertContext";
 import Loading from "../components/Loading";
-
-interface Disponibilidade {
-  [dia: number]: "sem-horario" | "parcial" | "disponivel";
-}
 
 function TelaAgendamento() {
   const [nomeUsuario, setNomeUsuario] = useState("");
@@ -184,6 +181,29 @@ function TelaAgendamento() {
     setHorariosDisponiveis(novosHorarios);
   }, [form.servico]);
 
+  // Remover horários indisponíveis com base nos agendamentos existentes para o serviço, mês e ano selecionados
+  useEffect(() => {
+    if (!form.servico || !form.data || horariosDisponiveis.length === 0) return;
+
+    const atualizar = async () => {
+      const agendamentos = await getAgendamentosDoServico(form.servico!.id!);
+      const disponibilidade = await getDisponibilidadeDiaria(
+        form.servico!.id!,
+        form.data,
+        horariosDisponiveis.map((h) => h.value),
+        agendamentos,
+      );
+      // Filtra os horários indisponíveis (null) e atualiza o estado
+      setHorariosDisponiveis(
+        Object.values(disponibilidade).filter(
+          (h): h is { label: string; value: string } => h !== null,
+        ),
+      );
+    };
+
+    atualizar();
+  }, [form.data]); // ← roda quando a data muda
+
   // Busca disponibilidade — só roda quando horariosDisponiveis já está populado
   useEffect(() => {
     if (!form.servico?.id || !ano || horariosDisponiveis.length === 0) return;
@@ -234,8 +254,6 @@ function TelaAgendamento() {
               </h1>
             </div>
           </div>
-
-
 
           <div className="flex flex-col md:flex-row gap-3 grow min-h-0">
             {/* Sidebar vertical — só desktop */}
@@ -318,7 +336,9 @@ function TelaAgendamento() {
                 {/* Handle + cabeçalho */}
                 <div className="w-10 h-1 rounded-full bg-gray-300 dark:bg-zinc-600 mx-auto mb-1" />
                 <div className="flex items-center justify-between">
-                  <h2 className="font-semibold text-gray-800 dark:text-gray-100 text-sm">Agendar horário</h2>
+                  <h2 className="font-semibold text-gray-800 dark:text-gray-100 text-sm">
+                    Agendar horário
+                  </h2>
                   <button
                     onClick={() => setModalMobileAberto(false)}
                     className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
@@ -359,9 +379,10 @@ function TelaAgendamento() {
                     setModalMobileAberto(false);
                   }}
                   className={`w-full py-3 rounded-xl text-white text-sm font-semibold transition-all
-                    ${isValid
-                      ? "bg-gradient-to-br from-orange-500 to-purple-500 hover:from-orange-700 hover:to-purple-700 cursor-pointer shadow-md"
-                      : "bg-gray-300 dark:bg-zinc-600 cursor-not-allowed opacity-60"
+                    ${
+                      isValid
+                        ? "bg-gradient-to-br from-orange-500 to-purple-500 hover:from-orange-700 hover:to-purple-700 cursor-pointer shadow-md"
+                        : "bg-gray-300 dark:bg-zinc-600 cursor-not-allowed opacity-60"
                     }`}
                 >
                   Agendar

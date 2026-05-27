@@ -68,3 +68,7 @@ export interface Agendamento {
   horario: string;
   obs: string;
 }
+
+export interface Disponibilidade {
+  [dia: number]: "sem-horario" | "parcial" | "disponivel";
+}

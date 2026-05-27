@@ -1,6 +1,6 @@
 import { db } from "./config";
 import { ref, set, push, get, remove } from "firebase/database";
-import type { Agendamento, Servico } from "./types";
+import type { Agendamento, Disponibilidade, Servico } from "./types";
 import { getAuth, updateProfile } from "firebase/auth";
 
 /* -----------------------------------------------------------------------------*/
@@ -166,7 +166,7 @@ export const atualizarPerfil = async (
 export const getDisponibilidadeMensal = async (
   idServico: string,
   ano: number,
-  mes: number, 
+  mes: number,
   horariosDisponiveis: string[],
   agendamentos: Agendamento[],
 ): Promise<Record<number, "sem-horario" | "parcial" | "disponivel">> => {
@@ -187,7 +187,8 @@ export const getDisponibilidadeMensal = async (
     agendadosPorDia[ag.data].add(ag.horario);
   }
 
-  const resultado: Record<number, "sem-horario" | "parcial" | "disponivel"> = {};
+  const resultado: Record<number, "sem-horario" | "parcial" | "disponivel"> =
+    {};
   const diasNoMes = new Date(ano, mes, 0).getDate();
 
   for (let dia = 1; dia <= diasNoMes; dia++) {
@@ -201,13 +202,52 @@ export const getDisponibilidadeMensal = async (
 
     const dataStr = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
     const agendadosNoDia = agendadosPorDia[dataStr] ?? new Set<string>();
-    const slotsOcupados = horariosDisponiveis.filter((h) => agendadosNoDia.has(h)).length;
+    const slotsOcupados = horariosDisponiveis.filter((h) =>
+      agendadosNoDia.has(h),
+    ).length;
 
     if (slotsOcupados === 0) resultado[dia] = "disponivel";
-    else if (slotsOcupados >= horariosDisponiveis.length) resultado[dia] = "sem-horario";
+    else if (slotsOcupados >= horariosDisponiveis.length)
+      resultado[dia] = "sem-horario";
     else resultado[dia] = "parcial";
   }
 
+  return resultado;
+};
+
+/* -----------------------------------------------------------------------------*/
+
+// Calcula a disponibilidade diária de um serviço, considerando os horários disponíveis e os agendamentos já feitos
+export const getDisponibilidadeDiaria = async (
+  idServico: string,
+  data: string,
+  horariosDisponiveis: string[],
+  agendamentos: Agendamento[],
+): Promise<Record<string, { label: string; value: string } | null>> => {
+  const servicoSnap = await get(ref(db, `servicos/${idServico}`));
+  if (!servicoSnap.exists()) return {};
+  const servico = servicoSnap.val() as Servico;
+  const diaSemana = new Date(data).getDay();
+  const diaDisponivel = servico.diasDisponiveis[diaSemana];
+  // Se o dia não for ativo, todos os horários estão ocupados
+  if (!diaDisponivel?.ativo) {
+    return Object.fromEntries(horariosDisponiveis.map((h) => [h, null]));
+  }
+
+  // Cria um Set dos horários já agendados para o dia, para facilitar a consulta
+  const agendadosNoDia = new Set(
+    agendamentos.filter((ag) => ag.data === data).map((ag) => ag.horario),
+  );
+  const resultado: Record<string, { label: string; value: string } | null> = {}; // Inicializa o resultado
+
+  // Para cada horário disponível, verifica se ele está agendado ou não
+  for (const horario of horariosDisponiveis) {
+    resultado[horario] = agendadosNoDia.has(horario)
+      ? null
+      : { label: horario, value: horario };
+  }
+
+  // Retorna o objeto com a disponibilidade de cada horário
   return resultado;
 };
 
@@ -294,7 +334,9 @@ export const getAgendamentosDoServico = async (
 /* -----------------------------------------------------------------------------*/
 
 // buscar um agendamento específico
-export const getAgendamento = async (idAgendamento: string): Promise<Agendamento | null> => {
+export const getAgendamento = async (
+  idAgendamento: string,
+): Promise<Agendamento | null> => {
   try {
     const agendamentoRef = ref(db, `agendamentos/${idAgendamento}`);
     const snapshot = await get(agendamentoRef);
