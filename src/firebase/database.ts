@@ -1,6 +1,6 @@
 import { db } from "./config";
 import { ref, set, push, get, remove } from "firebase/database";
-import type { Agendamento, Disponibilidade, Servico } from "./types";
+import type { Agendamento, Servico } from "./types";
 import { getAuth, updateProfile } from "firebase/auth";
 import { getTipoUsuario } from "./auth";
 
@@ -32,6 +32,18 @@ export const criarServico = async (item: Servico, idEmpresa: string) => {
     console.error("Erro ao salvar no Realtime Database:", error);
     throw error;
   }
+};
+
+/* -----------------------------------------------------------------------------*/
+
+// buscar serviço especifico
+
+export const getServico = async (idServico: string) => {
+  const snap = await get(ref(db, `servicos/${idServico}`));
+  if (snap.exists()) {
+    return snap.val();
+  }
+  return null;
 };
 
 /* -----------------------------------------------------------------------------*/
@@ -370,7 +382,17 @@ export const getAgendamentosCliente = async (
       ids.map(async (idAg) => {
         const snap = await get(ref(db, `agendamentos/${idAg}`));
         if (!snap.exists()) return null;
-        return { id: idAg, ...snap.val() } as Agendamento;
+        const data = snap.val();
+
+        // buscar o serviço pelo idServico
+        const ServicoSnap = await get(ref(db, `servicos/${data.idServico}`));
+        const servico = ServicoSnap.exists()
+          ? ({ id: data.idServico, ...ServicoSnap.val() } as Servico)
+          : null;
+
+        if (!servico) return null;
+
+        return { id: idAg, ...data, servico } as Agendamento;
       }),
     );
 
@@ -409,12 +431,23 @@ export const getAgendamentosPrestador = async (
     const agendamentos = (
       await Promise.all(
         idServicos.map(async (idServico) => {
-          const snap = await get(ref(db, `servicos/${idServico}/agendamentos`));
-          if (!snap.exists()) return [];
-          const data = snap.val() as Record<string, Agendamento>;
+          const [agSnap, servicoSnap] = await Promise.all([
+            get(ref(db, `servicos/${idServico}/agendamentos`)),
+            get(ref(db, `servicos/${idServico}`)),
+          ]);
+          if (!agSnap.exists()) return [];
+
+          const servico = servicoSnap.exists()
+            ? ({ id: idServico, ...servicoSnap.val() } as Servico)
+            : null;
+
+          if (!servico) return [];
+
+          const data = agSnap.val() as Record<string, Agendamento>;
           return Object.entries(data).map(([idAg, ag]) => ({
             ...ag,
             id: idAg,
+            servico,
           })) as Agendamento[];
         }),
       )

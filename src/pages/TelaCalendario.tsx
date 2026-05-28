@@ -7,14 +7,14 @@ import TimelineHoras from "../components/TimeLineHoras";
 import { useNavigate } from "react-router-dom";
 import { useGradiente } from "../hooks/useGradiente";
 import Loading from "../components/Loading";
-import { getAgendamentosUsuario } from "../firebase/database";
-import { Agendamento } from "../firebase/types";
+import { getAgendamentosUsuario, getServico } from "../firebase/database";
+import type { Agendamento } from "../firebase/types";
 
 function TelaCalendario() {
   const [nomeUsuario, setNomeUsuario] = useState("");
   const navigate = useNavigate();
   const cor_fundo = useGradiente();
-  const [agendamento, setAgendamentos] = useState<Agendamento[]>();
+  const [agendamento, setAgendamentos] = useState<Agendamento[]>([]);
 
   const auth = getAuth();
   const id = auth.currentUser?.uid;
@@ -22,11 +22,16 @@ function TelaCalendario() {
     setNomeUsuario(auth.currentUser?.displayName || "");
   }, [auth]);
 
-  if (!nomeUsuario) return <Loading />;
-
   useEffect(() => {
-    // setAgendamentos(getAgendamentosUsuario(id!));
+    const carregar = async () => {
+      const lista = await getAgendamentosUsuario(id!);
+      setAgendamentos(lista);
+      console.log(agendamento);
+    };
+    carregar();
   }, []);
+
+  if (!nomeUsuario) return <Loading />;
 
   return (
     <div
@@ -67,6 +72,32 @@ function TelaCalendario() {
             {/* Sidebar vertical — só desktop - precisa ser ajustado */}
             <div className="hidden md:block bg-white dark:bg-zinc-700 md:w-1/5 p-3 rounded-lg shrink-0">
               <MiniCalendario />
+              <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mt-4 mb-2">
+                Agendamentos
+              </p>
+              <div className="flex flex-col gap-2 overflow-auto">
+                {agendamento.map((ag, i) => (
+                  <div
+                    key={i}
+                    className="flex flex-col gap-0.5 bg-gray-50 dark:bg-zinc-600 rounded-lg p-2.5"
+                  >
+                    <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                      {new Date(ag.data + "T12:00:00").toLocaleDateString(
+                        "pt-BR",
+                        {
+                          day: "2-digit",
+                          month: "long",
+                        },
+                      )}
+                      {" às "}
+                      {ag.horario}
+                    </span>
+                    <span className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">
+                      {ag.servico?.nome}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="flex flex-col gap-3 w-full md:w-4/5 min-h-0">
