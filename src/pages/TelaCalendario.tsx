@@ -7,7 +7,7 @@ import TimelineHoras from "../components/TimeLineHoras";
 import { useNavigate } from "react-router-dom";
 import { useGradiente } from "../hooks/useGradiente";
 import Loading from "../components/Loading";
-import { getAgendamentosUsuario, getServico } from "../firebase/database";
+import { getAgendamentosUsuario } from "../firebase/database";
 import type { Agendamento } from "../firebase/types";
 
 function TelaCalendario() {
