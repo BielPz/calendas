@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Cabecalho from "../components/Cabecalho";
 import { getTipoUsuario } from "../firebase/auth";
-import { getEmpresasDoPrestador, getTodosServicos } from "../firebase/database";
+import { getEmpresasDoPrestador, getTodosServicos, getFavoritos } from "../firebase/database";
 import DisplayServicos from "../components/prestador/DisplayServicos";
 import ServicoItem from "../components/cliente/ServicoItem";
 import type { Servico } from "../firebase/types";
@@ -20,6 +20,7 @@ function TelaFeed() {
   const [empresas, setEmpresas] = useState<{ id: string; nome: string }[]>([]);
   const [idEmpresaAtiva, setIdEmpresaAtiva] = useState("");
   const [servicos, setServicos] = useState<Servico[]>([]);
+  const [idsFavoritos, setIdsFavoritos] = useState<Set<string>>(new Set());
 
   const { showAlerta } = useAlerta();
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ function TelaFeed() {
         const auth = getAuth();
         setNomeUsuario(auth.currentUser?.displayName || "");
         if (tipo === "cliente") {
+          getFavoritos().then((ids) => setIdsFavoritos(new Set(ids))).catch(console.error);
           getTodosServicos()
             .then(setServicos)
             .catch((err) => {
@@ -66,7 +68,7 @@ function TelaFeed() {
           "erro",
         );
       });
-  }, []);
+  }, [showAlerta]);
 
   useEffect(() => {
     const handleCtrlS = (e: KeyboardEvent) => {
@@ -80,6 +82,18 @@ function TelaFeed() {
 
     return () => window.removeEventListener("keydown", handleCtrlS); // cleanup
   }, [navigate, usuario]);
+
+  const handleFavoritoChange = (idServico: string, favoritado: boolean) => {
+    setIdsFavoritos((prev) => {
+      const next = new Set(prev);
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+      favoritado ? next.add(idServico) : next.delete(idServico);
+      return next;
+    });
+  };
+
+  // Serviços que estão nos favoritos (para passar à sidebar)
+  const servicosFavoritos = servicos.filter((s) => s.id && idsFavoritos.has(s.id));
 
   if (!usuario) return <Loading />;
 
@@ -130,7 +144,7 @@ function TelaFeed() {
           {/* Barra horizontal de ícones — só mobile */}
           {usuario === "cliente" && (
             <div className="md:hidden shrink-0">
-              <SideBarCliente />
+              <SideBarCliente favoritos={servicosFavoritos} />
             </div>
           )}
           {usuario === "prestador" && (
@@ -143,7 +157,7 @@ function TelaFeed() {
             {/* Sidebar vertical — só desktop */}
             {usuario === "cliente" && (
               <div className="hidden md:block bg-white dark:bg-zinc-800 md:w-1/5 p-3 rounded-lg shrink-0">
-                <SideBarCliente />
+                <SideBarCliente favoritos={servicosFavoritos} />
               </div>
             )}
             {usuario === "prestador" && (
@@ -162,7 +176,12 @@ function TelaFeed() {
                 {usuario === "cliente" && (
                   <div className="flex flex-col gap-3">
                     {servicos.map((servico) => (
-                      <ServicoItem key={servico.id} servico={servico} />
+                      <ServicoItem
+                        key={servico.id}
+                        servico={servico}
+                        favoritoInicial={!!servico.id && idsFavoritos.has(servico.id)}
+                        onFavoritoChange={handleFavoritoChange}
+                      />
                     ))}
                   </div>
                 )}

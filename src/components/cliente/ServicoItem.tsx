@@ -1,23 +1,30 @@
 import { useEffect, useState } from "react";
 import type { Servico } from "../../firebase/types";
-import { getEmpresaPorId } from "../../firebase/database";
+import { getEmpresaPorId, toggleFavorito } from "../../firebase/database";
 import imgErrorInternet from "../../images/erroInternet.jpg";
 import { useAlerta } from "../../provider/AlertContext";
 import { useNavigate } from "react-router";
 
 interface Props {
   servico: Servico;
+  favoritoInicial?: boolean;
+  onFavoritoChange?: (idServico: string, favoritado: boolean) => void;
 }
 
 const DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
-function ServicoItem({ servico }: Props) {
+function ServicoItem({ servico, favoritoInicial = false, onFavoritoChange }: Props) {
   const [nomeEmpresa, setNomeEmpresa] = useState("");
-  const [favorito, setFavorito] = useState(false);
+  const [favorito, setFavorito] = useState(favoritoInicial);
   const [avaliacao, setAvaliacao] = useState(0);
   const [hover, setHover] = useState(0);
   const { showAlerta } = useAlerta();
   const navigate = useNavigate();
+
+  // Sincroniza se o pai mudar favoritoInicial (ex: carregamento inicial)
+  useEffect(() => {
+    setFavorito(favoritoInicial);
+  }, [favoritoInicial]);
 
   useEffect(() => {
     if (servico.idEmpresa) {
@@ -30,6 +37,17 @@ function ServicoItem({ servico }: Props) {
     }
   }, [servico.idEmpresa, showAlerta]);
 
+  const handleFavorito = async () => {
+    if (!servico.id) return;
+    try {
+      const novoEstado = await toggleFavorito(servico.id);
+      setFavorito(novoEstado);
+      onFavoritoChange?.(servico.id, novoEstado);
+    } catch {
+      showAlerta("Erro", "Não foi possível atualizar favorito.", "erro");
+    }
+  };
+
   const estrelas = (
     <div className="flex gap-0.5">
       {[1,2,3,4,5].map((e) => (
@@ -40,12 +58,19 @@ function ServicoItem({ servico }: Props) {
     </div>
   );
 
+  const botaoFavorito = (
+    <button
+      onClick={handleFavorito}
+      className={`text-base shrink-0 pt-0.5 transition-colors ${favorito ? "text-red-500" : "text-gray-400 hover:text-red-400"}`}
+    >
+      {favorito ? "♥" : "♡"}
+    </button>
+  );
+
   return (
     <>
       {/* ── DESKTOP (md+) ─────────────────────────────────────────────── */}
       <div className="hidden md:flex flex-row w-full bg-white dark:bg-zinc-800 rounded-lg overflow-hidden border border-gray-200 dark:border-zinc-700">
-
-        {/* Imagem */}
         <div className="w-24 shrink-0 bg-gray-100 dark:bg-zinc-900 self-stretch">
           {servico.imagem ? (
             <img src={servico.imagem} alt={servico.nome} className="w-full h-full object-cover" loading="lazy"
@@ -55,25 +80,17 @@ function ServicoItem({ servico }: Props) {
           )}
         </div>
 
-        {/* Info principal */}
         <div className="flex-1 min-w-0 px-3 py-2 flex flex-col">
-          {/* Topo: nome + favorito */}
           <div className="flex items-start justify-between gap-1">
             <div className="min-w-0">
               <p className="font-semibold text-sm dark:text-white truncate">{servico.nome}</p>
               <p className="text-xs text-blue-500 truncate">{nomeEmpresa}</p>
             </div>
-            <button onClick={() => setFavorito(!favorito)} className="text-base shrink-0 pt-0.5 text-gray-400 hover:text-red-400 transition-colors">
-              {favorito ? "♥" : "♡"}
-            </button>
+            {botaoFavorito}
           </div>
-
-          {/* Descrição cresce para empurrar o rodapé */}
           <p className="text-xs text-gray-400 dark:text-gray-500 line-clamp-2 mt-1 leading-relaxed flex-1">
             {servico.descricao || "Sem descrição."}
           </p>
-
-          {/* Rodapé: preço, duração, estrelas, botão */}
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             <span className="text-xs font-semibold text-gray-700 dark:text-gray-200">R$ {Number(servico.preco).toFixed(2)}</span>
             <span className="text-gray-300 dark:text-zinc-600 text-xs">•</span>
@@ -89,7 +106,6 @@ function ServicoItem({ servico }: Props) {
           </div>
         </div>
 
-        {/* Dias */}
         <div className="shrink-0 border-l border-gray-100 dark:border-zinc-700 px-3 py-2 flex flex-col gap-0.5 justify-center">
           {DIAS_SEMANA.map((dia, i) => {
             const d = servico.diasDisponiveis?.[i];
@@ -111,8 +127,6 @@ function ServicoItem({ servico }: Props) {
 
       {/* ── MOBILE (< md) ─────────────────────────────────────────────── */}
       <div className="flex md:hidden flex-row w-full bg-white dark:bg-zinc-800 rounded-lg overflow-hidden border border-gray-200 dark:border-zinc-700">
-
-        {/* Imagem */}
         <div className="w-20 shrink-0 bg-gray-100 dark:bg-zinc-900 self-stretch">
           {servico.imagem ? (
             <img src={servico.imagem} alt={servico.nome} className="w-full h-full object-cover" loading="lazy"
@@ -122,25 +136,17 @@ function ServicoItem({ servico }: Props) {
           )}
         </div>
 
-        {/* Info */}
         <div className="flex-1 min-w-0 px-3 py-2 flex flex-col">
-          {/* Topo */}
           <div className="flex items-start justify-between gap-1">
             <div className="min-w-0">
               <p className="font-semibold text-sm dark:text-white truncate">{servico.nome}</p>
               <p className="text-xs text-blue-500 truncate">{nomeEmpresa}</p>
             </div>
-            <button onClick={() => setFavorito(!favorito)} className="text-base shrink-0 pt-0.5 text-gray-400 hover:text-red-400 transition-colors">
-              {favorito ? "♥" : "♡"}
-            </button>
+            {botaoFavorito}
           </div>
-
-          {/* Descrição */}
           <p className="text-xs text-gray-400 dark:text-gray-500 line-clamp-2 mt-1 leading-relaxed flex-1">
             {servico.descricao || "Sem descrição."}
           </p>
-
-          {/* Rodapé */}
           <div className="flex items-center justify-between mt-2 gap-2">
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="text-xs font-semibold text-gray-700 dark:text-gray-200">R$ {Number(servico.preco).toFixed(2)}</span>

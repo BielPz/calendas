@@ -158,14 +158,7 @@ export const atualizarPerfil = async (
 
   // 2. Preparar dados para o Realtime Database
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const {
-    uid: _u,
-    dataCadastro: _dc,
-    email: _e,
-    tipo: _t,
-    senha: _s,
-    ...editaveis
-  } = dadosEditados as Record<string, string>;
+  const { uid: _u, dataCadastro: _dc, email: _e, tipo: _t, senha: _s, ...editaveis } = dadosEditados;
 
   await set(dbRef, {
     ...snap.val(),
@@ -474,5 +467,32 @@ export const getAgendamentosUsuario = async (
   } catch (error) {
     console.error("Erro ao buscar agendamentos do usuário:", error);
     return [];
+  }
+};
+
+/* -----------------------------------------------------------------------------*/
+ 
+// Favoritos: clientes/{uid}/favoritos/{idServico}: true
+// Simples e eficiente — leitura O(1) por serviço, sem duplicação
+ 
+export const getFavoritos = async (): Promise<string[]> => {
+  const uid = getAuth().currentUser?.uid;
+  if (!uid) return [];
+  const snap = await get(ref(db, `clientes/${uid}/favoritos`));
+  if (!snap.exists()) return [];
+  return Object.keys(snap.val());
+};
+ 
+export const toggleFavorito = async (idServico: string): Promise<boolean> => {
+  const uid = getAuth().currentUser?.uid;
+  if (!uid) throw new Error("Usuário não logado");
+  const favRef = ref(db, `clientes/${uid}/favoritos/${idServico}`);
+  const snap = await get(favRef);
+  if (snap.exists()) {
+    await set(favRef, null); // remove
+    return false;
+  } else {
+    await set(favRef, true); // adiciona
+    return true;
   }
 };
