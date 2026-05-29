@@ -75,7 +75,7 @@ function TelaCalendario() {
               <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mt-4 mb-2">
                 Agendamentos
               </p>
-              <div className="flex flex-col gap-2 overflow-auto">
+              <div className="flex flex-col gap-2 overflow-x-hidden overflow-y-auto max-h-[300px]">
                 {agendamento.map((ag, i) => (
                   <div
                     key={i}
