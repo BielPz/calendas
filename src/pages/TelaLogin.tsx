@@ -84,7 +84,7 @@ function TelaLogin() {
           </button>
         </div>
         <div className="border-t border-gray-300 dark:border-gray-700 my-3" />
-        <p className="text-start text-m mb-10">
+        <p className="text-start text-m mb-10 dark:text-gray-300">
           Não tem uma conta?{" "}
           <Link
             to="/cadastro"

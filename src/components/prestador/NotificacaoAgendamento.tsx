@@ -9,11 +9,14 @@ interface Props {
 
 function NotificacaoAgendamento({ agendamento }: Props) {
   const [nomeCliente, setNomeCliente] = useState<string>("");
+  const [imagemCliente, setImagemCliente] = useState<string | null>(null);
 
   useEffect(() => {
     const carregarNome = async () => {
-      const nome = await getUsuarioQueAgendou(agendamento.id!);
+      const { nomeCliente: nome, imagemCliente: imagem } =
+        await getUsuarioQueAgendou(agendamento.id!);
       setNomeCliente(nome);
+      setImagemCliente(imagem);
     };
     carregarNome();
   }, [agendamento.id]);
@@ -29,9 +32,17 @@ function NotificacaoAgendamento({ agendamento }: Props) {
     <div className="flex flex-col gap-3 bg-white dark:bg-zinc-700 border border-gray-200 dark:border-zinc-600 rounded-xl p-3">
       {/* Cabeçalho com avatar */}
       <div className="flex items-center gap-2.5">
-        <div className="w-9 h-9 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center text-sm font-medium text-purple-700 dark:text-purple-200 shrink-0">
-          {iniciais}
-        </div>
+        {imagemCliente ? (
+          <img
+            src={imagemCliente}
+            alt={nomeCliente}
+            className="w-9 h-9 rounded-full object-cover"
+          />
+        ) : (
+          <div className="w-9 h-9 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center text-sm font-medium text-purple-700 dark:text-purple-200 shrink-0">
+            {iniciais}
+          </div>
+        )}
         <div className="flex flex-col">
           <span className="text-sm font-medium text-gray-800 dark:text-gray-100">
             {nomeCliente}

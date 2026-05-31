@@ -19,6 +19,8 @@ import { useNavigate } from "react-router";
 import { useGradiente } from "../hooks/useGradiente";
 import Loading from "../components/Loading";
 import NotificacaoAgendamento from "../components/prestador/NotificacaoAgendamento";
+import { db } from "../firebase/config";
+import { get, ref } from "firebase/database";
 
 function TelaFeed() {
   const [usuario, setUsuario] = useState<"cliente" | "prestador" | null>(null);
@@ -28,6 +30,7 @@ function TelaFeed() {
   const [servicos, setServicos] = useState<Servico[]>([]);
   const [idsFavoritos, setIdsFavoritos] = useState<Set<string>>(new Set());
   const [agendamento, setAgendamentos] = useState<Agendamento[]>([]);
+  const [fotoPerfil, setFotoPerfil] = useState<string | null>(null);
 
   const auth = getAuth();
   const id = auth.currentUser?.uid;
@@ -82,6 +85,24 @@ function TelaFeed() {
   }, [showAlerta]);
 
   useEffect(() => {
+    if (!id) return;
+    const carregarDados = async () => {
+      try {
+        const uid = auth.currentUser?.uid;
+        if (!uid) return;
+
+        const colecao = usuario === "cliente" ? "clientes" : "prestadores";
+        const snap = await get(ref(db, `${colecao}/${uid}/imagem`));
+        setFotoPerfil(snap.val());
+      } catch (err) {
+        console.error(err);
+        showAlerta("Erro", "Erro ao carregar foto de perfil.", "erro");
+      }
+    };
+    carregarDados();
+  }, [id, usuario, auth, showAlerta]);
+
+  useEffect(() => {
     const handleCtrlS = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === "s" && usuario === "prestador") {
         e.preventDefault(); // evita o "Salvar" padrão do browser
@@ -123,7 +144,11 @@ function TelaFeed() {
     <div
       className={`${cor_fundo} h-screen w-full flex flex-col overflow-hidden`}
     >
-      <Cabecalho perfil nome={nomeUsuario} />
+      <Cabecalho
+        perfil
+        nome={nomeUsuario}
+        fotoPerfil={fotoPerfil ? fotoPerfil : undefined}
+      />
       <div className="flex flex-col grow w-full items-center overflow-hidden">
         <div className="flex flex-col w-full max-w-[95%] md:max-w-[80%] gap-4 p-4 grow overflow-hidden">
           {/* Barra de pesquisa */}

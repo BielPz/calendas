@@ -3,7 +3,7 @@ import Formulario from "../components/Formulario";
 import TextInput from "../components/TextInput";
 import { getTipoUsuario } from "../firebase/auth";
 import { signOut } from "firebase/auth";
-import { atualizarPerfil } from "../firebase/database";
+import { atualizarPerfil, excluirConta } from "../firebase/database";
 import { auth, db } from "../firebase/config";
 import { useAlerta } from "../provider/AlertContext";
 import { useNavigate } from "react-router-dom";
@@ -17,11 +17,14 @@ import {
   CreditCard,
   ChevronRight,
   Pencil,
+  Trash2,
+  Camera,
 } from "lucide-react";
 import Cabecalho from "../components/Cabecalho";
 import { get, ref } from "firebase/database";
 import { useGradiente } from "../hooks/useGradiente";
 import Loading from "../components/Loading";
+import { uploadImage } from "../cloudinary/upload";
 
 type Secao =
   | "perfil"
@@ -48,6 +51,7 @@ function TelaPerfil() {
   const [dadosEditados, setDadosEditados] = useState<Record<string, string>>(
     {},
   );
+  const [imagemPerfil, setImagemPerfil] = useState<string>(dados.imagem || "");
   const { showAlerta } = useAlerta();
   const navigate = useNavigate();
   const cor_fundo = useGradiente();
@@ -74,6 +78,27 @@ function TelaPerfil() {
     };
     carregarDados();
   }, []);
+
+  // Atualiza quando os dados carregarem
+  useEffect(() => {
+    setImagemPerfil(dados.imagem || "");
+  }, [dados.imagem]);
+
+  const handleImagemChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const url = await uploadImage(file);
+      await atualizarPerfil(tipo!, { ...dadosEditados, imagem: url });
+      setImagemPerfil(url);
+      setDadosEditados((prev) => ({ ...prev, imagem: url }));
+      showAlerta("Sucesso", "Imagem de perfil atualizada!", "sucesso");
+    } catch (error) {
+      console.error(error);
+      showAlerta("Erro", "Erro ao fazer upload da imagem.", "erro");
+    }
+  };
 
   const handleCampo = (campo: string, valor: string) => {
     setDadosEditados((prev) => ({ ...prev, [campo]: valor }));
@@ -112,6 +137,22 @@ function TelaPerfil() {
   const handleCancelar = () => {
     setDadosEditados(dados);
     setEditando(false);
+  };
+
+  const handleExcluirConta = async () => {
+    if (!tipo) return;
+    const confirmado = window.confirm(
+      "Tem certeza? Sua conta será excluída permanentemente. Esta ação não pode ser desfeita.",
+    );
+    if (!confirmado) return;
+
+    try {
+      await excluirConta(tipo);
+      showAlerta("Sucesso", "Conta excluída com sucesso.", "sucesso");
+      navigate("/login");
+    } catch {
+      showAlerta("Erro", "Erro ao solicitar exclusão da conta.", "erro");
+    }
   };
 
   if (!tipo) return <Loading />;
@@ -159,9 +200,29 @@ function TelaPerfil() {
               <>
                 {/* Header fixo */}
                 <div className="bg-white dark:bg-zinc-700 rounded-2xl shadow-md p-6 flex flex-col sm:flex-row items-center gap-6 shrink-0">
-                  <div className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
-                    {iniciais}
-                  </div>
+                  <label className="relative w-20 h-20 rounded-full cursor-pointer group shrink-0">
+                    {imagemPerfil ? (
+                      <img
+                        src={imagemPerfil}
+                        alt="Foto de perfil"
+                        className="w-20 h-20 rounded-full object-cover shadow-lg"
+                      />
+                    ) : (
+                      <div className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                        {iniciais}
+                      </div>
+                    )}
+                    {/* Overlay ao hover */}
+                    <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Camera size={20} className="text-white" />
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImagemChange}
+                    />
+                  </label>
                   <div className="flex-1 text-center sm:text-left">
                     <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200">
                       {dados.nome || "Usuário"}
@@ -289,6 +350,27 @@ function TelaPerfil() {
                       </div>
                     )}
                   </Formulario>
+                  <div className="mt-8 pt-8 border-t border-gray-300 dark:border-gray-500">
+                    <h3 className="text-xs font-black text-gray-400 dark:text-gray-200 uppercase tracking-widest mb-4">
+                      Zona de perigo
+                    </h3>
+                    <div className="flex items-center justify-between bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-xl px-5 py-4">
+                      <div>
+                        <p className="text-sm font-bold text-red-600 dark:text-red-400">
+                          Excluir conta
+                        </p>
+                        <p className="text-xs text-red-400 dark:text-red-500 mt-0.5">
+                          Sua conta será excluída permanentemente.
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleExcluirConta}
+                        className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors shrink-0"
+                      >
+                        <Trash2 size={15} /> Excluir conta
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </>
             ) : (

@@ -461,7 +461,7 @@ export const getAgendamentosPrestador = async (
 
 /* -----------------------------------------------------------------------------*/
 
-export const getUsuarioQueAgendou = async (idAgendamento: string,): Promise<string> => {
+export const getUsuarioQueAgendou = async (idAgendamento: string,): Promise<{ nomeCliente: string; imagemCliente: string | null }> => {
   // Busca o ID do cliente associado ao agendamento
   const snap = await get(ref(db, `agendamentos/${idAgendamento}/idCliente`));
   if (!snap.exists()) throw new Error("Usuário não encontrado");
@@ -469,8 +469,13 @@ export const getUsuarioQueAgendou = async (idAgendamento: string,): Promise<stri
   // Com o ID do cliente, busca o nome do cliente
   const idCliente = snap.val();
   const clienteSnap = await get(ref(db, `clientes/${idCliente}/nome`));
+  const nomeCliente = clienteSnap.val();
   if (!clienteSnap.exists()) throw new Error("Nome do cliente não encontrado");
-  return clienteSnap.val();
+
+  const imagemSnap = await get(ref(db, `clientes/${idCliente}/imagem`));
+  const imagemCliente = imagemSnap.exists() ? imagemSnap.val() : null;
+
+  return { nomeCliente, imagemCliente };
 };
 
 /* -----------------------------------------------------------------------------*/
@@ -516,3 +521,36 @@ export const toggleFavorito = async (idServico: string): Promise<boolean> => {
     return true;
   }
 };
+
+/* -----------------------------------------------------------------------------*/
+
+// Exclui a conta do usuário (cliente ou prestador) e todos os dados associados a ela
+export const excluirConta = async (tipo: "cliente" | "prestador") => {
+  const auth = getAuth();
+  const user = auth.currentUser;
+  if (!user) throw new Error("Usuário não logado");
+
+  const colecao = tipo === "cliente" ? "clientes" : "prestadores";
+  const dbRef = ref(db, `${colecao}/${user.uid}`);
+
+  try {
+    // 1. Deleta o Auth primeiro — se falhar, banco continua intacto
+    await user.delete();
+
+    // 2. Remove os dados do banco
+    await set(dbRef, null);
+  } catch (error: any) {
+    const mensagens: Record<string, string> = {
+      "auth/requires-recent-login":
+        "Por segurança, faça login novamente antes de excluir a conta.",
+      "auth/network-request-failed":
+        "Sem conexão. Verifique sua internet e tente novamente.",
+    };
+
+    const mensagem = mensagens[error.code] ?? "Erro ao excluir conta. Tente novamente.";
+    throw new Error(mensagem); // propaga para o chamador exibir o alerta
+  }
+};
+
+/* -----------------------------------------------------------------------------*/
+

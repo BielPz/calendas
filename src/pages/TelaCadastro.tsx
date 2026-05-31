@@ -25,7 +25,7 @@ function TelaCadastro() {
         </div>
 
         <div className="border-t border-gray-300 dark:border-gray-700 my-3" />
-        <p className="text-start text-m mb-10">
+        <p className="text-start text-m mb-10 dark:text-gray-300">
           Já tem uma conta?{" "}
           <Link
             to="/login"
