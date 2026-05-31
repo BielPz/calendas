@@ -21,6 +21,7 @@ import {
 import Cabecalho from "../components/Cabecalho";
 import { get, ref } from "firebase/database";
 import { useGradiente } from "../hooks/useGradiente";
+import Loading from "../components/Loading";
 
 type Secao =
   | "perfil"
@@ -113,12 +114,7 @@ function TelaPerfil() {
     setEditando(false);
   };
 
-  if (!tipo)
-    return (
-      <div className={`h-screen ${cor_fundo} p-10 text-white font-bold`}>
-        Carregando...
-      </div>
-    );
+  if (!tipo) return <Loading />;
 
   const iniciais = (dados.nome || "U")
     .split(" ")

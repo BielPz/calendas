@@ -1,7 +1,5 @@
-import imgInicio from "../../images/inicio.png";
-import imgAgenda from "../../images/agenda.png";
-import imgHistorico from "../../images/historico.png";
 import { useNavigate } from "react-router-dom";
+import { CalendarClock, House, History } from "lucide-react";
 
 function SideBarPrestador() {
   const navigate = useNavigate();
@@ -13,7 +11,7 @@ function SideBarPrestador() {
       {/* Sidebar vertical — desktop */}
       <div className="hidden md:flex flex-col gap-1 w-full">
         <button className={commonButtonClasses}>
-          <img src={imgInicio} alt="Início" className="w-5 h-5" />
+          <House size={18} className="dark:text-gray-500" />
           <span className="text-sm font-medium text-gray-700">Início</span>
         </button>
 
@@ -21,12 +19,12 @@ function SideBarPrestador() {
           className={commonButtonClasses}
           onClick={() => navigate("/calendario")}
         >
-          <img src={imgAgenda} alt="Agenda" className="w-5 h-5" />
+          <CalendarClock size={18} className="dark:text-gray-500" />
           <span className="text-sm font-medium text-gray-700">Agenda</span>
         </button>
 
         <button className={commonButtonClasses}>
-          <img src={imgHistorico} alt="Histórico" className="w-5 h-5" />
+          <History size={18} className="dark:text-gray-500  " />
           <span className="text-sm font-medium text-gray-700">Histórico</span>
         </button>
       </div>
@@ -34,7 +32,7 @@ function SideBarPrestador() {
       {/* Barra horizontal de ícones — mobile */}
       <div className="flex md:hidden bg-white rounded-lg px-2 py-2 gap-1 w-full justify-around">
         <button className={commonButtonClasses}>
-          <img src={imgInicio} alt="Início" className="w-5 h-5" />
+          <House size={18} className="dark:text-gray-500" />
           <span className="text-xs text-gray-600">Início</span>
         </button>
 
@@ -42,12 +40,12 @@ function SideBarPrestador() {
           className={commonButtonClasses}
           onClick={() => navigate("/calendario")}
         >
-          <img src={imgAgenda} alt="Agenda" className="w-5 h-5" />
+          <CalendarClock size={18} className="dark:text-gray-500" />
           <span className="text-xs text-gray-600">Agenda</span>
         </button>
 
         <button className={commonButtonClasses}>
-          <img src={imgHistorico} alt="Histórico" className="w-5 h-5" />
+          <History size={18} className="dark:text-gray-500" />
           <span className="text-xs text-gray-600">Histórico</span>
         </button>
       </div>

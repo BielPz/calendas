@@ -20,11 +20,24 @@ function TelaLogin() {
     try {
       await login(email, senha, tipo);
       navigate("/feed");
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Erro desconhecido";
-      setErro(errorMessage);
-      showAlerta("Erro", errorMessage, "erro"); // Exibe um alerta global de erro usando o contexto de alerta para informar o usuário sobre o problema de login
+    } catch (error: any) {
+      const mensagens: Record<string, string> = {
+        "auth/invalid-credential": "E-mail ou senha incorretos.",
+        "auth/user-not-found": "Usuário não encontrado.",
+        "auth/wrong-password": "Senha incorreta.",
+        "auth/invalid-email": "E-mail inválido.",
+        "auth/user-disabled":
+          "Conta desativada. Entre em contato com o suporte.",
+        "auth/too-many-requests":
+          "Muitas tentativas. Tente novamente mais tarde.",
+        "auth/network-request-failed": "Sem conexão. Verifique sua internet.",
+      };
+      const mensagem =
+        mensagens[error.code] ?? "Erro desconhecido. Tente novamente.";
+      setErro(mensagem);
+      mensagem == "auth/network-request-failed"
+        ? showAlerta("Desconectado", mensagem, "desconect")
+        : showAlerta("Erro", mensagem, "erro");
     }
   };
 
