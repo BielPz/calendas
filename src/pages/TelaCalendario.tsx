@@ -26,7 +26,6 @@ function TelaCalendario() {
     const carregar = async () => {
       const lista = await getAgendamentosUsuario(id!);
       setAgendamentos(lista);
-      console.log(agendamento);
     };
     carregar();
   }, []);

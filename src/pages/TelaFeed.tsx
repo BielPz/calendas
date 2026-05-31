@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
 import Cabecalho from "../components/Cabecalho";
 import { getTipoUsuario } from "../firebase/auth";
-import { getEmpresasDoPrestador, getTodosServicos, getFavoritos } from "../firebase/database";
+import {
+  getEmpresasDoPrestador,
+  getTodosServicos,
+  getFavoritos,
+  getAgendamentosUsuario,
+} from "../firebase/database";
 import DisplayServicos from "../components/prestador/DisplayServicos";
 import ServicoItem from "../components/cliente/ServicoItem";
-import type { Servico } from "../firebase/types";
+import type { Agendamento, Servico } from "../firebase/types";
 import { getAuth } from "firebase/auth";
 import SideBarCliente from "../components/cliente/SideBarCliente";
 import SideBarPrestador from "../components/prestador/SideBarPrestador";
@@ -13,6 +18,7 @@ import { Search } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useGradiente } from "../hooks/useGradiente";
 import Loading from "../components/Loading";
+import NotificacaoAgendamento from "../components/prestador/NotificacaoAgendamento";
 
 function TelaFeed() {
   const [usuario, setUsuario] = useState<"cliente" | "prestador" | null>(null);
@@ -21,6 +27,10 @@ function TelaFeed() {
   const [idEmpresaAtiva, setIdEmpresaAtiva] = useState("");
   const [servicos, setServicos] = useState<Servico[]>([]);
   const [idsFavoritos, setIdsFavoritos] = useState<Set<string>>(new Set());
+  const [agendamento, setAgendamentos] = useState<Agendamento[]>([]);
+
+  const auth = getAuth();
+  const id = auth.currentUser?.uid;
 
   const { showAlerta } = useAlerta();
   const navigate = useNavigate();
@@ -30,10 +40,11 @@ function TelaFeed() {
     getTipoUsuario()
       .then((tipo) => {
         setUsuario(tipo);
-        const auth = getAuth();
         setNomeUsuario(auth.currentUser?.displayName || "");
         if (tipo === "cliente") {
-          getFavoritos().then((ids) => setIdsFavoritos(new Set(ids))).catch(console.error);
+          getFavoritos()
+            .then((ids) => setIdsFavoritos(new Set(ids)))
+            .catch(console.error);
           getTodosServicos()
             .then(setServicos)
             .catch((err) => {
@@ -93,7 +104,18 @@ function TelaFeed() {
   };
 
   // Serviços que estão nos favoritos (para passar à sidebar)
-  const servicosFavoritos = servicos.filter((s) => s.id && idsFavoritos.has(s.id));
+  const servicosFavoritos = servicos.filter(
+    (s) => s.id && idsFavoritos.has(s.id),
+  );
+
+  useEffect(() => {
+    const carregar = async () => {
+      const lista = await getAgendamentosUsuario(id!);
+      setAgendamentos(lista);
+      console.log(agendamento);
+    };
+    carregar();
+  }, []);
 
   if (!usuario) return <Loading />;
 
@@ -179,9 +201,18 @@ function TelaFeed() {
                       <ServicoItem
                         key={servico.id}
                         servico={servico}
-                        favoritoInicial={!!servico.id && idsFavoritos.has(servico.id)}
+                        favoritoInicial={
+                          !!servico.id && idsFavoritos.has(servico.id)
+                        }
                         onFavoritoChange={handleFavoritoChange}
                       />
+                    ))}
+                  </div>
+                )}
+                {usuario === "prestador" && idEmpresaAtiva && (
+                  <div className="flex flex-col gap-3">
+                    {agendamento.map((ag, i) => (
+                      <NotificacaoAgendamento key={i} agendamento={ag} />
                     ))}
                   </div>
                 )}

@@ -422,35 +422,55 @@ export const getAgendamentosPrestador = async (
 
     // Para cada serviço, busca os agendamentos
     const agendamentos = (
-      await Promise.all(
-        idServicos.map(async (idServico) => {
-          const [agSnap, servicoSnap] = await Promise.all([
-            get(ref(db, `servicos/${idServico}/agendamentos`)),
-            get(ref(db, `servicos/${idServico}`)),
-          ]);
-          if (!agSnap.exists()) return [];
+  await Promise.all(
+    idServicos.map(async (idServico) => {
+      const [agSnap, servicoSnap] = await Promise.all([
+        get(ref(db, `servicos/${idServico}/agendamentos`)),
+        get(ref(db, `servicos/${idServico}`)),
+      ]);
+      if (!agSnap.exists()) return [];
 
-          const servico = servicoSnap.exists()
-            ? ({ id: idServico, ...servicoSnap.val() } as Servico)
-            : null;
+      const servico = servicoSnap.exists()
+        ? ({ id: idServico, ...servicoSnap.val() } as Servico)
+        : null;
 
-          if (!servico) return [];
+      if (!servico) return [];
 
-          const data = agSnap.val() as Record<string, Agendamento>;
-          return Object.entries(data).map(([idAg, ag]) => ({
-            ...ag,
-            id: idAg,
-            servico,
-          })) as Agendamento[];
+      // agendamentos do serviço são apenas { idAg: true } — dados reais estão em agendamentos/{idAg}
+      const ids = Object.keys(agSnap.val() as Record<string, true>);
+
+      const agendamentosDoServico = await Promise.all(
+        ids.map(async (idAg) => {
+          const snap = await get(ref(db, `agendamentos/${idAg}`));
+          if (!snap.exists()) return null;
+          return { id: idAg, ...snap.val(), servico } as Agendamento;
         }),
-      )
-    ).flat();
+      );
+
+      return agendamentosDoServico.filter((ag): ag is Agendamento => ag !== null);
+    }),
+  )
+).flat();
 
     return agendamentos;
   } catch (error) {
     console.error("Erro ao buscar agendamentos do prestador:", error);
     return [];
   }
+};
+
+/* -----------------------------------------------------------------------------*/
+
+export const getUsuarioQueAgendou = async (idAgendamento: string,): Promise<string> => {
+  // Busca o ID do cliente associado ao agendamento
+  const snap = await get(ref(db, `agendamentos/${idAgendamento}/idCliente`));
+  if (!snap.exists()) throw new Error("Usuário não encontrado");
+
+  // Com o ID do cliente, busca o nome do cliente
+  const idCliente = snap.val();
+  const clienteSnap = await get(ref(db, `clientes/${idCliente}/nome`));
+  if (!clienteSnap.exists()) throw new Error("Nome do cliente não encontrado");
+  return clienteSnap.val();
 };
 
 /* -----------------------------------------------------------------------------*/
