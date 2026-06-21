@@ -29,6 +29,8 @@ function Fase2({ onValidate, onChange }: Props) {
     imagem: "",
   });
 
+  const [checkCEP, setCheckCEP] = useState(false);
+
   const handleChange = (campo: string, value: string) => {
     const novoForm = { ...form, [campo]: value };
     onChange(novoForm);
@@ -44,6 +46,7 @@ function Fase2({ onValidate, onChange }: Props) {
     form.cnpj &&
     form.tel &&
     form.cep &&
+    checkCEP &&
     form.logradouro &&
     form.numero &&
     form.bairro &&
@@ -72,6 +75,7 @@ function Fase2({ onValidate, onChange }: Props) {
           "Não foi possível consultar o CEP. Verifique o número e tente novamente.",
           "desconect",
         );
+        setCheckCEP(false);
         return;
       }
       setForm((prev) => ({
@@ -81,6 +85,7 @@ function Fase2({ onValidate, onChange }: Props) {
         cidade: dados.localidade || "",
         estado: dados.uf || "",
       }));
+      setCheckCEP(true);
     });
   }, [CEPdados]);
 
@@ -96,6 +101,7 @@ function Fase2({ onValidate, onChange }: Props) {
           type="text"
           onChange={(value) => handleChange("nome", value)}
           required
+          maxLength={30}
         />
         <UploadImagem
           label="Imagem da empresa"
@@ -118,6 +124,7 @@ function Fase2({ onValidate, onChange }: Props) {
           titulo="E-mail"
           type="email"
           onChange={(value) => handleChange("email", value)}
+          maxLength={50}
         />
         <TextInput
           titulo="CEP"
@@ -130,6 +137,7 @@ function Fase2({ onValidate, onChange }: Props) {
           titulo="Complemento"
           type="text"
           onChange={(value) => handleChange("complemento", value)}
+          maxLength={50}
         />
         <TextInput
           titulo="Logradouro"
@@ -137,12 +145,14 @@ function Fase2({ onValidate, onChange }: Props) {
           onChange={(value) => handleChange("logradouro", value)}
           value={form.logradouro === undefined ? undefined : form.logradouro}
           required
+          maxLength={50}
         />
         <TextInput
           titulo="Número"
           type="number"
           onChange={(value) => handleChange("numero", value)}
           required
+          maxLength={10}
         />
         <TextInput
           titulo="Bairro"
@@ -150,6 +160,7 @@ function Fase2({ onValidate, onChange }: Props) {
           onChange={(value) => handleChange("bairro", value)}
           value={form.bairro === undefined ? undefined : form.bairro}
           required
+          maxLength={50}
         />
         <TextInput
           titulo="Estado"

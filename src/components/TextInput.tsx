@@ -28,6 +28,7 @@ interface Props {
   tipoValidacao?: "senha" | "data" | "padrão";
   options?: Option[];
   selected?: string;
+  maxLength?: number;
   onChange?: (value: string) => void;
 }
 
@@ -45,6 +46,7 @@ function TextInput({
   options = [],
   onChange,
   selected,
+  maxLength,
 }: Props) {
   const [erro, setErro] = useState<string | null>(null);
   const [valorInterno, setValorInterno] = useState("");
@@ -170,6 +172,7 @@ function TextInput({
           {...commonProps}
           value={valor}
           min={agendamento ? minDate : undefined}
+          maxLength={maxLength ? maxLength : undefined}
           onChange={(e) => handleChange(e.target.value)}
           onBlur={(e) => {
             if (agendamento) {

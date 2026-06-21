@@ -20,7 +20,7 @@ function Fase3({ onValidate }: Props) {
     <>
       <Formulario>
         <h1 className="font-bold text-4xl py-6">Termos de Uso</h1>
-        <div className="overflow-auto h-70 border p-2 border-gray-400 rounded-xl">
+        <div className="overflow-auto h-70 border p-2 border-gray-400 rounded-xl dark:border-zinc-700 dark:bg-zinc-900 dark:text-white">
           Lorem ipsum dolor sit amet. Et corporis aliasNam galisum non culpa
           molestiae quo nostrum doloremque rem earum provident eum
           necessitatibus vero At amet nemo. Rem tempora beatae in quas

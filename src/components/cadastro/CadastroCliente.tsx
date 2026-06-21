@@ -35,6 +35,7 @@ function CadastroUsuario() {
   });
 
   const [checked, setChecked] = useState(false);
+  const [checkCEP, setCheckCEP] = useState(false);
 
   const generos = [
     { label: "Masculino", value: "masculino" },
@@ -52,6 +53,7 @@ function CadastroUsuario() {
     form.rSenha &&
     form.senha &&
     form.senha === form.rSenha &&
+    checkCEP &&
     checked;
 
   const navigate = useNavigate();
@@ -75,6 +77,7 @@ function CadastroUsuario() {
           "Não foi possível consultar o CEP. Verifique o número e tente novamente.",
           "erro",
         );
+        setCheckCEP(false);
         return;
       }
       setForm((prev) => ({
@@ -84,6 +87,7 @@ function CadastroUsuario() {
         cidade: dados.localidade || "",
         estado: dados.uf || "",
       }));
+      setCheckCEP(true);
     });
   }, [CEPdados]);
 
@@ -119,18 +123,21 @@ function CadastroUsuario() {
           type="text"
           onChange={(value) => handleChange("nome", value)}
           required
+          maxLength={35}
         />
         <TextInput
           titulo="E-mail"
           type="email"
           onChange={(value) => handleChange("email", value)}
           required
+          maxLength={50}
         />
         <TextInput
           titulo="Senha"
           type="password"
           onChange={(value) => handleChange("senha", value)}
           required
+          maxLength={100}
         />
         <TextInput
           titulo="Repetir a senha"
@@ -139,6 +146,7 @@ function CadastroUsuario() {
           tipoValidacao="senha"
           validador={form.senha}
           required
+          maxLength={100}
         />
         <TextInput
           titulo="Telefone"
@@ -175,17 +183,20 @@ function CadastroUsuario() {
           type="text"
           value={form.logradouro === undefined ? undefined : form.logradouro}
           onChange={(value) => handleChange("logradouro", value)}
+          maxLength={50}
         />
         <TextInput
           titulo="Número"
           type="number"
           onChange={(value) => handleChange("numero", value)}
+          maxLength={10}
         />
         <TextInput
           titulo="Bairro"
           type="text"
           value={form.bairro === undefined ? undefined : form.bairro}
           onChange={(value) => handleChange("bairro", value)}
+          maxLength={50}
         />
         <TextInput
           titulo="Estado"
