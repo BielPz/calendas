@@ -48,14 +48,14 @@ function TelaAdicionarEmpresa() {
   // ── Validação ──────────────────────────────────────────────────────────────
   const isValid = Boolean(
     form.nome &&
-      form.cnpj &&
-      form.tel &&
-      form.cep &&
-      form.logradouro &&
-      form.numero &&
-      form.bairro &&
-      form.cidade &&
-      form.estado
+    form.cnpj &&
+    form.tel &&
+    form.cep &&
+    form.logradouro &&
+    form.numero &&
+    form.bairro &&
+    form.cidade &&
+    form.estado,
   );
 
   // ── Submit ─────────────────────────────────────────────────────────────────
@@ -99,6 +99,7 @@ function TelaAdicionarEmpresa() {
             value={form.nome}
             onChange={(value) => handleChange("nome", value)}
             required
+            maxLength={30}
           />
 
           <UploadImagem
@@ -128,6 +129,7 @@ function TelaAdicionarEmpresa() {
             type="email"
             value={form.email}
             onChange={(value) => handleChange("email", value)}
+            maxLength={50}
           />
 
           <TextInput
@@ -145,6 +147,7 @@ function TelaAdicionarEmpresa() {
             value={form.logradouro}
             onChange={(value) => handleChange("logradouro", value)}
             required
+            maxLength={50}
           />
 
           <div className="flex gap-3">
@@ -154,12 +157,14 @@ function TelaAdicionarEmpresa() {
               value={form.numero}
               onChange={(value) => handleChange("numero", value)}
               required
+              maxLength={10}
             />
             <TextInput
               titulo="Complemento"
               type="text"
               value={form.complemento}
               onChange={(value) => handleChange("complemento", value)}
+              maxLength={50}
             />
           </div>
 
@@ -169,6 +174,7 @@ function TelaAdicionarEmpresa() {
             value={form.bairro}
             onChange={(value) => handleChange("bairro", value)}
             required
+            maxLength={50}
           />
 
           <div className="flex gap-3">

@@ -274,6 +274,7 @@ function TelaPerfil() {
                         value={editando ? dadosEditados.nome : dados.nome}
                         onChange={(v) => handleCampo("nome", v)}
                         disabled={!editando}
+                        maxLength={50}
                       />
                       <TextInput
                         titulo="E-mail (Não editável)"
@@ -319,6 +320,7 @@ function TelaPerfil() {
                             }
                             onChange={(v) => handleCampo("logradouro", v)}
                             disabled={!editando}
+                            maxLength={50}
                           />
                           <TextInput
                             titulo="Bairro"
@@ -327,6 +329,7 @@ function TelaPerfil() {
                             }
                             onChange={(v) => handleCampo("bairro", v)}
                             disabled={!editando}
+                            maxLength={50}
                           />
                           <div className="grid grid-cols-2 gap-4">
                             <TextInput

@@ -16,7 +16,7 @@ function Fase1({ onValidate, onChange }: Props) {
     rSenha: "",
     genero: "",
     dtnasc: "",
-    tipo: "prestador"
+    tipo: "prestador",
   });
 
   const generos = [
@@ -28,9 +28,9 @@ function Fase1({ onValidate, onChange }: Props) {
   ];
 
   const handleChange = (campo: string, value: string) => {
-    const novoForm = { ...form, [campo]: value }
-    onChange(novoForm)
-    
+    const novoForm = { ...form, [campo]: value };
+    onChange(novoForm);
+
     setForm((prev) => ({
       ...prev,
       [campo]: value,
@@ -59,12 +59,14 @@ function Fase1({ onValidate, onChange }: Props) {
           type="text"
           onChange={(value) => handleChange("nome", value)}
           required
+          maxLength={50}
         />
         <TextInput
           titulo="E-mail"
           type="email"
           onChange={(value) => handleChange("email", value)}
           required
+          maxLength={75}
         />
         <TextInput
           titulo="Senha"
@@ -80,7 +82,11 @@ function Fase1({ onValidate, onChange }: Props) {
           validador={form.senha}
           required
         />
-        <TextInput titulo="Telefone" type="tel" onChange={(value) => handleChange("telefone", value)} />
+        <TextInput
+          titulo="Telefone"
+          type="tel"
+          onChange={(value) => handleChange("telefone", value)}
+        />
         <TextInput
           titulo="Gênero"
           type="select"

@@ -64,8 +64,10 @@ function TelaCriarServico() {
   // ── Handlers dos dias ─────────────────────────────────────────────────────
   const toggleDia = (index: number) => {
     // Se desativar o dia que estava controlando a propagação, limpa a referência
-    if (origemPropagacaoInicio.current === index) origemPropagacaoInicio.current = null;
-    if (origemPropagacaoFim.current === index) origemPropagacaoFim.current = null;
+    if (origemPropagacaoInicio.current === index)
+      origemPropagacaoInicio.current = null;
+    if (origemPropagacaoFim.current === index)
+      origemPropagacaoFim.current = null;
 
     setForm((prev) => {
       const dias = [...prev.diasDisponiveis];
@@ -77,7 +79,7 @@ function TelaCriarServico() {
   const handleHorarioDia = (
     index: number,
     campo: "inicio" | "fim",
-    valor: string
+    valor: string,
   ) => {
     if (campo === "inicio") {
       // Se for a primeira digitação geral da tela, este campo vira o "master" da propagação
@@ -94,15 +96,16 @@ function TelaCriarServico() {
       const dias = [...prev.diasDisponiveis];
 
       // Só propaga se o usuário continuar digitando no MESMO campo que iniciou tudo
-      const podePropagar = campo === "inicio"
-        ? (origemPropagacaoInicio.current === index)
-        : (origemPropagacaoFim.current === index);
+      const podePropagar =
+        campo === "inicio"
+          ? origemPropagacaoInicio.current === index
+          : origemPropagacaoFim.current === index;
 
       if (podePropagar) {
         return {
           ...prev,
           diasDisponiveis: dias.map((d) =>
-            d.ativo ? { ...d, [campo]: valor } : d
+            d.ativo ? { ...d, [campo]: valor } : d,
           ),
         };
       }
@@ -119,11 +122,11 @@ function TelaCriarServico() {
 
   const isValid = Boolean(
     form.cnpj &&
-      form.nome &&
-      form.preco &&
-      form.duracao &&
-      diasAtivos.length > 0 &&
-      diasValidos
+    form.nome &&
+    form.preco &&
+    form.duracao &&
+    diasAtivos.length > 0 &&
+    diasValidos,
   );
 
   // ── Submit ─────────────────────────────────────────────────────────────────
@@ -134,7 +137,7 @@ function TelaCriarServico() {
       const formSanitizado: Servico = {
         ...form,
         diasDisponiveis: form.diasDisponiveis.map((d) =>
-          d.ativo ? d : { ...d, inicio: "", fim: "" }
+          d.ativo ? d : { ...d, inicio: "", fim: "" },
         ),
       };
 
@@ -174,6 +177,7 @@ function TelaCriarServico() {
             type="text"
             onChange={(value) => handleChange("nome", value)}
             required
+            maxLength={75}
           />
           <UploadImagem
             label="Imagem do Serviço"
@@ -184,6 +188,7 @@ function TelaCriarServico() {
             type="text"
             onChange={(value) => handleChange("descricao", value)}
             required
+            maxLength={200}
           />
           <TextInput
             titulo="Preço"
@@ -239,7 +244,9 @@ function TelaCriarServico() {
                     {/* Campos de horário — desabilitados se dia inativo */}
                     <div
                       className={`flex gap-2 flex-1 transition-opacity ${
-                        d.ativo ? "opacity-100" : "opacity-30 pointer-events-none"
+                        d.ativo
+                          ? "opacity-100"
+                          : "opacity-30 pointer-events-none"
                       }`}
                     >
                       <TextInput

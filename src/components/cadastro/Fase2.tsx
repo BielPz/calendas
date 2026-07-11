@@ -124,7 +124,7 @@ function Fase2({ onValidate, onChange }: Props) {
           titulo="E-mail"
           type="email"
           onChange={(value) => handleChange("email", value)}
-          maxLength={50}
+          maxLength={75}
         />
         <TextInput
           titulo="CEP"
