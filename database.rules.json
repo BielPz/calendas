@@ -1,0 +1,36 @@
+{
+    "rules": {
+        ".read": "auth != null",
+        "clients": {
+            "$uid": {
+                ".read": "auth != null && auth.uid === $uid",
+                ".write": "auth != null && auth.uid === $uid",
+                "agendamentos": {
+                    "$agendamentoId": {
+                        ".write": "auth != null && auth.uid === $uid && !data.exists() && newData.val() === true",
+                        ".validate": "newData.val() === true"
+                    }
+                }
+            }
+        },
+        "prestadores": {
+            "$uid": {
+                ".read": "auth != null && auth.uid === $uid",
+                ".write": "auth != null && auth.uid === $uid"
+            }
+        },
+        "empresas": {
+            "$empresaId": {
+                ".read": "auth != null",
+                ".write": "auth != null && (!data.exists() ? newData.child('uidDono').val() === auth.uid : data.child('uidDono').val() === auth.uid)",
+                "servicos": {
+                    "$servicoId": {
+                        "_comment": "Valida a escrita de serviços e sua associação à empresa (Adicionei o .write, testar se funciona)",
+                        ".write": "auth != null && root.child('empresas').child($empresaId).child('uidDono').val() === auth.uid",
+                        ".validate": "!newData.exists() || (newData.val() === true && root.child('servicos').child($servicoId).child('idEmpresa').val() === $empresaId)"
+                    }
+                }
+            }
+        }
+    }
+}
