@@ -58,11 +58,11 @@ function GradeDisponibilidade({
   return (
     <div className="w-full">
       {/* Cabeçalho */}
-      <div className="grid grid-cols-7 gap-2 mb-3">
+      <div className="grid grid-cols-7 gap-1.5 mb-2">
         {DIAS_SEMANA.map((d) => (
           <div
             key={d}
-            className="text-center text-xs font-semibold text-gray-600 dark:text-gray-300 py-2"
+            className="py-1 text-center text-xs font-semibold text-gray-600 dark:text-gray-300"
           >
             {d}
           </div>
@@ -70,7 +70,7 @@ function GradeDisponibilidade({
       </div>
 
       {/* Grade */}
-      <div className="grid grid-cols-7 gap-2 mb-4">
+      <div className="grid grid-cols-7 gap-1.5 mb-3">
         {celulas.map((celula, i) => (
           <button
             key={i}
@@ -80,9 +80,9 @@ function GradeDisponibilidade({
               onDiaSelecionado?.(celula.dia)
             }
             disabled={celula.status === "vazio" || celula.status === "passado"}
-            className={`aspect-square rounded-lg flex items-center justify-center text-sm font-semibold
+            className={`flex h-9 items-center justify-center rounded-lg text-sm font-semibold sm:h-10 lg:h-11
               ${STATUS_CLASSES[celula.status]}
-              ${mesAtual && celula.dia === diaHoje ? "ring-2 ring-blue-500 dark:ring-blue-400 ring-offset-2 dark:ring-offset-zinc-800" : ""}
+              ${mesAtual && celula.dia === diaHoje ? "ring-2 ring-orange-500 dark:ring-orange-400 ring-offset-2 dark:ring-offset-zinc-800" : ""}
             `}
           >
             {celula.dia > 0 ? celula.dia : ""}
@@ -91,7 +91,7 @@ function GradeDisponibilidade({
       </div>
 
       {/* Legenda */}
-      <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-100 dark:border-zinc-700">
+      <div className="flex flex-wrap gap-3 border-t border-gray-100 pt-3 dark:border-zinc-700">
         {[
           { cor: "bg-gray-200 dark:bg-zinc-700", label: "Dias passados" },
           { cor: "bg-red-100 dark:bg-red-900/30", label: "Sem horários" },

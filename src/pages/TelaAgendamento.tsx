@@ -1,25 +1,26 @@
 import { useEffect, useMemo, useState } from "react";
 import Cabecalho from "../components/Cabecalho";
 import MiniCalendario from "../components/MiniCalendario";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { getAuth } from "firebase/auth";
 import { X } from "lucide-react";
 import type { Agendamento, Disponibilidade, Servico } from "../firebase/types";
 import TextInput from "../components/TextInput";
+import { getServicosDaEmpresa } from "../features/servicos/servico.service";
 import {
   agendarServico,
+  cancelarAgendamento,
   getAgendamentosDoServico,
   getDisponibilidadeDiaria,
   getDisponibilidadeMensal,
-  getServicosDaEmpresa,
-} from "../firebase/database";
+} from "../features/agendamentos/agendamento.service";
 import GradeDisponibilidade from "../components/GradeDisponibilidade";
 import { useGradiente } from "../hooks/useGradiente";
 import { useAlerta } from "../provider/AlertContext";
 import Loading from "../components/Loading";
+import Agenda from "../components/Agenda";
 
 function TelaAgendamento() {
-  const [nomeUsuario, setNomeUsuario] = useState("");
   const [servicos, setServicos] = useState<{ label: string; value: string }[]>(
     [],
   );
@@ -28,17 +29,47 @@ function TelaAgendamento() {
   const { showAlerta } = useAlerta();
 
   const location = useLocation();
-  const { servico, empresa } = location.state as {
+  const state = location.state as {
     servico: Servico;
     empresa: string;
-  };
+    idAgendamentoOriginal?: string;
+  } | null;
+  const servicoInicial = state?.servico;
+  const empresa = state?.empresa ?? "";
+  const idAgendamentoOriginal = state?.idAgendamentoOriginal;
 
   const [form, setForm] = useState<Agendamento>({
-    servico: servico,
+    servico: servicoInicial ?? {
+      cnpj: "", nome: "", preco: 0, duracao: "", tempo: "", diasDisponiveis: [],
+    },
     data: "",
     horario: "",
     obs: "",
   });
+  const configuracao = form.servico.configuracaoAtendimento ?? {
+    modalidade: "presencial-cliente" as const,
+    solicitarTelefone: false,
+    placeholderObservacao: "",
+    observacaoObrigatoria: false,
+  };
+  const duracaoMinutos = (() => {
+    const valor = Number(form.servico.duracao) || 60;
+    if (form.servico.tempo === "hora") return valor * 60;
+    if (form.servico.tempo === "dia") return valor * 1440;
+    return valor;
+  })();
+  const modoHorarioLivre = form.servico.modoHorario === "livre";
+  const horarioLivreValido = useMemo(() => {
+    if (!modoHorarioLivre || !form.data || !form.horario) return true;
+    const dia = form.servico.diasDisponiveis[new Date(`${form.data}T12:00:00`).getDay()];
+    if (!dia?.ativo || !dia.inicio || !dia.fim) return false;
+    const paraMinutos = (horario: string) => {
+      const [hora, minuto] = horario.split(":").map(Number);
+      return hora * 60 + minuto;
+    };
+    const inicio = paraMinutos(form.horario);
+    return inicio >= paraMinutos(dia.inicio) && inicio + duracaoMinutos <= paraMinutos(dia.fim);
+  }, [duracaoMinutos, form.data, form.horario, form.servico.diasDisponiveis, modoHorarioLivre]);
 
   const hoje = new Date();
   const mes = form.data
@@ -58,8 +89,10 @@ function TelaAgendamento() {
   const [horariosDisponiveis, setHorariosDisponiveis] = useState<
     { label: string; value: string }[]
   >([]);
+  const [horariosBase, setHorariosBase] = useState<{ label: string; value: string }[]>([]);
   const [atualizarDisponibilidade, setAtualizarDisponibilidade] =
     useState<Disponibilidade | null>(null);
+  const [agendaDoServico, setAgendaDoServico] = useState<Agendamento[]>([]);
   const [modalMobileAberto, setModalMobileAberto] = useState(false);
 
   // Converte dia numérico (ex: 15) + ano/mes atual para ISO string e abre modal mobile
@@ -76,26 +109,36 @@ function TelaAgendamento() {
     }));
   };
 
-  const handleClickAgendar = () => {
+  const handleServicoChange = (idServico: string) => {
+    const servicoSelecionado = servicos.find((servico) => servico.value === idServico);
+    if (!servicoSelecionado) return;
+    getServicosDaEmpresa(form.servico.idEmpresa ?? "").then((lista) => {
+      const encontrado = lista.find((item) => item.id === idServico);
+      if (encontrado) {
+        setForm((prev) => ({ ...prev, servico: encontrado, horario: "" }));
+      }
+    }).catch(() => showAlerta("Erro", "Não foi possível carregar o serviço.", "erro"));
+  };
+
+  const handleClickAgendar = async () => {
     if (form.servico && form.data && form.horario) {
-      const auth = getAuth();
-      agendarServico(form, auth.currentUser!.uid)
-        .then(() => {
-          showAlerta(
-            "Sucesso",
-            "Agendamento realizado com sucesso!",
-            "sucesso",
-          );
-          navigate("/feed");
-        })
-        .catch((error) => {
-          console.error("Erro ao agendar serviço:", error);
-          showAlerta(
-            "Erro",
-            "Não foi possível realizar o agendamento. Tente novamente.",
-            "erro",
-          );
-        });
+      try {
+        await agendarServico(form, getAuth().currentUser!.uid);
+        if (idAgendamentoOriginal) await cancelarAgendamento(idAgendamentoOriginal);
+        showAlerta(
+          "Sucesso",
+          idAgendamentoOriginal ? "Agendamento reagendado com sucesso!" : "Agendamento realizado com sucesso!",
+          "sucesso",
+        );
+        navigate("/feed");
+      } catch (error) {
+        console.error("Erro ao agendar serviço:", error);
+        showAlerta(
+          "Erro",
+          "Não foi possível realizar o agendamento. Tente novamente.",
+          "erro",
+        );
+      }
     } else {
       showAlerta(
         "info",
@@ -105,12 +148,21 @@ function TelaAgendamento() {
     }
   };
 
-  const isValid = Boolean(form.servico && form.data && form.horario);
+  const isValid = Boolean(
+    servicoInicial &&
+      form.servico.id &&
+      form.data &&
+      form.horario &&
+      horarioLivreValido &&
+      (!configuracao.observacaoObrigatoria || form.obs.trim()) &&
+      (!configuracao.solicitarTelefone || form.telefoneContato?.trim()),
+  );
 
   // Carrega os serviços da empresa para preencher o dropdown de seleção
   useEffect(() => {
     async function carregar() {
-      const data = await getServicosDaEmpresa(servico.idEmpresa!); // Garantindo que idEmpresa não é undefined
+      if (!servicoInicial?.idEmpresa) return;
+      const data = await getServicosDaEmpresa(servicoInicial.idEmpresa);
       const opcoes = data // Filtra serviços sem ID e mapeia para o formato esperado pelo TextInput
         .filter((s) => s.id !== undefined)
         .map((s) => ({
@@ -120,34 +172,7 @@ function TelaAgendamento() {
       setServicos(opcoes);
     }
     carregar();
-  }, []);
-
-  useEffect(() => {
-    setForm((prev) => ({ ...prev, servico })); // Atualiza o serviço selecionado no formulário
-  }, [servico]);
-
-  // Atualiza o serviço no formulário quando a data ou horário mudar (para refletir disponibilidade)
-  useEffect(() => {
-    if (form.servico) {
-      setForm((prev) => ({
-        ...prev,
-        servico: { ...prev.servico, ...servico },
-      })); // Atualiza os dados do serviço no formulário, mantendo o que já estava preenchido (como ID e nome) e atualizando os diasDisponiveis
-    }
-  }, [form.data, form.horario]);
-
-  // Atualiza os dias de funcionamento com base no serviço selecionado ou na data selecionada
-  useEffect(() => {
-    if (form.servico) {
-      // eslint-disable-next-line react-hooks/immutability
-      diasDisponiveis.length = 0; // Limpa o array antes de preenchê-lo
-      form.servico.diasDisponiveis.forEach((dia, index) => {
-        if (dia.ativo) {
-          diasDisponiveis.push(index); // Adiciona o índice do dia da semana (0-6) ao array de dias de funcionamento
-        }
-      });
-    }
-  }, [form.servico]);
+  }, [servicoInicial?.idEmpresa]);
 
   // Atualiza os horários disponíveis
   useEffect(() => {
@@ -155,11 +180,13 @@ function TelaAgendamento() {
 
     const duracaoNum = Number(form.servico.duracao);
     const unidade = form.servico.tempo.toLowerCase();
-    const intervaloMs = unidade.startsWith("hora")
-      ? duracaoNum * 60 * 60 * 1000
-      : unidade.startsWith("dia")
-        ? duracaoNum * 24 * 60 * 60 * 1000
-        : duracaoNum * 60 * 1000; // minuto (default)
+    const intervaloMs = form.servico.modoHorario === "livre"
+      ? 5 * 60 * 1000
+      : unidade.startsWith("hora")
+        ? duracaoNum * 60 * 60 * 1000
+        : unidade.startsWith("dia")
+          ? duracaoNum * 24 * 60 * 60 * 1000
+          : duracaoNum * 60 * 1000;
 
     const novosHorarios: { label: string; value: string }[] = [];
     form.servico.diasDisponiveis.forEach((dia) => {
@@ -178,19 +205,24 @@ function TelaAgendamento() {
         }
       }
     });
+    setHorariosBase(novosHorarios);
     setHorariosDisponiveis(novosHorarios);
   }, [form.servico]);
 
   // Remover horários indisponíveis com base nos agendamentos existentes para o serviço, mês e ano selecionados
   useEffect(() => {
-    if (!form.servico || !form.data || horariosDisponiveis.length === 0) return;
+    if (!form.servico || horariosBase.length === 0) return;
+    if (!form.data) {
+      setHorariosDisponiveis(horariosBase);
+      return;
+    }
 
     const atualizar = async () => {
       const agendamentos = await getAgendamentosDoServico(form.servico!.id!);
       const disponibilidade = await getDisponibilidadeDiaria(
         form.servico!.id!,
         form.data,
-        horariosDisponiveis.map((h) => h.value),
+        horariosBase.map((h) => h.value),
         agendamentos,
       );
       // Filtra os horários indisponíveis (null) e atualiza o estado
@@ -202,11 +234,29 @@ function TelaAgendamento() {
     };
 
     atualizar();
-  }, [form.data]); // ← roda quando a data muda
+  }, [form.data, form.servico?.id, horariosBase]);
+
+  useEffect(() => {
+    if (!form.servico.id || !form.data) {
+      setAgendaDoServico([]);
+      return;
+    }
+
+    getAgendamentosDoServico(form.servico.id)
+      .then((agendamentos) => setAgendaDoServico(
+        agendamentos.filter((agendamento) => agendamento.data === form.data && agendamento.status !== "cancelado"),
+      ))
+      .catch(() => setAgendaDoServico([]));
+  }, [form.data, form.servico.id]);
+
+  const agendamentosNaAgenda = useMemo(() => [
+    ...agendaDoServico,
+    ...(form.horario ? [{ ...form, id: "selecionado", status: "agendado" as const, duracaoMinutos }] : []),
+  ], [agendaDoServico, duracaoMinutos, form]);
 
   // Busca disponibilidade — só roda quando horariosDisponiveis já está populado
   useEffect(() => {
-    if (!form.servico?.id || !ano || horariosDisponiveis.length === 0) return;
+    if (!form.servico?.id || !ano || horariosBase.length === 0) return;
 
     const atualizar = async () => {
       const agendamentos = await getAgendamentosDoServico(form.servico!.id!);
@@ -214,32 +264,30 @@ function TelaAgendamento() {
         form.servico!.id!,
         ano,
         mes + 1, // 1-12
-        horariosDisponiveis.map((h) => h.value),
+        horariosBase.map((h) => h.value),
         agendamentos,
       );
       setAtualizarDisponibilidade(disponibilidade);
     };
 
     atualizar();
-  }, [ano, mes, form.servico, horariosDisponiveis]);
+  }, [ano, mes, form.servico, horariosBase]);
 
-  const auth = getAuth();
-  useEffect(() => {
-    setNomeUsuario(auth.currentUser?.displayName || "");
-  }, [auth]);
+  const nomeUsuario = getAuth().currentUser?.displayName || "";
 
+  if (!servicoInicial) return <Navigate to="/feed" replace />;
   if (!nomeUsuario) return <Loading />;
 
   return (
     <div
-      className={`${cor_fundo} h-screen w-full flex flex-col overflow-hidden`}
+      className={`${cor_fundo} h-dvh w-full flex flex-col overflow-hidden`}
     >
       <Cabecalho perfil nome={nomeUsuario} />
-      <div className="flex flex-col grow w-full items-center overflow-hidden">
-        <div className="flex flex-col w-full max-w-[95%] md:max-w-[80%] gap-4 p-4 grow overflow-hidden">
+      <div className="flex min-h-0 flex-col grow w-full items-center overflow-hidden">
+        <div className="flex min-h-0 w-full max-w-7xl flex-col gap-4 p-4 grow overflow-hidden">
           <div className="flex flex-col sm:flex-row gap-2 shrink-0">
             <button
-              className="px-4 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none bg-white dark:bg-zinc-700"
+              className="ui-button-secondary px-4"
               onClick={() => navigate("/feed")}
             >
               <X
@@ -248,7 +296,7 @@ function TelaAgendamento() {
                 className="text-gray-500 dark:text-gray-300"
               />
             </button>
-            <div className="relative flex items-center bg-white dark:bg-zinc-700 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 w-full">
+            <div className="ui-card flex w-full items-center px-4 py-2">
               <h1 className="text-gray-700 dark:text-gray-50 font-semibold">
                 {empresa}
               </h1>
@@ -257,7 +305,7 @@ function TelaAgendamento() {
 
           <div className="flex flex-col md:flex-row gap-3 grow min-h-0">
             {/* Sidebar vertical — só desktop */}
-            <div className="hidden md:block bg-white dark:bg-zinc-700 md:w-1/5 p-3 rounded-lg shrink-0 overflow-y-auto">
+            <div className="ui-card hidden h-full md:block md:w-1/5 p-3 shrink-0 overflow-y-auto">
               <MiniCalendario
                 onChange={(date) =>
                   handleChange("data", date?.toISOString().split("T")[0] ?? "")
@@ -270,8 +318,8 @@ function TelaAgendamento() {
                 <TextInput
                   titulo="Serviço"
                   type="select"
-                  onChange={(value) => handleChange("servico", value)}
-                  selected={servico?.nome}
+                  onChange={handleServicoChange}
+                  value={form.servico.id}
                   options={servicos}
                 />
                 <TextInput
@@ -281,17 +329,23 @@ function TelaAgendamento() {
                   onChange={(value) => handleChange("data", value)}
                   agendamento
                 />
-                <TextInput
-                  titulo="Horário"
-                  type="select"
-                  onChange={(value) => handleChange("horario", value)}
-                  options={horariosDisponiveis}
-                />
+                {modoHorarioLivre ? (
+                  <TextInput titulo="Horário" type="time" value={form.horario} onChange={(value) => handleChange("horario", value)} />
+                ) : (
+                  <TextInput titulo="Horário" type="select" onChange={(value) => handleChange("horario", value)} options={horariosDisponiveis} />
+                )}
                 <TextInput
                   titulo="Observação"
                   type="text"
                   onChange={(value) => handleChange("obs", value)}
+                  placeholder={configuracao.placeholderObservacao || "Observações para o prestador"}
                 />
+                {configuracao.observacaoObrigatoria && !form.obs.trim() && <p className="-mt-3 mb-3 text-xs font-medium text-red-600 dark:text-red-300">A observacao e obrigatoria para este servico.</p>}
+                {configuracao.solicitarTelefone && (
+                  <TextInput titulo="Telefone para contato" type="tel" required value={form.telefoneContato ?? ""} onChange={(value) => handleChange("telefoneContato", value)} />
+                )}
+                {configuracao.modalidade === "presencial-prestador" && <p className="mb-4 rounded-lg bg-orange-50 p-3 text-xs text-orange-900 dark:bg-orange-400/10 dark:text-orange-100">O prestador irá até o endereço salvo no seu perfil.</p>}
+                {configuracao.modalidade === "online" && <p className="mb-4 rounded-lg bg-violet-50 p-3 text-xs text-violet-900 dark:bg-violet-400/10 dark:text-violet-100">Este atendimento será online.</p>}
                 <button
                   onClick={handleClickAgendar}
                   className={`
@@ -309,15 +363,33 @@ function TelaAgendamento() {
             </div>
 
             <div className="flex flex-col gap-3 w-full md:w-4/5 min-h-0">
-              <div className="bg-white dark:bg-zinc-700 p-3 rounded-lg overflow-y-auto flex-1 min-h-0">
+              <div className="ui-card flex min-h-0 flex-1 flex-col overflow-hidden p-3">
                 {/* Aqui é o conteúdo do calendário do principal da empresa */}
-                <GradeDisponibilidade
-                  ano={ano}
-                  mes={mes}
-                  diasFuncionamento={diasDisponiveis}
-                  disponibilidades={atualizarDisponibilidade || {}} // Passa as disponibilidades para a grade
-                  onDiaSelecionado={handleDiaSelecionadoMobile}
-                />
+                {form.data ? (
+                  <>
+                    <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3 dark:border-zinc-700">
+                      <div>
+                        <h2 className="font-bold text-slate-800 dark:text-zinc-100">Escolha seu horário</h2>
+                        <p className="text-sm text-slate-500 dark:text-zinc-400">{new Date(`${form.data}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })}</p>
+                      </div>
+                      <button type="button" className="ui-button-secondary text-sm" onClick={() => handleChange("data", "")}>Alterar data</button>
+                    </div>
+                    <Agenda titulo="Agenda" data={form.data} agendamentos={agendamentosNaAgenda} selecionadoId="selecionado" rotuloAgendamento={(agendamento) => agendamento.id === "selecionado" ? "Horário selecionado" : "Horário reservado"} />
+                    {modoHorarioLivre && !horarioLivreValido && form.horario && <p className="mt-3 text-center text-xs font-medium text-red-600 dark:text-red-300">Escolha um horário que termine dentro do período de funcionamento.</p>}
+                  </>
+                ) : (
+                  <>
+                    <h2 className="mb-2 font-bold text-slate-800 dark:text-zinc-100">Escolha uma data</h2>
+                    <p className="mb-4 text-sm text-slate-500 dark:text-zinc-400">Depois, você verá os horários disponíveis em uma linha do tempo.</p>
+                    <GradeDisponibilidade
+                      ano={ano}
+                      mes={mes}
+                      diasFuncionamento={diasDisponiveis}
+                      disponibilidades={atualizarDisponibilidade || {}}
+                      onDiaSelecionado={handleDiaSelecionadoMobile}
+                    />
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -341,7 +413,7 @@ function TelaAgendamento() {
                   </h2>
                   <button
                     onClick={() => setModalMobileAberto(false)}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
+                    className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-orange-50 hover:text-orange-700 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-orange-300"
                   >
                     <X size={18} className="text-gray-500 dark:text-gray-400" />
                   </button>
@@ -350,8 +422,8 @@ function TelaAgendamento() {
                 <TextInput
                   titulo="Serviço"
                   type="select"
-                  onChange={(value) => handleChange("servico", value)}
-                  selected={servico?.nome}
+                  onChange={handleServicoChange}
+                  value={form.servico.id}
                   options={servicos}
                 />
                 <TextInput
@@ -361,17 +433,23 @@ function TelaAgendamento() {
                   onChange={(value) => handleChange("data", value)}
                   agendamento
                 />
-                <TextInput
-                  titulo="Horário"
-                  type="select"
-                  onChange={(value) => handleChange("horario", value)}
-                  options={horariosDisponiveis}
-                />
+                {modoHorarioLivre ? (
+                  <TextInput titulo="Horário" type="time" value={form.horario} onChange={(value) => handleChange("horario", value)} />
+                ) : (
+                  <TextInput titulo="Horário" type="select" onChange={(value) => handleChange("horario", value)} options={horariosDisponiveis} />
+                )}
                 <TextInput
                   titulo="Observação"
                   type="text"
                   onChange={(value) => handleChange("obs", value)}
+                  placeholder={configuracao.placeholderObservacao || "Observações para o prestador"}
                 />
+                {configuracao.observacaoObrigatoria && !form.obs.trim() && <p className="-mt-3 mb-3 text-xs font-medium text-red-600 dark:text-red-300">A observacao e obrigatoria para este servico.</p>}
+                {configuracao.solicitarTelefone && (
+                  <TextInput titulo="Telefone para contato" type="tel" required value={form.telefoneContato ?? ""} onChange={(value) => handleChange("telefoneContato", value)} />
+                )}
+                {configuracao.modalidade === "presencial-prestador" && <p className="rounded-lg bg-orange-50 p-3 text-xs text-orange-900 dark:bg-orange-400/10 dark:text-orange-100">O prestador irá até o endereço salvo no seu perfil.</p>}
+                {configuracao.modalidade === "online" && <p className="rounded-lg bg-violet-50 p-3 text-xs text-violet-900 dark:bg-violet-400/10 dark:text-violet-100">Este atendimento será online.</p>}
 
                 <button
                   onClick={() => {

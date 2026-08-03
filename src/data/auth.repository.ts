@@ -1,8 +1,7 @@
-import { auth, db } from "./config";
-import { createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword, sendPasswordResetEmail, getAuth, onAuthStateChanged, type User } from "firebase/auth";
-import { ref, get, set, push } from "firebase/database";
-import type { Usuario, Cliente, Empresa } from "./types";
-import { useEffect, useState } from "react";
+import { auth, db } from "../firebase/config";
+import { createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword, sendPasswordResetEmail, getAuth, signOut } from "firebase/auth";
+import { ref, get, set, push, update } from "firebase/database";
+import type { Usuario, Cliente, Empresa } from "../firebase/types";
 
 // Cadastro
 
@@ -39,16 +38,18 @@ export const registrarPrestador = async (email: string, pass: string, dados: Usu
 export const registrarEmpresa = async (uidPrestador: string, dados: Empresa) => {
   // Cria a empresa no nó global "empresas"
   const novaEmpresaRef = push(ref(db, "empresas"));
-  await set(novaEmpresaRef, {
+  const empresa = {
     ...dados,
     uidDono: uidPrestador,
     dataCadastro: new Date().toISOString(),
-  });
+  };
 
   const idEmpresa = novaEmpresaRef.key!;
 
-  // Salva o ID da empresa dentro do prestador
-  await set(ref(db, `prestadores/${uidPrestador}/empresas/${idEmpresa}`), true);
+  await update(ref(db), {
+    [`empresas/${idEmpresa}`]: empresa,
+    [`prestadores/${uidPrestador}/empresas/${idEmpresa}`]: true,
+  });
 
   return idEmpresa;
 };
@@ -69,6 +70,7 @@ export const login = async (email: string, pass: string, tipo: "cliente" | "pres
   //console.log("Dados:", snapshot.val());
 
   if (!snapshot.exists()) {
+    await signOut(auth);
     throw new Error(`Usuário não encontrado como ${tipo}`);
   }
 
@@ -102,21 +104,3 @@ export const redefinirSenha = async (email: string) => {
   }
 };
 
-// Ver se o usuário está logado
-// Talvez usaremos isso em algum lugar, talvez não, mas fica aqui pra quando precisar
-
-export const verificarUsuarioLogado = () => {
-  const [usuario, setUsuario] = useState<User | null>(null);
-  const [carregando, setCarregando] = useState(true);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUsuario(user);
-      setCarregando(false);
-    });
-
-    return () => unsubscribe(); // limpa o listener ao desmontar
-  }, []);
-  
-  return { usuario, carregando };
-};

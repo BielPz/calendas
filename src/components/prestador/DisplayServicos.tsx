@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ServicoCard from "./ServicoCard";
 import type { Servico } from "../../firebase/types";
-import { getServicosDaEmpresa } from "../../firebase/database";
+import { getServicosDaEmpresa } from "../../features/servicos/servico.service";
 import { useAlerta } from "../../provider/AlertContext";
 
 interface DisplayProps {
@@ -48,7 +48,7 @@ function DisplayServicos({ idEmpresa }: DisplayProps) {
         </span>
       </div>
       {servicos.map((servico, index) => (
-        <ServicoCard key={index} servico={servico} />
+        <ServicoCard key={index} servico={servico} onClick={() => navigate("/cadastro-servico", { state: { idEmpresa, idServico: servico.id } })} />
       ))}
     </div>
   );

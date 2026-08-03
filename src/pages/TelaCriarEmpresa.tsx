@@ -4,7 +4,7 @@ import TextInput from "../components/TextInput";
 import UploadImagem from "../components/UploadImagem";
 import CabecalhoBranco from "../components/CabecalhoBranco";
 import type { Empresa } from "../firebase/types";
-import { registrarEmpresa } from "../firebase/auth";
+import { registrarEmpresa } from "../features/empresas/empresa.service";
 import { getAuth } from "firebase/auth";
 import { useNavigate } from "react-router";
 import { useAlerta } from "../provider/AlertContext";
@@ -91,11 +91,12 @@ function TelaAdicionarEmpresa() {
     <div className="flex flex-col items-center justify-start min-h-screen dark:bg-zinc-900">
       <CabecalhoBranco titulo="Cadastre uma Nova Empresa" />
 
-      <div className="w-[45%] min-w-75 relative flex flex-col gap-3 justify-items-center">
+      <div className="flex w-full max-w-xl flex-col gap-3 px-4">
         <Formulario>
           <TextInput
             titulo="Nome da Empresa"
             type="text"
+            placeholder="Digite o nome da empresa"
             value={form.nome}
             onChange={(value) => handleChange("nome", value)}
             required

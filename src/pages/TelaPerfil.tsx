@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import Formulario from "../components/Formulario";
 import TextInput from "../components/TextInput";
-import { getTipoUsuario } from "../firebase/auth";
+import { getTipoUsuario } from "../features/auth/auth.service";
 import { signOut } from "firebase/auth";
-import { atualizarPerfil, excluirConta } from "../firebase/database";
+import { atualizarPerfil, excluirConta } from "../features/perfil/perfil.service";
 import { auth, db } from "../firebase/config";
 import { useAlerta } from "../provider/AlertContext";
 import { useNavigate } from "react-router-dom";
@@ -51,7 +51,6 @@ function TelaPerfil() {
   const [dadosEditados, setDadosEditados] = useState<Record<string, string>>(
     {},
   );
-  const [imagemPerfil, setImagemPerfil] = useState<string>(dados.imagem || "");
   const { showAlerta } = useAlerta();
   const navigate = useNavigate();
   const cor_fundo = useGradiente();
@@ -79,10 +78,7 @@ function TelaPerfil() {
     carregarDados();
   }, []);
 
-  // Atualiza quando os dados carregarem
-  useEffect(() => {
-    setImagemPerfil(dados.imagem || "");
-  }, [dados.imagem]);
+  const imagemPerfil = dadosEditados.imagem || dados.imagem || "";
 
   const handleImagemChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -91,7 +87,7 @@ function TelaPerfil() {
     try {
       const url = await uploadImage(file);
       await atualizarPerfil(tipo!, { ...dadosEditados, imagem: url });
-      setImagemPerfil(url);
+      setDados((prev) => ({ ...prev, imagem: url }));
       setDadosEditados((prev) => ({ ...prev, imagem: url }));
       showAlerta("Sucesso", "Imagem de perfil atualizada!", "sucesso");
     } catch (error) {
@@ -165,19 +161,26 @@ function TelaPerfil() {
     .toUpperCase();
 
   return (
-    <div className={`flex flex-col h-screen ${cor_fundo} overflow-hidden`}>
+    <div className={`flex h-dvh flex-col overflow-hidden ${cor_fundo}`}>
       <Cabecalho none />
 
-      <div className="flex flex-1 overflow-hidden w-full max-w-350 mx-auto gap-4 p-4">
+      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-4 overflow-hidden p-4 md:flex-row">
+        <nav className="ui-card flex gap-1 overflow-x-auto p-2 md:hidden" aria-label="Seções do perfil">
+          {itensMenu.map((item) => (
+            <button key={item.id} onClick={() => setSecaoAtiva(item.id)} className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold ${secaoAtiva === item.id ? "bg-linear-to-r from-orange-500 to-violet-600 text-white" : "text-slate-600 dark:text-zinc-300"}`}>
+              {item.icon}<span>{item.label}</span>
+            </button>
+          ))}
+        </nav>
         {/* Sidebar Desktop */}
-        <aside className="hidden md:flex flex-col bg-white dark:bg-zinc-700 rounded-2xl shadow-lg w-72 shrink-0 p-6 h-full overflow-hidden">
+        <aside className="ui-card hidden w-72 shrink-0 flex-col p-4 md:flex">
           <div className="flex-1 overflow-y-auto pr-2">
             {itensMenu.map((item) => (
               <button
                 key={item.id}
                 onClick={() => setSecaoAtiva(item.id)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all w-full text-left mb-2
-                  ${secaoAtiva === item.id ? "bg-blue-600 text-white shadow-md" : "text-gray-500 hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-zinc-600"}`}
+                className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-semibold transition-all mb-1
+                  ${secaoAtiva === item.id ? "bg-linear-to-r from-orange-500 to-violet-600 text-white shadow-sm" : "text-slate-600 hover:bg-orange-50 dark:text-zinc-300 dark:hover:bg-zinc-800"}`}
               >
                 {item.icon}
                 <span className="flex-1">{item.label}</span>
@@ -187,19 +190,19 @@ function TelaPerfil() {
           </div>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-red-500 hover:bg-red-100 transition-colors w-full border-t bg-gray-50 border-gray-200 dark:border-gray-500 dark:bg-zinc-800 mt-4 pt-4"
+            className="mt-4 flex w-full items-center gap-3 border-t border-slate-200 bg-slate-50 px-4 pt-4 pb-3 text-sm font-bold text-red-600 transition-colors hover:bg-red-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-red-400"
           >
             <LogOut size={18} /> Sair
           </button>
         </aside>
 
         {/* Área Central */}
-        <div className="flex flex-col flex-1 min-w-0 h-full overflow-hidden">
-          <main className="flex flex-col gap-4 h-full overflow-hidden">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <main className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1">
             {secaoAtiva === "perfil" ? (
               <>
                 {/* Header fixo */}
-                <div className="bg-white dark:bg-zinc-700 rounded-2xl shadow-md p-6 flex flex-col sm:flex-row items-center gap-6 shrink-0">
+                <div className="ui-card flex flex-col items-center gap-5 p-5 sm:flex-row sm:p-6">
                   <label className="relative w-20 h-20 rounded-full cursor-pointer group shrink-0">
                     {imagemPerfil ? (
                       <img
@@ -208,7 +211,7 @@ function TelaPerfil() {
                         className="w-20 h-20 rounded-full object-cover shadow-lg"
                       />
                     ) : (
-                      <div className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-linear-to-br from-orange-500 to-violet-600 text-2xl font-bold text-white shadow-sm">
                         {iniciais}
                       </div>
                     )}
@@ -230,7 +233,7 @@ function TelaPerfil() {
                     <p className="text-gray-500 dark:text-gray-300 text-sm">
                       {dados.email}
                     </p>
-                    <span className="mt-2 inline-block px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-[10px] font-black uppercase">
+                    <span className="mt-2 inline-block rounded-full bg-orange-50 px-3 py-1 text-[10px] font-black uppercase text-orange-700 dark:bg-orange-400/10 dark:text-orange-200">
                       {tipo}
                     </span>
                   </div>
@@ -238,7 +241,7 @@ function TelaPerfil() {
                     {!editando ? (
                       <button
                         onClick={() => setEditando(true)}
-                        className="flex items-center gap-2 bg-blue-50 text-blue-600 px-5 py-2 rounded-xl font-bold hover:bg-blue-100 transition-all"
+                        className="ui-button-secondary flex items-center gap-2"
                       >
                         <Pencil size={16} /> Editar
                       </button>
@@ -246,13 +249,13 @@ function TelaPerfil() {
                       <>
                         <button
                           onClick={handleCancelar}
-                          className="px-4 py-2 text-gray-500 dark:text-gray-300 font-bold hover:underline transition-all"
+                          className="px-4 py-2 font-bold text-slate-600 hover:underline dark:text-zinc-300"
                         >
                           Cancelar
                         </button>
                         <button
                           onClick={handleSalvar}
-                          className="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold shadow-md hover:bg-blue-700 transition-all"
+                          className="ui-button-primary px-6"
                         >
                           Salvar
                         </button>
@@ -262,8 +265,8 @@ function TelaPerfil() {
                 </div>
 
                 {/* AREA DE SCROLL ISOLADA */}
-                <div className="bg-white dark:bg-zinc-700 rounded-2xl shadow-md p-8 flex-1 overflow-y-auto custom-scrollbar">
-                  <h3 className="text-xs font-black text-gray-400 dark:text-gray-200 uppercase tracking-widest mb-8 border-b pb-4">
+                <div className="ui-card p-5 sm:p-8">
+                  <h3 className="mb-8 border-b border-slate-200 pb-4 text-xs font-black uppercase tracking-widest text-slate-500 dark:border-zinc-700 dark:text-zinc-300">
                     Informações Pessoais
                   </h3>
 
@@ -377,7 +380,7 @@ function TelaPerfil() {
                 </div>
               </>
             ) : (
-              <div className="bg-white dark:bg-zinc-700 rounded-2xl shadow-md p-20 flex-1 flex flex-col items-center justify-center text-gray-400 dark:text-gray-300">
+              <div className="ui-card flex min-h-72 flex-1 flex-col items-center justify-center p-8 text-slate-500 dark:text-zinc-300">
                 <p className="font-bold">Seção {secaoAtiva} em breve.</p>
               </div>
             )}

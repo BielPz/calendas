@@ -1,5 +1,6 @@
 import { useState } from "react";
 import imgLogo from "../images/logo.png";
+import imgLogoEscuro from "../images/logo_escuro.png";
 import { Link, useNavigate } from "react-router-dom";
 import { getAuth, signOut } from "firebase/auth";
 import imgLogout from "../images/logout.png";
@@ -38,16 +39,19 @@ function Cabecalho({ perfil, none, nome, fotoPerfil }: Props) {
         <img
           src={imgLogo}
           alt="logo"
-          className="w-24 cursor-pointer"
+          className="w-24 rounded focus-visible:ring-white dark:hidden"
           onClick={() => {
-            perfil === undefined && none === undefined
-              ? (window.location.href = "/")
-              : navigate("/feed");
+            if (perfil === undefined && none === undefined) {
+              navigate("/");
+              return;
+            }
+            navigate("/feed");
           }}
         />
+        <img src={imgLogoEscuro} alt="logo" className="hidden w-24 rounded focus-visible:ring-white dark:block" onClick={() => navigate("/feed")} />
         <button
           onClick={toggleDarkMode}
-          className="ml-4 p-2 rounded-full hover:bg-gray-800 dark:hover:bg-gray-600 transition-colors duration-200"
+          className="ml-4 rounded-full p-2 text-white hover:bg-white/15 transition-colors duration-200 focus-visible:ring-white"
         >
           {darkMode ? <Sun size={20} color="white" /> : <Moon size={20} />}
         </button>
@@ -56,7 +60,7 @@ function Cabecalho({ perfil, none, nome, fotoPerfil }: Props) {
             <Link
               to="/login"
               className="text-white text-sm font-medium
-                        hover:bg-gray-800 dark:hover:bg-gray-600  
+                        hover:bg-white/15
                         transition-colors duration-200 px-3 py-1 rounded-lg"
             >
               Entrar
@@ -64,7 +68,7 @@ function Cabecalho({ perfil, none, nome, fotoPerfil }: Props) {
             <Link
               to="/cadastro"
               className="text-white text-sm font-medium
-                        hover:bg-gray-800 dark:hover:bg-gray-600
+                        hover:bg-white/15
                         transition-colors duration-200 px-3 py-1 rounded-lg"
             >
               Cadastrar
@@ -79,7 +83,7 @@ function Cabecalho({ perfil, none, nome, fotoPerfil }: Props) {
               onMouseEnter={() => setHovered(true)}
               onMouseLeave={() => setHovered(false)}
               className={`flex items-center transition-all duration-300 overflow-hidden
-                bg-gray-800 dark:bg-gray-600 rounded-full p-1
+                bg-black/25 dark:bg-zinc-800 rounded-full p-1
                 ${hovered ? "gap-2" : "gap-0"}
               `}
             >
@@ -107,7 +111,7 @@ function Cabecalho({ perfil, none, nome, fotoPerfil }: Props) {
 
             <button
               onClick={handleLogout}
-              className=" hover:bg-gray-800 dark:hover:bg-gray-600 transition-all duration-300 w-9 h-9 hover:w-11 hover:h-11 rounded-full flex items-center justify-center"
+              className="text-white hover:bg-white/15 transition-all duration-300 w-9 h-9 hover:w-11 hover:h-11 rounded-full flex items-center justify-center"
             >
               <img src={imgLogout} alt="Sair" className="w-5 h-5" />
             </button>

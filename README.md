@@ -1,73 +1,55 @@
-# React + TypeScript + Vite
+# Calendas
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicação web para clientes encontrarem serviços e para prestadores gerenciarem empresas, serviços e agendamentos.
 
-Currently, two official plugins are available:
+## Requisitos
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Node.js 22 ou superior
+- Um projeto Firebase com Authentication (e-mail/senha) e Realtime Database
 
-## React Compiler
+## Executar localmente
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm ci
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Outros comandos:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run lint
+npm run test
+npm run build
 ```
+
+## Segurança do Firebase
+
+As regras do Realtime Database estão em `database.rules.json`. Antes de publicar o aplicativo, revise os IDs e a estrutura de dados do banco de produção e publique-as usando a Firebase CLI:
+
+```bash
+firebase deploy --only database
+```
+
+As regras exigem login, restringem perfis ao próprio usuário, restringem empresas e serviços ao prestador proprietário e limitam a leitura de agendamentos às partes envolvidas. O projeto permanece compatível com o plano Spark (gratuito), sem Cloud Functions.
+
+## Reserva de horários
+
+O aplicativo reserva primeiro o slot em `slots/{idServico}/{data}/{horario}` usando uma transação e só depois grava os dados relacionados. Isso evita a dupla reserva concorrente sem exigir Cloud Functions.
+
+## Uploads
+
+O upload usa Cloudinary. Para produção, o preset não deve aceitar uploads irrestritos: limite formatos, tamanho e origem e, idealmente, gere assinaturas em um backend. Nunca coloque um `api_secret` do Cloudinary no frontend.
+
+## Deploy
+
+O `vercel.json` contém o fallback para rotas do React Router. Configure o projeto no Vercel e use `npm run build` como comando de build.
+
+## Estrutura
+
+- `src/data`: repositórios internos do Firebase; não devem ser importados por telas ou componentes
+- `src/features`: serviços públicos separados por domínio (`auth`, `agendamentos`, `empresas`, `perfil` e `servicos`)
+- `src/pages`: composição das telas da aplicação
+- `src/components`: componentes visuais reutilizáveis, já agrupados quando específicos de cadastro, cliente ou prestador
+- `src/firebase`: somente a configuração e os tipos compartilhados do Firebase
+- `src/lib`: regras puras de disponibilidade, cobertas por testes
+- `database.rules.json`: regras versionadas do Firebase

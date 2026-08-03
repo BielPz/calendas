@@ -25,11 +25,11 @@ function UploadImagem({ label, onUpload }: Props) {
 
   return (
     <div className="w-full max-w-md">
-      <label className="block text-sm font-medium mb-1">{label}</label>
+      <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-zinc-200">{label}</label>
 
-      <div className="flex items-center border rounded-lg overflow-hidden bg-gray-100">
+      <div className="flex items-center overflow-hidden rounded-xl border border-slate-300 bg-white dark:border-zinc-700 dark:bg-zinc-900">
         {/* Botão */}
-        <label className="bg-gray-300 px-4 py-2 cursor-pointer hover:bg-gray-400 transition">
+        <label className="cursor-pointer bg-orange-50 px-4 py-3 font-semibold text-orange-700 transition hover:bg-orange-100 dark:bg-orange-400/10 dark:text-orange-200 dark:hover:bg-orange-400/20">
           {loading ? "Enviando..." : "Selecionar imagem"}
           <input
             type="file"
@@ -42,7 +42,7 @@ function UploadImagem({ label, onUpload }: Props) {
         </label>
 
         {/* Nome do arquivo */}
-        <span className="px-3 text-sm text-gray-600 truncate">{fileName}</span>
+        <span className="truncate px-3 text-sm text-slate-600 dark:text-zinc-300">{fileName}</span>
       </div>
     </div>
   );

@@ -2,7 +2,7 @@ import { useState } from "react";
 import Cabecalho from "../components/Cabecalho";
 import TextInput from "../components/TextInput";
 import { useNavigate } from "react-router-dom";
-import { redefinirSenha } from "../firebase/auth";
+import { redefinirSenha } from "../features/auth/auth.service";
 import { useAlerta } from "../provider/AlertContext";
 import { useGradiente } from "../hooks/useGradiente";
 

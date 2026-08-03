@@ -1,8 +1,30 @@
-import { db } from "./config";
-import { ref, set, push, get, remove } from "firebase/database";
-import type { Agendamento, Servico } from "./types";
+import { db } from "../firebase/config";
+import { ref, set, push, get, update, runTransaction } from "firebase/database";
+import type { Agendamento, AvaliacaoServico, Cliente, Servico, Usuario } from "../firebase/types";
 import { getAuth, updateProfile } from "firebase/auth";
-import { getTipoUsuario } from "./auth";
+import { getTipoUsuario } from "./auth.repository";
+import { calcularDisponibilidadeDiaria, calcularDisponibilidadeMensal } from "../lib/disponibilidade";
+
+const calcularDuracaoMinutos = (servico: Servico) => {
+  const valor = Number(servico.duracao);
+  if (!Number.isFinite(valor) || valor <= 0) return 60;
+  if (servico.tempo === "dia") return valor * 24 * 60;
+  if (servico.tempo === "hora") return valor * 60;
+  return valor;
+};
+
+const comResumoAvaliacoes = (id: string, dados: Omit<Servico, "id">): Servico => {
+  const avaliacoes = Object.values(dados.avaliacoes ?? {}).filter(
+    (avaliacao): avaliacao is AvaliacaoServico =>
+      Number.isInteger(avaliacao?.nota) && avaliacao.nota >= 1 && avaliacao.nota <= 5,
+  );
+  const totalAvaliacoes = avaliacoes.length;
+  const avaliacaoMedia = totalAvaliacoes
+    ? avaliacoes.reduce((total, avaliacao) => total + avaliacao.nota, 0) / totalAvaliacoes
+    : 0;
+
+  return { id, ...dados, avaliacaoMedia, totalAvaliacoes };
+};
 
 /* -----------------------------------------------------------------------------*/
 
@@ -13,25 +35,42 @@ export const criarServico = async (item: Servico, idEmpresa: string) => {
     const newItemRef = push(itemListRef);
     const idServico = newItemRef.key!;
 
-    // 2. Salva os dados do serviço (incluindo o idEmpresa para referência reversa)
-    await set(newItemRef, {
+    const servico = {
       ...item,
-      idEmpresa: idEmpresa, // opcional, mas boa prática para saber a quem o serviço pertence
-    });
+      idEmpresa,
+    };
 
-    // 3. Salva o ID do serviço dentro do nó da empresa selecionada
-    // Isso cria a lista: empresas -> {idEmpresa} -> servicos -> {idServico}: true
-    const empresaServicoRef = ref(
-      db,
-      `empresas/${idEmpresa}/servicos/${idServico}`,
-    );
-    await set(empresaServicoRef, true);
+    await update(ref(db), {
+      [`servicos/${idServico}`]: servico,
+      [`empresas/${idEmpresa}/servicos/${idServico}`]: true,
+    });
 
     return idServico;
   } catch (error) {
     console.error("Erro ao salvar no Realtime Database:", error);
     throw error;
   }
+};
+
+export const cancelarAgendamento = async (idAgendamento: string): Promise<void> => {
+  const uid = getAuth().currentUser?.uid;
+  if (!uid) throw new Error("Usuário não logado");
+
+  const agendamentoSnap = await get(ref(db, `agendamentos/${idAgendamento}`));
+  if (!agendamentoSnap.exists()) throw new Error("Agendamento não encontrado");
+
+  const agendamento = agendamentoSnap.val();
+  if (agendamento.idCliente !== uid) {
+    throw new Error("Apenas o cliente pode cancelar este agendamento.");
+  }
+
+  await update(ref(db), {
+    [`agendamentos/${idAgendamento}`]: null,
+    [`clientes/${uid}/agendamentos/${idAgendamento}`]: null,
+    [`servicos/${agendamento.idServico}/agendamentos/${idAgendamento}`]: null,
+    ...Object.fromEntries((agendamento.servicosConflitantes ?? []).map((id: string) => [`servicos/${id}/agendamentos/${idAgendamento}`, null])),
+    [`slots/${agendamento.idServico}/${agendamento.data}/${agendamento.horario}`]: null,
+  });
 };
 
 /* -----------------------------------------------------------------------------*/
@@ -41,7 +80,7 @@ export const criarServico = async (item: Servico, idEmpresa: string) => {
 export const getServico = async (idServico: string) => {
   const snap = await get(ref(db, `servicos/${idServico}`));
   if (snap.exists()) {
-    return snap.val();
+    return comResumoAvaliacoes(idServico, snap.val());
   }
   return null;
 };
@@ -102,7 +141,7 @@ export const getServicosDaEmpresa = async (
     const servicos = await Promise.all(
       ids.map(async (id) => {
         const snap = await get(ref(db, `servicos/${id}`));
-        return snap.exists() ? { id, ...snap.val() } : null;
+        return snap.exists() ? comResumoAvaliacoes(id, snap.val()) : null;
       }),
     );
 
@@ -122,10 +161,9 @@ export const getTodosServicos = async (): Promise<Servico[]> => {
     if (!snapshot.exists()) return [];
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return Object.entries(snapshot.val()).map(([id, dados]: any) => ({
-      id,
-      ...dados,
-    }));
+    return Object.entries(snapshot.val()).map(([id, dados]: any) =>
+      comResumoAvaliacoes(id, dados),
+    );
   } catch (error) {
     console.error("Erro ao buscar serviços:", error);
     return [];
@@ -180,45 +218,7 @@ export const getDisponibilidadeMensal = async (
   if (!servicoSnap.exists()) return {};
   const servico = servicoSnap.val() as Servico;
 
-  if (horariosDisponiveis.length === 0) {
-    const diasNoMes = new Date(ano, mes, 0).getDate();
-    return Object.fromEntries(
-      Array.from({ length: diasNoMes }, (_, i) => [i + 1, "sem-horario"]),
-    );
-  }
-
-  const agendadosPorDia: Record<string, Set<string>> = {};
-  for (const ag of agendamentos) {
-    if (!agendadosPorDia[ag.data]) agendadosPorDia[ag.data] = new Set();
-    agendadosPorDia[ag.data].add(ag.horario);
-  }
-
-  const resultado: Record<number, "sem-horario" | "parcial" | "disponivel"> =
-    {};
-  const diasNoMes = new Date(ano, mes, 0).getDate();
-
-  for (let dia = 1; dia <= diasNoMes; dia++) {
-    const diaSemana = new Date(ano, mes - 1, dia).getDay();
-    const diaDisponivel = servico.diasDisponiveis[diaSemana];
-
-    if (!diaDisponivel?.ativo) {
-      resultado[dia] = "sem-horario";
-      continue;
-    }
-
-    const dataStr = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
-    const agendadosNoDia = agendadosPorDia[dataStr] ?? new Set<string>();
-    const slotsOcupados = horariosDisponiveis.filter((h) =>
-      agendadosNoDia.has(h),
-    ).length;
-
-    if (slotsOcupados === 0) resultado[dia] = "disponivel";
-    else if (slotsOcupados >= horariosDisponiveis.length)
-      resultado[dia] = "sem-horario";
-    else resultado[dia] = "parcial";
-  }
-
-  return resultado;
+  return calcularDisponibilidadeMensal(servico, ano, mes, horariosDisponiveis, agendamentos);
 };
 
 /* -----------------------------------------------------------------------------*/
@@ -233,28 +233,7 @@ export const getDisponibilidadeDiaria = async (
   const servicoSnap = await get(ref(db, `servicos/${idServico}`));
   if (!servicoSnap.exists()) return {};
   const servico = servicoSnap.val() as Servico;
-  const diaSemana = new Date(data).getDay();
-  const diaDisponivel = servico.diasDisponiveis[diaSemana];
-  // Se o dia não for ativo, todos os horários estão ocupados
-  if (!diaDisponivel?.ativo) {
-    return Object.fromEntries(horariosDisponiveis.map((h) => [h, null]));
-  }
-
-  // Cria um Set dos horários já agendados para o dia, para facilitar a consulta
-  const agendadosNoDia = new Set(
-    agendamentos.filter((ag) => ag.data === data).map((ag) => ag.horario),
-  );
-  const resultado: Record<string, { label: string; value: string } | null> = {}; // Inicializa o resultado
-
-  // Para cada horário disponível, verifica se ele está agendado ou não
-  for (const horario of horariosDisponiveis) {
-    resultado[horario] = agendadosNoDia.has(horario)
-      ? null
-      : { label: horario, value: horario };
-  }
-
-  // Retorna o objeto com a disponibilidade de cada horário
-  return resultado;
+  return calcularDisponibilidadeDiaria(servico, data, horariosDisponiveis, agendamentos);
 };
 
 /* -----------------------------------------------------------------------------*/
@@ -265,50 +244,101 @@ export const agendarServico = async (
   idCliente: string,
 ) => {
   try {
-    // 1. Cria um novo agendamento com ID único
+    const currentUser = getAuth().currentUser;
+    if (!currentUser || currentUser.uid !== idCliente) {
+      throw new Error("Usuário não autorizado");
+    }
+
+    const idServico = agendamento.servico.id;
+    if (!idServico || !agendamento.data || !agendamento.horario) {
+      throw new Error("Dados do agendamento incompletos");
+    }
+
+    const [servicoSnap, clienteSnap] = await Promise.all([
+      get(ref(db, `servicos/${idServico}`)),
+      get(ref(db, `clientes/${idCliente}`)),
+    ]);
+    if (!servicoSnap.exists() || !clienteSnap.exists()) {
+      throw new Error("Serviço ou cliente não encontrado");
+    }
+
+    const servico = { id: idServico, ...servicoSnap.val() } as Servico;
+    const servicosEmpresa = await getServicosDaEmpresa(servico.idEmpresa!);
+    const conflitos = servicosEmpresa.filter((outro) => outro.id && outro.id !== idServico && (
+      servico.servicosConflitantes?.includes(outro.id) || outro.servicosConflitantes?.includes(idServico)
+    ));
+    const idsConflitos = conflitos.map((outro) => outro.id!);
+    const agendamentosConflitantes = (await Promise.all(conflitos.map((outro) => getAgendamentosDoServico(outro.id!)))).flat();
+    if (agendamentosConflitantes.some((outro) => outro.data === agendamento.data && outro.horario === agendamento.horario && outro.status !== "cancelado")) {
+      throw new Error("Este horário está ocupado por um serviço incompatível.");
+    }
+    const cliente = clienteSnap.val() as Cliente & Usuario & { imagem?: string };
+    const empresaSnap = await get(ref(db, `empresas/${servico.idEmpresa}`));
+    if (!empresaSnap.exists()) throw new Error("Empresa não encontrada");
+
     const agendamentoRef = ref(db, "agendamentos");
     const newAgendamentoRef = push(agendamentoRef);
     const idAgendamento = newAgendamentoRef.key!;
 
-    // 2. Salva os dados do agendamento (incluindo referências ao serviço, cliente e prestador)
-    const { servico, data, horario, obs } = agendamento;
-    const idServico = servico.id!;
-    await set(newAgendamentoRef, {
-      idServico,
-      idCliente,
-      data,
-      horario,
-      status: "agendado",
-      obs,
-    });
-
-    // 3. Associa o agendamento ao cliente (para facilitar consultas futuras do cliente)
-    try {
-      const clienteAgendamentoRef = ref(
-        db,
-        `clientes/${idCliente}/agendamentos/${idAgendamento}`,
-      );
-      await set(clienteAgendamentoRef, true);
-    } catch (error) {
-      console.error("Erro ao associar agendamento ao cliente:", error);
-      // Remover o agendamento criado se essa associação falhar
-      await remove(newAgendamentoRef);
+    const slotPath = `slots/${idServico}/${agendamento.data}/${agendamento.horario}`;
+    const configuracao = servico.configuracaoAtendimento ?? {
+      modalidade: "presencial-cliente" as const,
+      solicitarTelefone: false,
+      placeholderObservacao: "",
+    };
+    const enderecoCliente = `${cliente.logradouro ?? ""}, ${cliente.numero ?? ""}${cliente.complemento ? ` - ${cliente.complemento}` : ""} - ${cliente.bairro ?? ""}, ${cliente.cidade ?? ""}/${cliente.estado ?? ""}`.trim();
+    if (configuracao.modalidade === "presencial-prestador" && (!cliente.logradouro || !cliente.numero || !cliente.cidade || !cliente.estado)) {
+      throw new Error("Complete seu endereço no perfil para este atendimento.");
     }
 
-    // 4. Associa o agendamento ao serviço (para facilitar consultas futuras do prestador)
+    const dadosAgendamento = {
+      idServico,
+      idCliente,
+      idEmpresa: servico.idEmpresa,
+      idPrestador: empresaSnap.val().uidDono,
+      data: agendamento.data,
+      horario: agendamento.horario,
+      status: "pendente",
+      obs: agendamento.obs.trim(),
+      telefoneContato: configuracao.solicitarTelefone ? (agendamento.telefoneContato || cliente.telefone || "") : "",
+      enderecoCliente: configuracao.modalidade === "presencial-prestador" ? enderecoCliente : "",
+      modalidadeAtendimento: configuracao.modalidade,
+      duracaoMinutos: calcularDuracaoMinutos(servico),
+      servicosConflitantes: idsConflitos,
+      clienteNome: cliente.nome,
+      clienteImagem: cliente.imagem ?? null,
+      criadoEm: new Date().toISOString(),
+    };
+
+    await update(ref(db), {
+      [`agendamentos/${idAgendamento}`]: dadosAgendamento,
+      [`clientes/${idCliente}/agendamentos/${idAgendamento}`]: true,
+      [`servicos/${idServico}/agendamentos/${idAgendamento}`]: true,
+      ...Object.fromEntries(idsConflitos.map((id) => [`servicos/${id}/agendamentos/${idAgendamento}`, true])),
+    });
+
+    const limparPendente = async () => {
+      await update(ref(db), {
+        [`agendamentos/${idAgendamento}`]: null,
+        [`clientes/${idCliente}/agendamentos/${idAgendamento}`]: null,
+        [`servicos/${idServico}/agendamentos/${idAgendamento}`]: null,
+        ...Object.fromEntries(idsConflitos.map((id) => [`servicos/${id}/agendamentos/${idAgendamento}`, null])),
+        [slotPath]: null,
+      });
+    };
+
+    const slotRef = ref(db, slotPath);
+    const reserva = await runTransaction(slotRef, (atual) => atual ?? idAgendamento);
+    if (!reserva.committed || reserva.snapshot.val() !== idAgendamento) {
+      await limparPendente();
+      throw new Error("Este horário acabou de ser reservado por outra pessoa.");
+    }
+
     try {
-      const servicoAgendamentoRef = ref(
-        db,
-        `servicos/${idServico}/agendamentos/${idAgendamento}`,
-      );
-      await set(servicoAgendamentoRef, true);
+      await update(ref(db, `agendamentos/${idAgendamento}`), { status: "agendado" });
     } catch (error) {
-      console.error("Erro ao associar agendamento ao serviço:", error);
-      // Remover o agendamento criado e a associação com o cliente se essa associação falhar
-      await remove(newAgendamentoRef);
-      await remove(
-        ref(db, `clientes/${idCliente}/agendamentos/${idAgendamento}`),
-      );
+      await limparPendente();
+      throw error;
     }
 
     return idAgendamento;
@@ -329,8 +359,24 @@ export const getAgendamentosDoServico = async (
     const snapshot = await get(agendamentosRef);
     if (!snapshot.exists()) return [];
 
-    const data = snapshot.val() as Record<string, Agendamento>;
-    return Object.entries(data).map(([id, ag]) => ({ ...ag, id }));
+    const [servicoSnap, agendamentos] = await Promise.all([
+      get(ref(db, `servicos/${idServico}`)),
+      Promise.all(
+        Object.keys(snapshot.val() as Record<string, true>).map(async (id) => {
+          const agendamentoSnap = await get(ref(db, `agendamentos/${id}`));
+          return agendamentoSnap.exists()
+            ? { id, ...agendamentoSnap.val() }
+            : null;
+        }),
+      ),
+    ]);
+    if (!servicoSnap.exists()) return [];
+
+    const servico = { id: idServico, ...servicoSnap.val() } as Servico;
+    return agendamentos
+      .filter((ag): ag is Record<string, unknown> => ag !== null)
+      .map((ag) => ({ ...ag, servico } as Agendamento))
+      .filter((ag) => ag.status !== "pendente");
   } catch (error) {
     console.error("Erro ao buscar agendamentos do serviço:", error);
     return [];
@@ -349,7 +395,7 @@ export const getAgendamento = async (
     if (!snapshot.exists()) return null;
 
     const data = snapshot.val() as Agendamento;
-    return { ...data, id: idAgendamento };
+    return data.status === "pendente" ? null : { ...data, id: idAgendamento };
   } catch (error) {
     console.error("Erro ao buscar agendamento:", error);
     return null;
@@ -389,7 +435,7 @@ export const getAgendamentosCliente = async (
       }),
     );
 
-    return agendamentos.filter((ag): ag is Agendamento => ag !== null);
+    return agendamentos.filter((ag): ag is Agendamento => ag !== null && ag.status !== "pendente");
   } catch (error) {
     console.error("Erro ao buscar agendamentos do cliente:", error);
     return [];
@@ -452,7 +498,7 @@ export const getAgendamentosPrestador = async (
   )
 ).flat();
 
-    return agendamentos;
+    return agendamentos.filter((agendamento) => agendamento.status !== "pendente");
   } catch (error) {
     console.error("Erro ao buscar agendamentos do prestador:", error);
     return [];
@@ -462,20 +508,34 @@ export const getAgendamentosPrestador = async (
 /* -----------------------------------------------------------------------------*/
 
 export const getUsuarioQueAgendou = async (idAgendamento: string,): Promise<{ nomeCliente: string; imagemCliente: string | null }> => {
-  // Busca o ID do cliente associado ao agendamento
-  const snap = await get(ref(db, `agendamentos/${idAgendamento}/idCliente`));
-  if (!snap.exists()) throw new Error("Usuário não encontrado");
+  const snap = await get(ref(db, `agendamentos/${idAgendamento}`));
+  if (!snap.exists()) throw new Error("Agendamento não encontrado");
+  const dados = snap.val();
+  return {
+    nomeCliente: dados.clienteNome ?? "Cliente",
+    imagemCliente: dados.clienteImagem ?? null,
+  };
+};
 
-  // Com o ID do cliente, busca o nome do cliente
-  const idCliente = snap.val();
-  const clienteSnap = await get(ref(db, `clientes/${idCliente}/nome`));
-  const nomeCliente = clienteSnap.val();
-  if (!clienteSnap.exists()) throw new Error("Nome do cliente não encontrado");
+export const atualizarServico = async (idServico: string, dados: Partial<Servico>) => {
+  const { id: _id, avaliacoes: _avaliacoes, avaliacaoMedia: _media, totalAvaliacoes: _total, ...camposEditaveis } = dados;
+  await update(ref(db, `servicos/${idServico}`), camposEditaveis);
+};
 
-  const imagemSnap = await get(ref(db, `clientes/${idCliente}/imagem`));
-  const imagemCliente = imagemSnap.exists() ? imagemSnap.val() : null;
+export const excluirServico = async (idServico: string): Promise<void> => {
+  const servicoSnap = await get(ref(db, `servicos/${idServico}`));
+  if (!servicoSnap.exists()) throw new Error("Serviço não encontrado.");
 
-  return { nomeCliente, imagemCliente };
+  const servico = servicoSnap.val() as Servico & { agendamentos?: Record<string, true> };
+  if (servico.agendamentos && Object.keys(servico.agendamentos).length > 0) {
+    throw new Error("Este serviço possui agendamentos. Cancele ou conclua os atendimentos antes de excluí-lo.");
+  }
+  if (!servico.idEmpresa) throw new Error("Empresa do serviço não encontrada.");
+
+  await update(ref(db), {
+    [`servicos/${idServico}`]: null,
+    [`empresas/${servico.idEmpresa}/servicos/${idServico}`]: null,
+  });
 };
 
 /* -----------------------------------------------------------------------------*/
@@ -522,6 +582,24 @@ export const toggleFavorito = async (idServico: string): Promise<boolean> => {
   }
 };
 
+export const salvarAvaliacaoServico = async (
+  idServico: string,
+  nota: number,
+  comentario: string,
+): Promise<void> => {
+  const uid = getAuth().currentUser?.uid;
+  if (!uid) throw new Error("Usuário não logado");
+  if (!Number.isInteger(nota) || nota < 1 || nota > 5) {
+    throw new Error("Escolha uma nota entre 1 e 5 estrelas.");
+  }
+
+  await set(ref(db, `servicos/${idServico}/avaliacoes/${uid}`), {
+    nota,
+    comentario: comentario.trim(),
+    atualizadoEm: Date.now(),
+  });
+};
+
 /* -----------------------------------------------------------------------------*/
 
 // Exclui a conta do usuário (cliente ou prestador) e todos os dados associados a ela
@@ -539,7 +617,10 @@ export const excluirConta = async (tipo: "cliente" | "prestador") => {
 
     // 2. Remove os dados do banco
     await set(dbRef, null);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const code = typeof error === "object" && error !== null && "code" in error
+      ? String(error.code)
+      : "";
     const mensagens: Record<string, string> = {
       "auth/requires-recent-login":
         "Por segurança, faça login novamente antes de excluir a conta.",
@@ -547,7 +628,7 @@ export const excluirConta = async (tipo: "cliente" | "prestador") => {
         "Sem conexão. Verifique sua internet e tente novamente.",
     };
 
-    const mensagem = mensagens[error.code] ?? "Erro ao excluir conta. Tente novamente.";
+    const mensagem = mensagens[code] ?? "Erro ao excluir conta. Tente novamente.";
     throw new Error(mensagem); // propaga para o chamador exibir o alerta
   }
 };

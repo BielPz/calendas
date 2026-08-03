@@ -2,6 +2,37 @@
 @config "../tailwind.config.js";
 @variant dark (&:where(.dark, .dark *));
 
+@theme {
+  --color-brand-orange: #f97316;
+  --color-brand-purple: #7c3aed;
+}
+
+@layer base {
+  html { color-scheme: light; }
+  html.dark { color-scheme: dark; }
+  body { @apply m-0 min-w-80 bg-slate-50 text-slate-800 antialiased dark:bg-zinc-950 dark:text-zinc-100; }
+  button, a, input, select, textarea { @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 dark:focus-visible:ring-orange-300 dark:focus-visible:ring-offset-zinc-900; }
+  button:not(:disabled), a { @apply cursor-pointer; }
+}
+
+@layer components {
+  .app-page { @apply min-h-dvh w-full bg-linear-to-br from-orange-500 via-orange-500 to-violet-700 dark:from-zinc-950 dark:via-zinc-900 dark:to-violet-950; }
+  .app-shell { @apply mx-auto flex w-full max-w-7xl flex-1 flex-col gap-4 px-4 py-4 md:px-6; }
+  .ui-card { @apply rounded-xl border border-slate-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900; }
+  .ui-card-muted { @apply rounded-xl border border-slate-100 bg-slate-50 dark:border-zinc-700 dark:bg-zinc-800; }
+  .ui-input { @apply w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 transition-colors hover:border-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:placeholder:text-zinc-500 dark:hover:border-zinc-500 dark:focus:border-orange-400 dark:focus:ring-orange-400/30 dark:disabled:bg-zinc-800; }
+  .ui-search { @apply relative flex w-full items-center rounded-xl border border-slate-300 bg-white transition-colors hover:border-slate-400 focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-200 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-zinc-500 dark:focus-within:border-orange-400 dark:focus-within:ring-orange-400/30; }
+  .feed-search { @apply relative flex h-13 w-full items-stretch overflow-hidden rounded-2xl border-2 border-white/80 bg-white shadow-md shadow-violet-950/10 transition hover:border-orange-200 focus-within:border-orange-400 focus-within:shadow-lg focus-within:shadow-orange-500/15 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-orange-400/50; }
+  .feed-search-input { @apply min-w-0 flex-1 bg-transparent py-3 pr-3 pl-11 text-slate-900 placeholder:text-slate-400 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 dark:text-white dark:placeholder:text-zinc-500; }
+  .feed-search-button { @apply shrink-0 rounded-none rounded-l-2xl bg-linear-to-br from-orange-500 to-violet-600 px-5 font-semibold text-white shadow-[-4px_0_14px_rgba(124,58,237,0.18)] transition hover:from-orange-600 hover:to-violet-700 focus-visible:z-10; }
+  .feed-filter { @apply relative h-13 min-w-40; }
+  .feed-filter-select { @apply h-full w-full appearance-none rounded-xl border-2 border-white/80 bg-white py-2.5 pr-9 pl-4 text-sm font-semibold text-slate-700 shadow-md shadow-violet-950/10 transition hover:border-orange-200 hover:shadow-lg focus:border-orange-400 focus:ring-2 focus:ring-orange-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-orange-400/50 dark:focus:ring-orange-400/30; }
+  .ui-button-primary { @apply rounded-xl bg-linear-to-br from-orange-500 to-violet-600 px-4 py-2.5 font-semibold text-white shadow-sm transition hover:from-orange-600 hover:to-violet-700 disabled:cursor-not-allowed disabled:from-slate-400 disabled:to-slate-500 disabled:opacity-70; }
+  .ui-button-secondary { @apply rounded-xl border border-orange-200 bg-orange-50 px-4 py-2.5 font-semibold text-orange-700 transition hover:bg-orange-100 dark:border-orange-400/30 dark:bg-orange-400/10 dark:text-orange-200 dark:hover:bg-orange-400/20; }
+  .ui-button-danger { @apply rounded-xl bg-red-600 px-4 py-2.5 font-semibold text-white transition hover:bg-red-700; }
+  .ui-link { @apply font-semibold text-orange-700 transition hover:text-violet-700 dark:text-orange-300 dark:hover:text-violet-300; }
+}
+
 /* Remove setinhas no Chrome, Safari, Edge */
 .no-spinner::-webkit-inner-spin-button,
 .no-spinner::-webkit-outer-spin-button {

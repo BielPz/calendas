@@ -1,5 +1,5 @@
 import { Check, X, AlertTriangle, WifiOff, Info } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 interface Props {
   aberto: boolean;
@@ -16,8 +16,6 @@ function CardAlerta({
   label,
   onClose,
 }: Props) {
-  const [visivel, setVisivel] = useState(false);
-
   // Adiciona um listener para fechar o card quando a tecla "Escape" for pressionada
   useEffect(() => {
     if (!aberto) return; // Se o card não estiver aberto, não precisa adicionar o listener
@@ -34,22 +32,13 @@ function CardAlerta({
     return () => window.removeEventListener("keydown", handleEsc);
   }, [aberto, onClose]); // O listener só é adicionado quando o card está aberto, e é removido quando o card é fechado ou quando o componente é desmontado
 
-  // Controla a visibilidade do card para permitir a animação de saída
   useEffect(() => {
-    if (aberto) {
-      document.body.style.overflow = "hidden"; // Impede o scroll do fundo quando o card estiver aberto
-      setVisivel(true); // Permite que o card seja renderizado para a animação de entrada
-    } else {
-      document.body.style.overflow = "auto"; // Restaura o scroll do fundo quando o card for fechado
-      setTimeout(() => setVisivel(false), 300); // tempo da animação de saída para remover o card do DOM após a animação
-    }
-
-    // Limpa o estilo de overflow quando o componente for desmontado para evitar efeitos colaterais
+    document.body.style.overflow = aberto ? "hidden" : "auto";
     return () => {
-      document.body.style.overflow = "auto"; // Restaura o scroll do fundo se o componente for desmontado enquanto o card estiver aberto
+      document.body.style.overflow = "auto";
     };
   }, [aberto]);
-  if (!visivel) return null; // Não renderiza o card se ele não for visível (após a animação de saída)
+  if (!aberto) return null;
 
   // Define os estilos e ícones para cada tipo de alerta
   const estilos = {
@@ -70,7 +59,7 @@ function CardAlerta({
       icon: <WifiOff size={36} className="text-white" />,
     },
     info: {
-      bg: "bg-blue-500",
+      bg: "bg-violet-600",
       icon: <Info size={36} className="text-white" />,
     },
   };
@@ -102,7 +91,7 @@ function CardAlerta({
           className={`
             absolute -top-12 left-1/2 -translate-x-1/2
             w-24 h-24 rounded-full flex items-center justify-center
-            border-8 border-gray-100
+            border-8 border-white dark:border-zinc-900
             ${atual.bg}
           `}
         >
@@ -110,13 +99,13 @@ function CardAlerta({
         </div>
 
         {/* Card */}
-        <div className="bg-gray-300 rounded-3xl p-6 pt-16 shadow-inner flex flex-col items-center text-center gap-4">
-          <h1 className="text-xl font-semibold text-gray-800">{titulo}</h1>
-          <p className="text-gray-700 text-sm leading-relaxed px-2">{label}</p>
+        <div className="ui-card rounded-2xl p-6 pt-16 shadow-lg flex flex-col items-center text-center gap-4">
+          <h1 className="text-xl font-semibold text-slate-800 dark:text-zinc-100">{titulo}</h1>
+          <p className="px-2 text-sm leading-relaxed text-slate-600 dark:text-zinc-300">{label}</p>
 
           <button
             onClick={onClose}
-            className="mt-4 w-3/4 py-3 rounded-full bg-indigo-700 text-white font-semibold hover:bg-indigo-800 transition"
+            className="ui-button-primary mt-4 w-3/4"
           >
             OK
           </button>

@@ -48,6 +48,24 @@ export interface DiaDisponivel {
   fim: string;
 }
 
+export type ModalidadeAtendimento =
+  | "presencial-cliente"
+  | "presencial-prestador"
+  | "online";
+
+export interface ConfiguracaoAtendimento {
+  modalidade: ModalidadeAtendimento;
+  solicitarTelefone: boolean;
+  placeholderObservacao: string;
+  observacaoObrigatoria?: boolean;
+}
+
+export interface AvaliacaoServico {
+  nota: number;
+  comentario: string;
+  atualizadoEm: number;
+}
+
 export interface Servico {
   id?: string;
   idEmpresa?: string;
@@ -58,15 +76,32 @@ export interface Servico {
   preco: number;
   duracao: string;
   tempo: string;
+  configuracaoAtendimento?: ConfiguracaoAtendimento;
+  avaliacaoMedia?: number;
+  totalAvaliacoes?: number;
+  avaliacoes?: Record<string, AvaliacaoServico>;
+  modoHorario?: "duracao" | "livre";
+  visibilidadeAgenda?: "dia" | "todos" | "oculta";
+  servicosConflitantes?: string[];
   diasDisponiveis: DiaDisponivel[]; // [Dom, Seg, Ter, Qua, Qui, Sex, Sáb]
 }
 
 export interface Agendamento {
   id?: string;
+  idCliente?: string;
+  idServico?: string;
+  idEmpresa?: string;
+  idPrestador?: string;
+  clienteNome?: string;
+  servicosConflitantes?: string[];
   servico: Servico;
   data: string;
   horario: string;
   obs: string;
+  telefoneContato?: string;
+  enderecoCliente?: string;
+  duracaoMinutos?: number;
+  status?: "pendente" | "agendado" | "concluido" | "cancelado";
 }
 
 export interface Disponibilidade {

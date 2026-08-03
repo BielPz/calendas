@@ -5,6 +5,7 @@ import {
   House,
   History,
   Heart,
+  HeartOff,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
@@ -15,9 +16,10 @@ const LIMITE_FAVORITOS = 3;
 interface Props {
   favoritos?: Servico[];
   onNavigateServico?: (servico: Servico) => void;
+  onRemoverFavorito?: (idServico: string) => void;
 }
 
-function SideBarCliente({ favoritos = [], onNavigateServico }: Props) {
+function SideBarCliente({ favoritos = [], onNavigateServico, onRemoverFavorito }: Props) {
   const navigate = useNavigate();
   const [expandido, setExpandido] = useState(false);
 
@@ -27,31 +29,32 @@ function SideBarCliente({ favoritos = [], onNavigateServico }: Props) {
   const temMais = favoritos.length > LIMITE_FAVORITOS;
 
   const commonButtonClasses =
-    "flex flex-col sm:flex-row items-center gap-1 sm:gap-3 px-4 sm:px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-300 transition-colors duration-200 sm:w-full sm:text-left";
+    "flex flex-col sm:flex-row items-center gap-1 sm:gap-3 px-4 sm:px-3 py-2 rounded-lg text-slate-600 hover:bg-orange-50 hover:text-orange-700 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-orange-300 transition-colors duration-200 sm:w-full sm:text-left";
 
   // Item de favorito — compartilhado entre desktop e mobile
   const itemFavorito = (s: Servico) => (
-    <button
-      key={s.id}
-      onClick={() => onNavigateServico?.(s)}
-      className="flex items-center gap-2 w-full px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors text-left group"
-    >
-      <div className="w-6 h-6 rounded shrink-0 bg-gray-200 dark:bg-zinc-600 overflow-hidden">
-        {s.imagem ? (
-          <img
-            src={s.imagem}
-            alt={s.nome}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full" />
-        )}
-      </div>
-      <span className="text-xs text-gray-700 dark:text-gray-300 truncate flex-1">
-        {s.nome}
-      </span>
-      <Heart size={10} className="text-red-400 shrink-0 fill-red-400" />
-    </button>
+    <div key={s.id} className="group flex items-center gap-1 rounded-lg px-1 py-0.5 hover:bg-orange-50 dark:hover:bg-zinc-700">
+      <button
+        onClick={() => onNavigateServico?.(s)}
+        className="flex min-w-0 flex-1 items-center gap-2 rounded-md px-2 py-1.5 text-left"
+      >
+        <div className="h-6 w-6 shrink-0 overflow-hidden rounded bg-gray-200 dark:bg-zinc-600">
+          {s.imagem ? <img src={s.imagem} alt={s.nome} className="h-full w-full object-cover" /> : <div className="h-full w-full" />}
+        </div>
+        <span className="flex-1 truncate text-xs text-gray-700 dark:text-gray-300">{s.nome}</span>
+      </button>
+      {s.id && (
+        <button
+          type="button"
+          onClick={() => onRemoverFavorito?.(s.id!)}
+          className="rounded-md p-1.5 text-red-400 opacity-70 transition hover:bg-red-50 hover:text-red-600 group-hover:opacity-100 dark:hover:bg-red-500/10"
+          aria-label={`Remover ${s.nome} dos favoritos`}
+          title="Remover dos favoritos"
+        >
+          <HeartOff size={14} />
+        </button>
+      )}
+    </div>
   );
 
   return (
@@ -106,7 +109,7 @@ function SideBarCliente({ favoritos = [], onNavigateServico }: Props) {
               {temMais && (
                 <button
                   onClick={() => setExpandido(!expandido)}
-                  className="flex items-center gap-1 px-3 py-1 text-[10px] text-blue-500 hover:text-blue-600 transition-colors"
+                  className="flex items-center gap-1 px-3 py-1 text-[10px] text-orange-700 hover:text-violet-700 dark:text-orange-300 dark:hover:text-violet-300 transition-colors"
                 >
                   {expandido ? (
                     <>
@@ -128,7 +131,7 @@ function SideBarCliente({ favoritos = [], onNavigateServico }: Props) {
       {/* ── BARRA MOBILE ──────────────────────────────────────────────── */}
       <div className="flex md:hidden flex-col gap-2 w-full">
         {/* Ícones principais */}
-        <div className="flex bg-white dark:bg-zinc-800 rounded-lg px-2 py-2 gap-1 w-full justify-around">
+        <div className="ui-card flex gap-1 rounded-xl px-2 py-2 w-full justify-around">
           <button className={commonButtonClasses}>
             <House size={18} className="dark:text-gray-500" />
             <span className="text-xs text-gray-600 dark:text-gray-400">
@@ -154,7 +157,7 @@ function SideBarCliente({ favoritos = [], onNavigateServico }: Props) {
 
         {/* Favoritos mobile — aparece abaixo dos ícones */}
         {favoritos.length > 0 && (
-          <div className="bg-white dark:bg-zinc-800 rounded-lg px-3 py-2 w-full">
+          <div className="ui-card rounded-xl px-3 py-2 w-full">
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-1.5">
                 <Heart size={11} className="text-red-400 fill-red-400" />
@@ -168,7 +171,7 @@ function SideBarCliente({ favoritos = [], onNavigateServico }: Props) {
               {temMais && (
                 <button
                   onClick={() => setExpandido(!expandido)}
-                  className="text-[10px] text-blue-500 flex items-center gap-0.5"
+                  className="flex items-center gap-0.5 text-[10px] text-orange-700 dark:text-orange-300"
                 >
                   {expandido ? (
                     <>
@@ -190,11 +193,11 @@ function SideBarCliente({ favoritos = [], onNavigateServico }: Props) {
               className={`flex gap-2 ${expandido ? "flex-wrap" : "overflow-x-auto"}`}
             >
               {favoritosVisiveis.map((s) => (
-                <button
-                  key={s.id}
-                  onClick={() => onNavigateServico?.(s)}
-                  className="flex flex-col items-center gap-1 shrink-0"
-                >
+                <div key={s.id} className="relative shrink-0">
+                  <button
+                    onClick={() => onNavigateServico?.(s)}
+                    className="flex flex-col items-center gap-1"
+                  >
                   <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-zinc-700 overflow-hidden relative">
                     {s.imagem ? (
                       <img
@@ -213,7 +216,19 @@ function SideBarCliente({ favoritos = [], onNavigateServico }: Props) {
                   <span className="text-[9px] text-gray-600 dark:text-gray-400 max-w-[44px] truncate">
                     {s.nome}
                   </span>
-                </button>
+                  </button>
+                  {s.id && (
+                    <button
+                      type="button"
+                      onClick={() => onRemoverFavorito?.(s.id!)}
+                      className="absolute -right-1 -top-1 rounded-full bg-white p-1 text-red-500 shadow-sm dark:bg-zinc-800"
+                      aria-label={`Remover ${s.nome} dos favoritos`}
+                      title="Remover dos favoritos"
+                    >
+                      <HeartOff size={11} />
+                    </button>
+                  )}
+                </div>
               ))}
             </div>
           </div>

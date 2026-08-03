@@ -99,6 +99,7 @@ function Fase2({ onValidate, onChange }: Props) {
         <TextInput
           titulo="Nome da Empresa"
           type="text"
+          placeholder="Digite o nome da empresa"
           onChange={(value) => handleChange("nome", value)}
           required
           maxLength={30}

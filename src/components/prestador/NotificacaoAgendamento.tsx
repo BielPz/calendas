@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getUsuarioQueAgendou } from "../../firebase/database";
+import { getUsuarioQueAgendou } from "../../features/agendamentos/agendamento.service";
 import type { Agendamento } from "../../firebase/types";
 import { CalendarDays, Clock } from "lucide-react";
 
@@ -51,9 +51,6 @@ function NotificacaoAgendamento({ agendamento }: Props) {
             agendou um serviço
           </span>
         </div>
-        <span className="ml-auto text-xs font-medium bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-200 px-2 py-0.5 rounded-full">
-          Novo
-        </span>
       </div>
 
       {/* Detalhes do serviço */}
@@ -80,17 +77,6 @@ function NotificacaoAgendamento({ agendamento }: Props) {
         </div>
       </div>
 
-      {/* Ações - Não funcional */}
-      {false && (
-        <div className="flex gap-2">
-          <button className="flex-1 text-sm font-medium py-1.5 rounded-lg bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-200 hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors cursor-pointer">
-            Confirmar
-          </button>
-          <button className="flex-1 text-sm py-1.5 rounded-lg bg-gray-100 dark:bg-zinc-500 text-gray-500 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-zinc-400 transition-colors cursor-pointer">
-            Recusar
-          </button>
-        </div>
-      )}
     </div>
   );
 }

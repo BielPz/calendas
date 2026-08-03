@@ -54,7 +54,7 @@ function TelaResetSenha() {
       await confirmPasswordReset(auth, oobCode!, form.novaSenha);
       showAlerta("Sucesso", "Senha redefinida com sucesso!"); // Exibe um alerta global de sucesso usando o contexto de alerta
       navigate("/login"); // Redireciona o usuário para a tela de login após redefinir a senha
-    } catch (e) {
+    } catch {
       setErro("Erro ao redefinir senha"); // Se ocorrer um erro durante a redefinição da senha, exibe uma mensagem de erro para o usuário
       showAlerta(
         "Erro",

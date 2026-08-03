@@ -19,5 +19,11 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      // Alguns componentes sincronizam animações/estado externo no efeito.
+      // Mantemos a regra como aviso até que essas animações sejam redesenhadas.
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-refresh/only-export-components': 'warn',
+    },
   },
 ])
