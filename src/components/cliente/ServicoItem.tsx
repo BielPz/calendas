@@ -120,7 +120,7 @@ function ServicoItem({ servico, favoritoInicial = false, onFavoritoChange, onAva
 
   return (
     <>
-      <ModalAvaliacao aberto={modalAberto} notaInicial={notaInicialModal || avaliacao} comentarioInicial={comentarioAvaliacao} nomeServico={servico.nome} salvando={salvandoAvaliacao} onFechar={() => setModalAberto(false)} onSalvar={salvarAvaliacao} />
+      {modalAberto && <ModalAvaliacao aberto notaInicial={notaInicialModal || avaliacao} comentarioInicial={comentarioAvaliacao} nomeServico={servico.nome} salvando={salvandoAvaliacao} onFechar={() => setModalAberto(false)} onSalvar={salvarAvaliacao} />}
       {/* ── DESKTOP (md+) ─────────────────────────────────────────────── */}
       <div onClick={abrirDetalhes} className="ui-card hidden w-full cursor-pointer flex-row overflow-hidden md:flex">
         <div className="w-24 shrink-0 bg-gray-100 dark:bg-zinc-900 self-stretch">

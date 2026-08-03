@@ -94,6 +94,8 @@ export interface Agendamento {
   idPrestador?: string;
   clienteNome?: string;
   servicosConflitantes?: string[];
+  /** Índice interno para validar os vínculos de conflito nas regras do Firebase. */
+  servicosConflitantesMapa?: Record<string, true>;
   servico: Servico;
   data: string;
   horario: string;

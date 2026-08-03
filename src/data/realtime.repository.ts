@@ -4,14 +4,7 @@ import type { Agendamento, AvaliacaoServico, Cliente, Servico, Usuario } from ".
 import { getAuth, updateProfile } from "firebase/auth";
 import { getTipoUsuario } from "./auth.repository";
 import { calcularDisponibilidadeDiaria, calcularDisponibilidadeMensal } from "../lib/disponibilidade";
-
-const calcularDuracaoMinutos = (servico: Servico) => {
-  const valor = Number(servico.duracao);
-  if (!Number.isFinite(valor) || valor <= 0) return 60;
-  if (servico.tempo === "dia") return valor * 24 * 60;
-  if (servico.tempo === "hora") return valor * 60;
-  return valor;
-};
+import { duracaoServicoEmMinutos, horariosSeSobrepoem } from "../lib/agenda";
 
 const comResumoAvaliacoes = (id: string, dados: Omit<Servico, "id">): Servico => {
   const avaliacoes = Object.values(dados.avaliacoes ?? {}).filter(
@@ -269,7 +262,8 @@ export const agendarServico = async (
     ));
     const idsConflitos = conflitos.map((outro) => outro.id!);
     const agendamentosConflitantes = (await Promise.all(conflitos.map((outro) => getAgendamentosDoServico(outro.id!)))).flat();
-    if (agendamentosConflitantes.some((outro) => outro.data === agendamento.data && outro.horario === agendamento.horario && outro.status !== "cancelado")) {
+    const agendamentosExistentes = [...await getAgendamentosDoServico(idServico), ...agendamentosConflitantes];
+    if (agendamentosExistentes.some((outro) => outro.data === agendamento.data && outro.status !== "cancelado" && horariosSeSobrepoem(agendamento.horario, duracaoServicoEmMinutos(servico), outro.horario, outro.duracaoMinutos ?? duracaoServicoEmMinutos(outro.servico)))) {
       throw new Error("Este horário está ocupado por um serviço incompatível.");
     }
     const cliente = clienteSnap.val() as Cliente & Usuario & { imagem?: string };
@@ -290,6 +284,12 @@ export const agendarServico = async (
     if (configuracao.modalidade === "presencial-prestador" && (!cliente.logradouro || !cliente.numero || !cliente.cidade || !cliente.estado)) {
       throw new Error("Complete seu endereço no perfil para este atendimento.");
     }
+    if (configuracao.observacaoObrigatoria && !agendamento.obs.trim()) {
+      throw new Error("A observação é obrigatória para este serviço.");
+    }
+    if (configuracao.solicitarTelefone && !(agendamento.telefoneContato || cliente.telefone)?.trim()) {
+      throw new Error("Informe um telefone para contato.");
+    }
 
     const dadosAgendamento = {
       idServico,
@@ -303,19 +303,29 @@ export const agendarServico = async (
       telefoneContato: configuracao.solicitarTelefone ? (agendamento.telefoneContato || cliente.telefone || "") : "",
       enderecoCliente: configuracao.modalidade === "presencial-prestador" ? enderecoCliente : "",
       modalidadeAtendimento: configuracao.modalidade,
-      duracaoMinutos: calcularDuracaoMinutos(servico),
+      duracaoMinutos: duracaoServicoEmMinutos(servico),
       servicosConflitantes: idsConflitos,
+      servicosConflitantesMapa: Object.fromEntries(idsConflitos.map((id) => [id, true])),
       clienteNome: cliente.nome,
       clienteImagem: cliente.imagem ?? null,
       criadoEm: new Date().toISOString(),
     };
 
-    await update(ref(db), {
-      [`agendamentos/${idAgendamento}`]: dadosAgendamento,
+    // Primeiro registra a intenção do agendamento. Os índices são escritos em
+    // seguida para que as regras possam conferir o agendamento real, em vez de
+    // aceitarem IDs arbitrários enviados pelo navegador.
+    await set(ref(db, `agendamentos/${idAgendamento}`), dadosAgendamento);
+
+    try {
+      await update(ref(db), {
       [`clientes/${idCliente}/agendamentos/${idAgendamento}`]: true,
       [`servicos/${idServico}/agendamentos/${idAgendamento}`]: true,
       ...Object.fromEntries(idsConflitos.map((id) => [`servicos/${id}/agendamentos/${idAgendamento}`, true])),
-    });
+      });
+    } catch (error) {
+      await set(ref(db, `agendamentos/${idAgendamento}`), null);
+      throw error;
+    }
 
     const limparPendente = async () => {
       await update(ref(db), {
@@ -518,7 +528,11 @@ export const getUsuarioQueAgendou = async (idAgendamento: string,): Promise<{ no
 };
 
 export const atualizarServico = async (idServico: string, dados: Partial<Servico>) => {
-  const { id: _id, avaliacoes: _avaliacoes, avaliacaoMedia: _media, totalAvaliacoes: _total, ...camposEditaveis } = dados;
+  const camposEditaveis = { ...dados };
+  delete camposEditaveis.id;
+  delete camposEditaveis.avaliacoes;
+  delete camposEditaveis.avaliacaoMedia;
+  delete camposEditaveis.totalAvaliacoes;
   await update(ref(db, `servicos/${idServico}`), camposEditaveis);
 };
 

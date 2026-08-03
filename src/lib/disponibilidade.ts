@@ -1,12 +1,7 @@
 import type { Agendamento, Servico } from "../firebase/types";
+import { duracaoServicoEmMinutos, horarioParaMinutos } from "./agenda";
 
 export type StatusDisponibilidade = "sem-horario" | "parcial" | "disponivel";
-
-function horariosAgendados(data: string, agendamentos: Agendamento[]) {
-  return new Set(
-    agendamentos.filter((agendamento) => agendamento.data === data).map((agendamento) => agendamento.horario),
-  );
-}
 
 export function calcularDisponibilidadeDiaria(
   servico: Servico,
@@ -19,11 +14,17 @@ export function calcularDisponibilidadeDiaria(
     return Object.fromEntries(horarios.map((horario) => [horario, null]));
   }
 
-  const ocupados = horariosAgendados(data, agendamentos);
+  const duracao = duracaoServicoEmMinutos(servico);
   return Object.fromEntries(
     horarios.map((horario) => [
       horario,
-      ocupados.has(horario) ? null : { label: horario, value: horario },
+      agendamentos.some((agendamento) => {
+        if (agendamento.data !== data || agendamento.status === "cancelado") return false;
+        const inicio = horarioParaMinutos(horario);
+        const inicioAgendamento = horarioParaMinutos(agendamento.horario);
+        const duracaoAgendamento = agendamento.duracaoMinutos ?? duracaoServicoEmMinutos(agendamento.servico);
+        return inicio < inicioAgendamento + duracaoAgendamento && inicio + duracao > inicioAgendamento;
+      }) ? null : { label: horario, value: horario },
     ]),
   );
 }

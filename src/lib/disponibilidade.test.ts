@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Agendamento, Servico } from "../firebase/types";
 import { calcularDisponibilidadeDiaria, calcularDisponibilidadeMensal } from "./disponibilidade";
+import { horariosSeSobrepoem } from "./agenda";
 
 const servico: Servico = {
   id: "servico-1", cnpj: "", nome: "Corte", preco: 50, duracao: "30", tempo: "minutos",
@@ -14,9 +15,19 @@ const agendamento: Agendamento = {
 };
 
 describe("disponibilidade", () => {
+  it("trata corretamente as bordas entre dois atendimentos", () => {
+    expect(horariosSeSobrepoem("09:00", 30, "09:30", 30)).toBe(false);
+    expect(horariosSeSobrepoem("09:15", 30, "09:30", 30)).toBe(true);
+  });
+
   it("bloqueia somente o horário já reservado", () => {
     expect(calcularDisponibilidadeDiaria(servico, "2026-07-06", ["09:00", "09:30"], [agendamento]))
       .toEqual({ "09:00": { label: "09:00", value: "09:00" }, "09:30": null });
+  });
+
+  it("bloqueia horários que se sobrepõem parcialmente", () => {
+    expect(calcularDisponibilidadeDiaria(servico, "2026-07-06", ["09:00", "09:15", "10:00"], [agendamento]))
+      .toEqual({ "09:00": { label: "09:00", value: "09:00" }, "09:15": null, "10:00": { label: "10:00", value: "10:00" } });
   });
 
   it("bloqueia dias fora do funcionamento", () => {

@@ -7,7 +7,7 @@
         ".write": "auth != null && auth.uid === $uid && !root.child('prestadores').child(auth.uid).exists()",
         "agendamentos": {
           "$agendamentoId": {
-            ".write": "auth != null && auth.uid === $uid && ((!data.exists() && newData.val() === true) || (data.exists() && !newData.exists()))",
+            ".write": "auth != null && auth.uid === $uid && ((!data.exists() && newData.val() === true && root.child('agendamentos').child($agendamentoId).child('idCliente').val() === auth.uid) || (data.exists() && !newData.exists() && root.child('agendamentos').child($agendamentoId).child('idCliente').val() === auth.uid))",
             ".validate": "newData.val() === true"
           }
         }
@@ -37,7 +37,7 @@
         ".write": "auth != null && ((newData.exists() && root.child('empresas').child(newData.child('idEmpresa').val()).child('uidDono').val() === auth.uid) || (!newData.exists() && root.child('empresas').child(data.child('idEmpresa').val()).child('uidDono').val() === auth.uid))",
         "agendamentos": {
           "$agendamentoId": {
-            ".write": "auth != null && ((!data.exists() && newData.val() === true) || (data.exists() && !newData.exists()))",
+            ".write": "auth != null && ((!data.exists() && newData.val() === true && root.child('agendamentos').child($agendamentoId).child('idCliente').val() === auth.uid && (root.child('agendamentos').child($agendamentoId).child('idServico').val() === $servicoId || root.child('agendamentos').child($agendamentoId).child('servicosConflitantesMapa').child($servicoId).val() === true)) || (data.exists() && !newData.exists() && root.child('agendamentos').child($agendamentoId).child('idCliente').val() === auth.uid))",
             ".validate": "newData.val() === true"
           }
         },

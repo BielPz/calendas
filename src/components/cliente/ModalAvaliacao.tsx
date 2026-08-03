@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Star, X } from "lucide-react";
 
 interface Props {
@@ -23,13 +23,6 @@ function ModalAvaliacao({
   const [nota, setNota] = useState(notaInicial || 0);
   const [comentario, setComentario] = useState(comentarioInicial);
   const [hover, setHover] = useState(0);
-
-  useEffect(() => {
-    if (aberto) {
-      setNota(notaInicial || 0);
-      setComentario(comentarioInicial);
-    }
-  }, [aberto, comentarioInicial, notaInicial]);
 
   if (!aberto) return null;
 
