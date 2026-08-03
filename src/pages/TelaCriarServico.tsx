@@ -52,6 +52,7 @@ function TelaCriarServico() {
   const [dataAgenda, setDataAgenda] = useState(() => new Date().toLocaleDateString("en-CA"));
   const [agendaServico, setAgendaServico] = useState<import("../firebase/types").Agendamento[]>([]);
   const [outrosServicos, setOutrosServicos] = useState<Servico[]>([]);
+  const [secaoAtiva, setSecaoAtiva] = useState("basicos");
 
   // Refs síncronas para gravar qual índice de dia ativou a propagação inicial.
   // Evita lags de estado assíncrono entre keystrokes rápidas.
@@ -224,23 +225,46 @@ function TelaCriarServico() {
     { label: "Minutos", value: "minuto" },
   ];
 
+  const secoesEdicao = [
+    ["basicos", "Dados básicos"],
+    ["atendimento", "Atendimento"],
+    ["horarios", "Horários"],
+    ["conflitos", "Conflitos"],
+    ["agenda", "Agenda"],
+    ["avaliacoes", "Avaliações"],
+  ] as const;
+  const visibilidadePorSecao: Record<string, string> = {
+    basicos: "[&>div]:hidden [&>div:nth-child(1)]:block [&>div:nth-child(2)]:block [&>div:nth-child(3)]:block [&>div:nth-child(4)]:block [&>div:nth-child(5)]:block [&>div:nth-child(6)]:block",
+    atendimento: "[&>div]:hidden [&>div:nth-child(7)]:block",
+    horarios: "[&>div]:hidden [&>div:nth-child(8)]:block [&>div:nth-child(10)]:block",
+    conflitos: "[&>div]:hidden [&>div:nth-child(9)]:block",
+    avaliacoes: "[&>div]:hidden [&>div:nth-child(11)]:block",
+    agenda: "hidden",
+  };
+  const classeFormularioEdicao = idServico
+    ? `grid gap-4 md:grid-cols-2 [&>div]:rounded-2xl [&>div]:border [&>div]:border-slate-200 [&>div]:bg-white/95 [&>div]:p-4 [&>div]:shadow-sm dark:[&>div]:border-zinc-700 dark:[&>div]:bg-zinc-900/95 ${visibilidadePorSecao[secaoAtiva]}`
+    : "";
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className={`flex min-h-screen flex-col items-center justify-start ${idServico ? "bg-linear-to-br from-orange-400 via-rose-400 to-violet-500" : "dark:bg-zinc-900"}`}>
-      {idServico ? <div className="w-full max-w-6xl px-4 pt-3"><button type="button" onClick={() => navigate(-1)} className="inline-flex items-center gap-2 text-sm font-semibold text-white"><ArrowLeft size={16} /> Voltar</button></div> : <CabecalhoBranco titulo="Cadastre seu Serviço" />}
+      {idServico ? <div className="sticky top-0 z-20 flex w-full max-w-6xl items-center px-4 py-3"><button type="button" onClick={() => navigate(-1)} className="inline-flex items-center gap-2 text-sm font-semibold text-white"><ArrowLeft size={16} /> Voltar</button></div> : <CabecalhoBranco titulo="Cadastre seu Serviço" />}
       <div className={`flex w-full flex-col gap-3 px-4 ${idServico ? "max-w-6xl py-3" : "max-w-xl"}`}>
         {idServico && (
           <section className="ui-card overflow-hidden">
             <div className="grid sm:grid-cols-[9rem_1fr]">
               <div className="min-h-36 bg-linear-to-br from-orange-100 to-violet-200 dark:from-orange-500/15 dark:to-violet-500/15">{form.imagem && <img src={form.imagem} alt={form.nome} className="h-full w-full object-cover" />}</div>
-              <div className="p-5"><p className="text-sm font-semibold text-orange-700 dark:text-orange-300">Modo de edição</p><h1 className="mt-1 flex items-center gap-2 text-2xl font-bold text-slate-900 dark:text-white">{form.nome || "Serviço"}<Pencil size={16} className="text-orange-500" /></h1><p className="mt-2 text-sm text-slate-600 dark:text-zinc-300">R$ {Number(form.preco || 0).toFixed(2)} · {form.duracao || "—"} {form.tempo}</p><p className="mt-3 text-sm text-slate-500 dark:text-zinc-400">Edite os campos abaixo e salve quando terminar.</p></div>
+              <div className="flex flex-wrap items-center justify-between gap-4 p-5"><div><p className="text-sm font-semibold text-orange-700 dark:text-orange-300">Modo de edição</p><h1 className="mt-1 flex items-center gap-2 text-2xl font-bold text-slate-900 dark:text-white">{form.nome || "Serviço"}<Pencil size={16} className="text-orange-500" /></h1><p className="mt-2 text-sm text-slate-600 dark:text-zinc-300">R$ {Number(form.preco || 0).toFixed(2)} · {form.duracao || "—"} {form.tempo}</p><p className="mt-3 text-sm text-slate-500 dark:text-zinc-400">Edite os campos abaixo e salve quando terminar.</p></div><button type="button" disabled={!isValid} onClick={handleConfirmar} className={`rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-lg transition ${isValid ? "bg-gradient-to-r from-orange-600 via-red-500 to-violet-700 hover:-translate-y-0.5" : "cursor-not-allowed bg-slate-400 opacity-70"}`}>Salvar alterações</button></div>
             </div>
           </section>
         )}
-        {idServico && <div className="w-full">
+        {idServico && <nav className="ui-card flex gap-2 overflow-x-auto p-2" aria-label="Seções da edição">
+          {secoesEdicao.map(([idSecao, titulo]) => <button key={idSecao} type="button" onClick={() => setSecaoAtiva(idSecao)} aria-pressed={secaoAtiva === idSecao} className={`shrink-0 rounded-lg px-3 py-2 text-sm font-bold transition ${secaoAtiva === idSecao ? "bg-gradient-to-r from-orange-500 to-violet-600 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-orange-50 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"}`}>{titulo}</button>)}
+        </nav>}
+        {idServico && secaoAtiva === "agenda" && <div className="w-full">
           <section className="ui-card p-5"><h2 className="font-bold text-slate-900 dark:text-white">Visibilidade da agenda</h2><p className="mt-1 text-sm text-slate-500 dark:text-zinc-400">Defina o que clientes podem consultar.</p><div className="mt-4 flex flex-wrap gap-2">{[["dia", "Somente hoje"], ["todos", "Todos os dias"], ["oculta", "Ocultar"]].map(([valor, titulo]) => <button key={valor} type="button" onClick={() => setForm((prev) => ({ ...prev, visibilidadeAgenda: valor as Servico["visibilidadeAgenda"] }))} className={`rounded-lg px-3 py-2 text-sm font-bold ${(form.visibilidadeAgenda ?? "todos") === valor ? "bg-orange-100 text-orange-800 dark:bg-orange-400/15 dark:text-orange-200" : "bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-300"}`}>{titulo}</button>)}</div></section>
         </div>}
-        <Formulario className={idServico ? "grid gap-4 md:grid-cols-2 [&>div]:rounded-2xl [&>div]:border [&>div]:border-slate-200 [&>div]:bg-white/95 [&>div]:p-4 [&>div]:shadow-sm dark:[&>div]:border-zinc-700 dark:[&>div]:bg-zinc-900/95 [&>div:nth-child(1)]:md:col-span-2 [&>div:nth-child(2)]:md:col-span-2 [&>div:nth-child(3)]:md:col-span-2 [&>div:nth-child(4)]:md:col-span-2 [&>div:nth-child(7)]:md:col-span-2 [&>div:nth-child(8)]:md:col-span-2 [&>div:last-child]:md:col-span-2" : ""}>
+        <Formulario className={classeFormularioEdicao}>
           <TextInput
             titulo="CNPJ da Empresa"
             type="text"
@@ -399,7 +423,7 @@ function TelaCriarServico() {
           {idServico && <section className="ui-card h-full max-h-80 overflow-y-auto p-5 md:col-span-2"><div className="flex items-center justify-between"><h2 className="font-bold text-slate-900 dark:text-white">Avaliações</h2><span className="text-sm text-slate-500">{form.totalAvaliacoes ?? 0} no total</span></div><div className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-600 dark:bg-zinc-800 dark:text-zinc-300">{form.totalAvaliacoes ? <span className="inline-flex items-center gap-1 font-bold text-amber-600"><Star size={16} className="fill-current" /> {form.avaliacaoMedia?.toFixed(1)}</span> : null}<p className="mt-2">As avaliações dos clientes aparecem aqui.</p></div></section>}
         </Formulario>
 
-        {idServico && (
+        {idServico && secaoAtiva === "agenda" && (
           <section className="ui-card p-3">
             <label className="mb-3 block text-sm font-semibold text-slate-700 dark:text-zinc-200">Agenda deste serviço<input type="date" value={dataAgenda} onChange={(event) => setDataAgenda(event.target.value)} className="ui-input mt-2 py-2" /></label>
             <div className="h-96"><Agenda titulo="Agenda do serviço" data={dataAgenda} agendamentos={agendaServico} janelaHoras={4} rotuloAgendamento={(agendamento) => `${agendamento.clienteNome ?? "Cliente"} — ${agendamento.servico.nome}`} /></div>
@@ -408,7 +432,7 @@ function TelaCriarServico() {
 
         {erro && <p className="text-red-500 text-sm">{erro}</p>}
 
-        <div className={idServico ? "sticky bottom-3 z-10 rounded-2xl border border-white/70 bg-white/90 p-3 shadow-xl backdrop-blur dark:border-zinc-700 dark:bg-zinc-900/90" : ""}>
+        {!idServico && <div>
         <button
           className={`
             w-full rounded-xl py-4 font-bold text-white transition-all ${idServico ? "shadow-lg ring-2 ring-orange-200 ring-offset-2 ring-offset-white hover:-translate-y-0.5 dark:ring-offset-zinc-900" : "mb-10"}
@@ -421,9 +445,9 @@ function TelaCriarServico() {
           disabled={!isValid}
           onClick={handleConfirmar}
         >
-          {idServico ? "Salvar alterações" : "Criar serviço"}
+          Criar serviço
         </button>
-        </div>
+        </div>}
         {idServico && (
           <section className="mb-10 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-900/60 dark:bg-red-950/25">
             <h2 className="font-bold text-red-900 dark:text-red-100">Zona de perigo</h2>

@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import Cabecalho from "../components/Cabecalho";
 import { getAuth } from "firebase/auth";
-import { CalendarClock, Trash2 } from "lucide-react";
+import { CalendarClock, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Agenda from "../components/Agenda";
+import GradeDisponibilidade from "../components/GradeDisponibilidade";
 import { useGradiente } from "../hooks/useGradiente";
 import Loading from "../components/Loading";
 import { cancelarAgendamento, getAgendamentosUsuario } from "../features/agendamentos/agendamento.service";
 import type { Agendamento } from "../firebase/types";
 import { useAlerta } from "../provider/AlertContext";
+import { getTipoUsuario } from "../features/auth/auth.service";
 
 function TelaCalendario() {
   const corFundo = useGradiente();
@@ -20,10 +22,16 @@ function TelaCalendario() {
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
   const [dataSelecionada, setDataSelecionada] = useState(() => new Date().toLocaleDateString("en-CA"));
   const [selecionadoId, setSelecionadoId] = useState<string>();
+  const [tipoUsuario, setTipoUsuario] = useState<"cliente" | "prestador">("cliente");
+  const [mesCalendario, setMesCalendario] = useState(() => new Date());
+  const [mostrandoAgenda, setMostrandoAgenda] = useState(false);
 
   useEffect(() => {
     if (!id) return;
-    getAgendamentosUsuario(id).then(setAgendamentos);
+    Promise.all([getAgendamentosUsuario(id), getTipoUsuario()]).then(([itens, tipo]) => {
+      setAgendamentos(itens);
+      setTipoUsuario(tipo);
+    });
   }, [id]);
 
   const doDia = useMemo(
@@ -38,7 +46,19 @@ function TelaCalendario() {
   const selecionarAgendamento = (agendamento: Agendamento) => {
     setDataSelecionada(agendamento.data);
     setSelecionadoId(agendamento.id);
+    setMostrandoAgenda(true);
   };
+
+  const selecionarData = (data: string) => {
+    const primeiroDoDia = agendamentos
+      .filter((agendamento) => agendamento.data === data && agendamento.status !== "cancelado")
+      .sort((a, b) => a.horario.localeCompare(b.horario))[0];
+    setDataSelecionada(data);
+    setSelecionadoId(primeiroDoDia?.id);
+    setMostrandoAgenda(true);
+  };
+
+  const tituloAgenda = tipoUsuario === "prestador" ? "Agenda da empresa" : "Minha agenda";
 
   const reagendar = (agendamento: Agendamento) => {
     navigate("/agendamento", {
@@ -69,11 +89,8 @@ function TelaCalendario() {
       <Cabecalho perfil nome={nomeUsuario} />
       <main className="mx-auto flex w-full max-w-7xl flex-1 min-h-0 flex-col gap-4 p-4 md:flex-row md:overflow-hidden md:p-6">
         <aside className="ui-card flex min-h-0 w-full flex-1 flex-col p-3 md:w-72 md:flex-none">
-          <label className="hidden text-sm font-bold text-slate-700 dark:text-zinc-200 md:block">Data
-            <input type="date" value={dataSelecionada} onChange={(event) => { setDataSelecionada(event.target.value); setSelecionadoId(undefined); }} className="ui-input mt-2 py-2" />
-          </label>
-          <div className="flex min-h-0 flex-1 flex-col md:mt-4 md:flex-none md:border-t md:border-slate-200 md:pt-4 dark:md:border-zinc-700">
-            <h1 className="text-sm font-bold uppercase tracking-wide text-slate-600 dark:text-zinc-300">Meus agendamentos</h1>
+          <div className="flex min-h-0 flex-1 flex-col">
+            <h1 className="text-sm font-bold uppercase tracking-wide text-slate-600 dark:text-zinc-300">{tipoUsuario === "prestador" ? "Agendamentos da empresa" : "Meus agendamentos"}</h1>
             <div className="mt-3 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto md:max-h-64 md:flex-none">
               {todosAgendamentos.length === 0 ? (
                 <p className="rounded-lg bg-slate-50 p-3 text-sm text-slate-500 dark:bg-zinc-800 dark:text-zinc-400">Você ainda não possui agendamentos.</p>
@@ -96,16 +113,20 @@ function TelaCalendario() {
         </aside>
 
         <div className="hidden min-h-0 flex-1 md:block">
-          <Agenda
-            titulo="Minha agenda"
+          {mostrandoAgenda ? <Agenda
+            titulo={tituloAgenda}
             data={dataSelecionada}
             agendamentos={doDia}
             selecionadoId={selecionadoId}
             onSelecionar={selecionarAgendamento}
+            acaoCabecalho={<button type="button" className="ui-button-secondary text-sm" onClick={() => setMostrandoAgenda(false)}>Alterar data</button>}
             rotuloAgendamento={(agendamento) => agendamento.idCliente === id
               ? agendamento.servico.nome
               : `${agendamento.clienteNome ?? "Cliente"} — ${agendamento.servico.nome}`}
-          />
+          /> : <section className="ui-card flex h-full min-h-0 flex-col p-5">
+            <header className="mb-4 flex items-center justify-between gap-3"><div><h2 className="font-bold text-slate-800 dark:text-zinc-100">Escolha uma data</h2><p className="mt-1 text-sm text-slate-500 dark:text-zinc-400">Depois, você verá os horários em uma linha do tempo.</p></div><div className="flex overflow-hidden rounded-lg border border-slate-200 dark:border-zinc-700"><button type="button" onClick={() => setMesCalendario((data) => new Date(data.getFullYear(), data.getMonth() - 1, 1))} className="p-2 text-slate-600 hover:bg-orange-50 dark:text-zinc-300 dark:hover:bg-zinc-800" aria-label="Mês anterior"><ChevronLeft size={18} /></button><button type="button" onClick={() => setMesCalendario((data) => new Date(data.getFullYear(), data.getMonth() + 1, 1))} className="border-l border-slate-200 p-2 text-slate-600 hover:bg-orange-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800" aria-label="Próximo mês"><ChevronRight size={18} /></button></div></header>
+            <GradeDisponibilidade ano={mesCalendario.getFullYear()} mes={mesCalendario.getMonth()} diasFuncionamento={[0, 1, 2, 3, 4, 5, 6]} disponibilidades={{}} modo="agenda" preencherAltura datasComAgendamento={todosAgendamentos.map((agendamento) => agendamento.data)} dataSelecionada={dataSelecionada} onDiaSelecionado={(dia) => selecionarData(`${mesCalendario.getFullYear()}-${String(mesCalendario.getMonth() + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`)} />
+          </section>}
         </div>
         {/*
         <section className="ui-card min-h-120 flex-1 p-3">

@@ -378,7 +378,7 @@ function TelaAgendamento() {
                     {modoHorarioLivre && !horarioLivreValido && form.horario && <p className="mt-3 text-center text-xs font-medium text-red-600 dark:text-red-300">Escolha um horário que termine dentro do período de funcionamento.</p>}
                   </>
                 ) : (
-                  <>
+                  <div className="flex min-h-0 flex-1 flex-col">
                     <h2 className="mb-2 font-bold text-slate-800 dark:text-zinc-100">Escolha uma data</h2>
                     <p className="mb-4 text-sm text-slate-500 dark:text-zinc-400">Depois, você verá os horários disponíveis em uma linha do tempo.</p>
                     <GradeDisponibilidade
@@ -387,8 +387,9 @@ function TelaAgendamento() {
                       diasFuncionamento={diasDisponiveis}
                       disponibilidades={atualizarDisponibilidade || {}}
                       onDiaSelecionado={handleDiaSelecionadoMobile}
+                      preencherAltura
                     />
-                  </>
+                  </div>
                 )}
               </div>
             </div>
