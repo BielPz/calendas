@@ -102,6 +102,7 @@ export interface Agendamento {
   obs: string;
   telefoneContato?: string;
   enderecoCliente?: string;
+  modalidadeAtendimento?: ModalidadeAtendimento;
   duracaoMinutos?: number;
   status?: "pendente" | "agendado" | "concluido" | "cancelado";
 }

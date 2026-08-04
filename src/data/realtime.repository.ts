@@ -53,13 +53,13 @@ export const cancelarAgendamento = async (idAgendamento: string): Promise<void> 
   if (!agendamentoSnap.exists()) throw new Error("Agendamento não encontrado");
 
   const agendamento = agendamentoSnap.val();
-  if (agendamento.idCliente !== uid) {
-    throw new Error("Apenas o cliente pode cancelar este agendamento.");
+  if (agendamento.idCliente !== uid && agendamento.idPrestador !== uid) {
+    throw new Error("Você não tem permissão para cancelar este agendamento.");
   }
 
   await update(ref(db), {
     [`agendamentos/${idAgendamento}`]: null,
-    [`clientes/${uid}/agendamentos/${idAgendamento}`]: null,
+    [`clientes/${agendamento.idCliente}/agendamentos/${idAgendamento}`]: null,
     [`servicos/${agendamento.idServico}/agendamentos/${idAgendamento}`]: null,
     ...Object.fromEntries((agendamento.servicosConflitantes ?? []).map((id: string) => [`servicos/${id}/agendamentos/${idAgendamento}`, null])),
     [`slots/${agendamento.idServico}/${agendamento.data}/${agendamento.horario}`]: null,
@@ -500,9 +500,16 @@ export const getAgendamentosPrestador = async (
 
       const agendamentosDoServico = await Promise.all(
         ids.map(async (idAg) => {
-          const snap = await get(ref(db, `agendamentos/${idAg}`));
-          if (!snap.exists()) return null;
-          return { id: idAg, ...snap.val(), servico } as Agendamento;
+          try {
+            const snap = await get(ref(db, `agendamentos/${idAg}`));
+            if (!snap.exists()) return null;
+            return { id: idAg, ...snap.val(), servico } as Agendamento;
+          } catch (error) {
+            // Um índice antigo não pode impedir que os outros agendamentos
+            // válidos da empresa sejam carregados.
+            console.warn("Índice de agendamento ignorado:", idAg, error);
+            return null;
+          }
         }),
       );
 
@@ -511,7 +518,21 @@ export const getAgendamentosPrestador = async (
   )
 ).flat();
 
-    return agendamentos.filter((agendamento) => agendamento.status !== "pendente");
+    // Um agendamento com conflito é indexado em todos os serviços envolvidos.
+    // Na agenda geral do prestador ele precisa existir uma única vez, preservando
+    // o serviço em que foi efetivamente criado (idServico).
+    const agendamentosUnicos = new Map<string, Agendamento>();
+    agendamentos.forEach((agendamento) => {
+      if (!agendamento.id) return;
+      const existente = agendamentosUnicos.get(agendamento.id);
+      const pertenceAoServicoOriginal = agendamento.idServico === agendamento.servico.id;
+      const existenteEhOriginal = existente?.idServico === existente?.servico.id;
+      if (!existente || (pertenceAoServicoOriginal && !existenteEhOriginal)) {
+        agendamentosUnicos.set(agendamento.id, agendamento);
+      }
+    });
+
+    return [...agendamentosUnicos.values()].filter((agendamento) => agendamento.status !== "pendente");
   } catch (error) {
     console.error("Erro ao buscar agendamentos do prestador:", error);
     return [];

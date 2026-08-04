@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { getAuth } from "firebase/auth";
 import { ArrowLeft, CalendarDays, Clock3, MapPin, Monitor, Star } from "lucide-react";
 import Cabecalho from "../components/Cabecalho";
 import Loading from "../components/Loading";
-import type { AvaliacaoServico, Servico } from "../firebase/types";
+import type { Agendamento, AvaliacaoServico, Servico } from "../firebase/types";
 import { getServico } from "../features/servicos/servico.service";
-import { getAgendamentosDoServico } from "../features/agendamentos/agendamento.service";
+import { cancelarAgendamento, getAgendamentosDoServico } from "../features/agendamentos/agendamento.service";
 import { getEmpresaPorId } from "../features/empresas/empresa.service";
 import { useGradiente } from "../hooks/useGradiente";
 import Agenda from "../components/Agenda";
+import DetalhesAgendamento from "../components/DetalhesAgendamento";
 
 const DIAS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 const hoje = () => new Date().toLocaleDateString("en-CA");
@@ -21,7 +23,9 @@ function TelaServico() {
   const [empresa, setEmpresa] = useState("");
   const [carregando, setCarregando] = useState(true);
   const [dataAgenda, setDataAgenda] = useState(hoje);
-  const [agendamentosDoDia, setAgendamentosDoDia] = useState<string[]>([]);
+  const [agendamentosDoDia, setAgendamentosDoDia] = useState<Agendamento[]>([]);
+  const [agendamentoDetalhado, setAgendamentoDetalhado] = useState<Agendamento>();
+  const idUsuario = getAuth().currentUser?.uid;
 
   useEffect(() => {
     const carregar = async () => {
@@ -43,7 +47,7 @@ function TelaServico() {
   useEffect(() => {
     if (!idServico || !dataAgenda) return;
     getAgendamentosDoServico(idServico)
-      .then((itens) => setAgendamentosDoDia(itens.filter((item) => item.data === dataAgenda && item.status !== "cancelado").map((item) => item.horario)))
+      .then((itens) => setAgendamentosDoDia(itens.filter((item) => item.data === dataAgenda && item.status !== "cancelado")))
       .catch(() => setAgendamentosDoDia([]));
   }, [dataAgenda, idServico]);
 
@@ -57,17 +61,9 @@ function TelaServico() {
   const atendimento = modalidade === "online" ? { texto: "Atendimento online", Icone: Monitor } : modalidade === "presencial-prestador" ? { texto: "O prestador vai até você", Icone: MapPin } : { texto: "Atendimento no estabelecimento", Icone: MapPin };
   const duracaoNumero = Number(servico.duracao) || 60;
   const duracaoMinutos = servico.tempo === "dia" ? duracaoNumero * 1440 : servico.tempo === "hora" ? duracaoNumero * 60 : duracaoNumero;
-  const horariosOcupados = [...new Set(agendamentosDoDia)].sort();
+  const horariosOcupados = [...new Set(agendamentosDoDia.map((agendamento) => agendamento.horario))].sort();
   const visibilidadeAgenda = servico.visibilidadeAgenda ?? "todos";
-  const agendaServico = horariosOcupados.map((horario) => ({
-    id: `ocupado-${horario}`,
-    horario,
-    data: dataAgenda,
-    status: "agendado" as const,
-    obs: "",
-    servico,
-    duracaoMinutos,
-  }));
+  const agendaServico = agendamentosDoDia;
   const fimDoHorario = (horario: string) => {
     const [hora, minuto] = horario.split(":").map(Number);
     const total = hora * 60 + minuto + duracaoMinutos;
@@ -115,9 +111,25 @@ function TelaServico() {
         </section>
         {visibilidadeAgenda !== "oculta" && <div className="mt-5">
           {visibilidadeAgenda === "todos" && <label className="mb-3 block max-w-xs text-sm font-semibold text-white">Data da agenda<input type="date" value={dataAgenda} min={hoje()} onChange={(event) => setDataAgenda(event.target.value)} className="ui-input mt-1 py-2" /></label>}
-          <Agenda titulo="Agenda do serviço" data={visibilidadeAgenda === "dia" ? hoje() : dataAgenda} agendamentos={agendaServico} janelaHoras={4} rotuloAgendamento="Horário reservado" />
+          <Agenda titulo="Agenda do serviço" data={visibilidadeAgenda === "dia" ? hoje() : dataAgenda} agendamentos={agendaServico} janelaHoras={4} onSelecionar={setAgendamentoDetalhado} rotuloAgendamento="Horário reservado" />
         </div>}
       </main>
+      {agendamentoDetalhado && <DetalhesAgendamento
+        agendamento={agendamentoDetalhado}
+        tipoUsuario="cliente"
+        mostrarDadosPrivados={agendamentoDetalhado.idCliente === idUsuario}
+        onFechar={() => setAgendamentoDetalhado(undefined)}
+        onCancelar={agendamentoDetalhado.idCliente === idUsuario ? async (agendamento) => {
+          if (!agendamento.id || !window.confirm("Cancelar este agendamento?")) return;
+          try {
+            await cancelarAgendamento(agendamento.id);
+            setAgendamentosDoDia((atual) => atual.filter((item) => item.id !== agendamento.id));
+            setAgendamentoDetalhado(undefined);
+          } catch {
+            window.alert("Não foi possível cancelar o agendamento.");
+          }
+        } : undefined}
+      />}
     </div>
   );
 }

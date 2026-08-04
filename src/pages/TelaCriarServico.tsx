@@ -1,16 +1,17 @@
 import { useEffect, useState, useRef } from "react";
 import { ArrowLeft, Pencil, Star, Trash2 } from "lucide-react";
-import Agenda from "../components/Agenda";
 import Formulario from "../components/Formulario";
 import TextInput from "../components/TextInput";
-import type { Servico, DiaDisponivel } from "../firebase/types";
+import type { Servico, DiaDisponivel, Agendamento } from "../firebase/types";
 import CabecalhoBranco from "../components/CabecalhoBranco";
 import { atualizarServico, criarServico, excluirServico, getServico, getServicosDaEmpresa } from "../features/servicos/servico.service";
-import { getAgendamentosDoServico } from "../features/agendamentos/agendamento.service";
+import { cancelarAgendamento, getAgendamentosDoServico } from "../features/agendamentos/agendamento.service";
 import { getEmpresaPorId } from "../features/empresas/empresa.service";
 import { useLocation, useNavigate } from "react-router-dom";
 import UploadImagem from "../components/UploadImagem";
 import { useAlerta } from "../provider/AlertContext";
+import DetalhesAgendamento from "../components/DetalhesAgendamento";
+import PainelAgenda from "../components/PainelAgenda";
 
 // ─── Configuração dos dias da semana ─────────────────────────────────────────
 const DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -50,7 +51,8 @@ function TelaCriarServico() {
   });
   const [erro, setErro] = useState("");
   const [dataAgenda, setDataAgenda] = useState(() => new Date().toLocaleDateString("en-CA"));
-  const [agendaServico, setAgendaServico] = useState<import("../firebase/types").Agendamento[]>([]);
+  const [agendaServico, setAgendaServico] = useState<Agendamento[]>([]);
+  const [agendamentoDetalhado, setAgendamentoDetalhado] = useState<Agendamento>();
   const [outrosServicos, setOutrosServicos] = useState<Servico[]>([]);
   const [secaoAtiva, setSecaoAtiva] = useState("basicos");
 
@@ -79,8 +81,8 @@ function TelaCriarServico() {
 
   useEffect(() => {
     if (!idServico) return;
-    getAgendamentosDoServico(idServico).then((itens) => setAgendaServico(itens.filter((item) => item.data === dataAgenda)));
-  }, [dataAgenda, idServico]);
+    getAgendamentosDoServico(idServico).then(setAgendaServico);
+  }, [idServico]);
 
   // ── Handlers gerais ────────────────────────────────────────────────────────
   const handleChange = (campo: string, value: string) => {
@@ -426,9 +428,25 @@ function TelaCriarServico() {
         {idServico && secaoAtiva === "agenda" && (
           <section className="ui-card p-3">
             <label className="mb-3 block text-sm font-semibold text-slate-700 dark:text-zinc-200">Agenda deste serviço<input type="date" value={dataAgenda} onChange={(event) => setDataAgenda(event.target.value)} className="ui-input mt-2 py-2" /></label>
-            <div className="h-96"><Agenda titulo="Agenda do serviço" data={dataAgenda} agendamentos={agendaServico} janelaHoras={4} rotuloAgendamento={(agendamento) => `${agendamento.clienteNome ?? "Cliente"} — ${agendamento.servico.nome}`} /></div>
+            <PainelAgenda className="h-96" tituloLista="Agendamentos deste serviço" tituloAgenda="Agenda do serviço" data={dataAgenda} agendamentos={agendaServico} selecionadoId={agendamentoDetalhado?.id} onSelecionar={(agendamento) => { setDataAgenda(agendamento.data); setAgendamentoDetalhado(agendamento); }} janelaHoras={4} rotuloAgendamento={(agendamento) => `${agendamento.clienteNome ?? "Cliente"} — ${agendamento.servico.nome}`} />
           </section>
         )}
+        {agendamentoDetalhado && <DetalhesAgendamento
+          agendamento={agendamentoDetalhado}
+          tipoUsuario="prestador"
+          onFechar={() => setAgendamentoDetalhado(undefined)}
+          onCancelar={async (agendamento) => {
+            if (!agendamento.id || !window.confirm("Cancelar este agendamento?")) return;
+            try {
+              await cancelarAgendamento(agendamento.id);
+              setAgendaServico((atual) => atual.filter((item) => item.id !== agendamento.id));
+              setAgendamentoDetalhado(undefined);
+              showAlerta("Agendamento cancelado", "O horário voltou a ficar disponível.", "sucesso");
+            } catch (error) {
+              showAlerta("Não foi possível cancelar", error instanceof Error ? error.message : "Tente novamente.", "erro");
+            }
+          }}
+        />}
 
         {erro && <p className="text-red-500 text-sm">{erro}</p>}
 

@@ -3,7 +3,6 @@ import Cabecalho from "../components/Cabecalho";
 import { getAuth } from "firebase/auth";
 import { CalendarClock, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import Agenda from "../components/Agenda";
 import GradeDisponibilidade from "../components/GradeDisponibilidade";
 import { useGradiente } from "../hooks/useGradiente";
 import Loading from "../components/Loading";
@@ -11,6 +10,8 @@ import { cancelarAgendamento, getAgendamentosUsuario } from "../features/agendam
 import type { Agendamento } from "../firebase/types";
 import { useAlerta } from "../provider/AlertContext";
 import { getTipoUsuario } from "../features/auth/auth.service";
+import DetalhesAgendamento from "../components/DetalhesAgendamento";
+import PainelAgenda from "../components/PainelAgenda";
 
 function TelaCalendario() {
   const corFundo = useGradiente();
@@ -25,6 +26,7 @@ function TelaCalendario() {
   const [tipoUsuario, setTipoUsuario] = useState<"cliente" | "prestador">("cliente");
   const [mesCalendario, setMesCalendario] = useState(() => new Date());
   const [mostrandoAgenda, setMostrandoAgenda] = useState(false);
+  const [agendamentoDetalhado, setAgendamentoDetalhado] = useState<Agendamento>();
 
   useEffect(() => {
     if (!id) return;
@@ -34,10 +36,6 @@ function TelaCalendario() {
     });
   }, [id]);
 
-  const doDia = useMemo(
-    () => agendamentos.filter((agendamento) => agendamento.data === dataSelecionada),
-    [agendamentos, dataSelecionada],
-  );
   const todosAgendamentos = useMemo(
     () => [...agendamentos].filter((agendamento) => agendamento.status !== "cancelado").sort((a, b) => `${a.data} ${a.horario}`.localeCompare(`${b.data} ${b.horario}`)),
     [agendamentos],
@@ -47,6 +45,11 @@ function TelaCalendario() {
     setDataSelecionada(agendamento.data);
     setSelecionadoId(agendamento.id);
     setMostrandoAgenda(true);
+  };
+
+  const abrirDetalhes = (agendamento: Agendamento) => {
+    selecionarAgendamento(agendamento);
+    setAgendamentoDetalhado(agendamento);
   };
 
   const selecionarData = (data: string) => {
@@ -76,6 +79,7 @@ function TelaCalendario() {
       await cancelarAgendamento(agendamento.id);
       setAgendamentos((atual) => atual.filter((item) => item.id !== agendamento.id));
       setSelecionadoId(undefined);
+      setAgendamentoDetalhado(undefined);
       showAlerta("Agendamento cancelado", "O horário voltou a ficar disponível.", "sucesso");
     } catch (error) {
       showAlerta("Não foi possível cancelar", error instanceof Error ? error.message : "Tente novamente.", "erro");
@@ -88,15 +92,15 @@ function TelaCalendario() {
     <div className={`${corFundo} flex h-dvh w-full flex-col overflow-hidden`}>
       <Cabecalho perfil nome={nomeUsuario} />
       <main className="mx-auto flex w-full max-w-7xl flex-1 min-h-0 flex-col gap-4 p-4 md:flex-row md:overflow-hidden md:p-6">
-        <aside className="ui-card flex min-h-0 w-full flex-1 flex-col p-3 md:w-72 md:flex-none">
+        <aside className={`${mostrandoAgenda ? "hidden" : "flex"} ui-card min-h-0 w-full flex-1 flex-col p-3 md:w-72 md:flex-none`}>
           <div className="flex min-h-0 flex-1 flex-col">
             <h1 className="text-sm font-bold uppercase tracking-wide text-slate-600 dark:text-zinc-300">{tipoUsuario === "prestador" ? "Agendamentos da empresa" : "Meus agendamentos"}</h1>
-            <div className="mt-3 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto md:max-h-64 md:flex-none">
+            <div className="mt-3 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
               {todosAgendamentos.length === 0 ? (
                 <p className="rounded-lg bg-slate-50 p-3 text-sm text-slate-500 dark:bg-zinc-800 dark:text-zinc-400">Você ainda não possui agendamentos.</p>
               ) : todosAgendamentos.map((agendamento) => (
                 <article key={agendamento.id} className={`rounded-lg border p-3 transition ${selecionadoId === agendamento.id ? "border-orange-400 bg-orange-50 dark:bg-orange-400/10" : "border-slate-200 bg-slate-50 hover:border-orange-300 dark:border-zinc-700 dark:bg-zinc-800"}`}>
-                  <button type="button" onClick={() => selecionarAgendamento(agendamento)} className="w-full text-left">
+                  <button type="button" onClick={() => abrirDetalhes(agendamento)} className="w-full text-left">
                     <span className="block text-xs font-semibold text-orange-700 dark:text-orange-300">{new Date(`${agendamento.data}T12:00:00`).toLocaleDateString("pt-BR")} às {agendamento.horario}</span>
                     <span className="block text-sm font-bold text-slate-800 dark:text-zinc-100">{agendamento.servico.nome}</span>
                   </button>
@@ -112,17 +116,17 @@ function TelaCalendario() {
           </div>
         </aside>
 
-        <div className="hidden min-h-0 flex-1 md:block">
-          {mostrandoAgenda ? <Agenda
-            titulo={tituloAgenda}
+        <div className={`${mostrandoAgenda ? "flex" : "hidden md:block"} min-h-0 flex-1`}>
+          {mostrandoAgenda ? <PainelAgenda
+            className="h-full"
+            tituloLista={tipoUsuario === "prestador" ? "Agendamentos da empresa" : "Meus agendamentos"}
+            tituloAgenda={tituloAgenda}
             data={dataSelecionada}
-            agendamentos={doDia}
+            agendamentos={todosAgendamentos}
             selecionadoId={selecionadoId}
-            onSelecionar={selecionarAgendamento}
+            onSelecionar={abrirDetalhes}
             acaoCabecalho={<button type="button" className="ui-button-secondary text-sm" onClick={() => setMostrandoAgenda(false)}>Alterar data</button>}
-            rotuloAgendamento={(agendamento) => agendamento.idCliente === id
-              ? agendamento.servico.nome
-              : `${agendamento.clienteNome ?? "Cliente"} — ${agendamento.servico.nome}`}
+            rotuloAgendamento={(agendamento) => agendamento.idCliente === id ? agendamento.servico.nome : `${agendamento.clienteNome ?? "Cliente"} — ${agendamento.servico.nome}`}
           /> : <section className="ui-card flex h-full min-h-0 flex-col p-5">
             <header className="mb-4 flex items-center justify-between gap-3"><div><h2 className="font-bold text-slate-800 dark:text-zinc-100">Escolha uma data</h2><p className="mt-1 text-sm text-slate-500 dark:text-zinc-400">Depois, você verá os horários em uma linha do tempo.</p></div><div className="flex overflow-hidden rounded-lg border border-slate-200 dark:border-zinc-700"><button type="button" onClick={() => setMesCalendario((data) => new Date(data.getFullYear(), data.getMonth() - 1, 1))} className="p-2 text-slate-600 hover:bg-orange-50 dark:text-zinc-300 dark:hover:bg-zinc-800" aria-label="Mês anterior"><ChevronLeft size={18} /></button><button type="button" onClick={() => setMesCalendario((data) => new Date(data.getFullYear(), data.getMonth() + 1, 1))} className="border-l border-slate-200 p-2 text-slate-600 hover:bg-orange-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800" aria-label="Próximo mês"><ChevronRight size={18} /></button></div></header>
             <GradeDisponibilidade ano={mesCalendario.getFullYear()} mes={mesCalendario.getMonth()} diasFuncionamento={[0, 1, 2, 3, 4, 5, 6]} disponibilidades={{}} modo="agenda" preencherAltura datasComAgendamento={todosAgendamentos.map((agendamento) => agendamento.data)} dataSelecionada={dataSelecionada} onDiaSelecionado={(dia) => selecionarData(`${mesCalendario.getFullYear()}-${String(mesCalendario.getMonth() + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`)} />
@@ -149,6 +153,7 @@ function TelaCalendario() {
           </div>
         </section>*/}
       </main>
+      {agendamentoDetalhado && <DetalhesAgendamento agendamento={agendamentoDetalhado} tipoUsuario={tipoUsuario} onFechar={() => setAgendamentoDetalhado(undefined)} onCancelar={cancelar} />}
     </div>
   );
 }
