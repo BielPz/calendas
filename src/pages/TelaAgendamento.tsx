@@ -3,7 +3,7 @@ import Cabecalho from "../components/Cabecalho";
 import MiniCalendario from "../components/MiniCalendario";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { getAuth } from "firebase/auth";
-import { X } from "lucide-react";
+import { ArrowLeft, Clock3, X } from "lucide-react";
 import type { Agendamento, Disponibilidade, Servico } from "../firebase/types";
 import TextInput from "../components/TextInput";
 import { getServicosDaEmpresa } from "../features/servicos/servico.service";
@@ -19,6 +19,7 @@ import { useGradiente } from "../hooks/useGradiente";
 import { useAlerta } from "../provider/AlertContext";
 import Loading from "../components/Loading";
 import Agenda from "../components/Agenda";
+import { estaDentroDoFuncionamento } from "../lib/agenda";
 
 function TelaAgendamento() {
   const [servicos, setServicos] = useState<{ label: string; value: string }[]>(
@@ -60,16 +61,9 @@ function TelaAgendamento() {
   })();
   const modoHorarioLivre = form.servico.modoHorario === "livre";
   const horarioLivreValido = useMemo(() => {
-    if (!modoHorarioLivre || !form.data || !form.horario) return true;
-    const dia = form.servico.diasDisponiveis[new Date(`${form.data}T12:00:00`).getDay()];
-    if (!dia?.ativo || !dia.inicio || !dia.fim) return false;
-    const paraMinutos = (horario: string) => {
-      const [hora, minuto] = horario.split(":").map(Number);
-      return hora * 60 + minuto;
-    };
-    const inicio = paraMinutos(form.horario);
-    return inicio >= paraMinutos(dia.inicio) && inicio + duracaoMinutos <= paraMinutos(dia.fim);
-  }, [duracaoMinutos, form.data, form.horario, form.servico.diasDisponiveis, modoHorarioLivre]);
+    if (!form.data || !form.horario) return true;
+    return estaDentroDoFuncionamento(form.servico, form.data, form.horario);
+  }, [form.data, form.horario, form.servico]);
 
   const hoje = new Date();
   const mes = form.data
@@ -121,6 +115,14 @@ function TelaAgendamento() {
   };
 
   const handleClickAgendar = async () => {
+    if (!isValid) {
+      if (form.data && form.horario && !horarioLivreValido) {
+        showAlerta("Fora do horário permitido", "Escolha um horário dentro do período de funcionamento do serviço.", "erro");
+      } else {
+        showAlerta("Dados incompletos", "Preencha os campos obrigatórios para agendar.", "info");
+      }
+      return;
+    }
     if (form.servico && form.data && form.horario) {
       try {
         await agendarServico(form, getAuth().currentUser!.uid);
@@ -283,38 +285,26 @@ function TelaAgendamento() {
       className={`${cor_fundo} h-dvh w-full flex flex-col overflow-hidden`}
     >
       <Cabecalho perfil nome={nomeUsuario} />
-      <div className="flex min-h-0 flex-col grow w-full items-center overflow-hidden">
-        <div className="flex min-h-0 w-full max-w-7xl flex-col gap-4 p-4 grow overflow-hidden">
-          <div className="flex flex-col sm:flex-row gap-2 shrink-0">
-            <button
-              className="ui-button-secondary px-4"
-              onClick={() => navigate("/feed")}
-            >
-              <X
-                size={20}
-                strokeWidth={3}
-                className="text-gray-500 dark:text-gray-300"
-              />
-            </button>
-            <div className="ui-card flex w-full items-center px-4 py-2">
-              <h1 className="text-gray-700 dark:text-gray-50 font-semibold">
-                {empresa}
-              </h1>
-            </div>
+      <div className="flex min-h-0 flex-1 w-full flex-col items-center overflow-hidden">
+        <div className="flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-2 overflow-hidden p-3 md:px-6 md:py-3">
+          <div className="shrink-0">
+            <button type="button" onClick={() => navigate(-1)} className="mb-1 inline-flex items-center gap-2 text-sm font-semibold text-white transition hover:text-orange-100"><ArrowLeft size={18} /> Voltar</button>
+            <section className="ui-card"><div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2"><div className="min-w-0"><p className="truncate text-xs font-semibold text-orange-700 dark:text-orange-300">{empresa || "Empresa"}</p><h1 className="truncate text-base font-bold text-slate-900 dark:text-white">{form.servico.nome}</h1></div><div className="flex items-center gap-2 text-sm"><span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1 font-semibold text-slate-600 dark:bg-zinc-800 dark:text-zinc-300"><Clock3 size={14} className="text-orange-600 dark:text-orange-300" /> {form.servico.duracao} {form.servico.tempo}</span><span className="font-bold text-slate-900 dark:text-white">R$ {Number(form.servico.preco || 0).toFixed(2)}</span></div></div></section>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-3 grow min-h-0">
+          <div className="flex flex-col gap-3 grow min-h-0 lg:flex-row">
             {/* Sidebar vertical — só desktop */}
-            <div className="ui-card hidden h-full md:block md:w-1/5 p-3 shrink-0 overflow-y-auto">
-              <MiniCalendario
+            <div className="ui-card block h-full w-full shrink-0 overflow-y-auto p-3 lg:w-72">
+              <div className="hidden lg:block"><MiniCalendario
                 onChange={(date) =>
                   handleChange("data", date?.toISOString().split("T")[0] ?? "")
                 }
                 agendamento
                 value={form.data === undefined ? undefined : form.data}
-              />
+              /></div>
               {/* Adicionar seleção de serviço e horário e botão para agendar */}
-              <div className="mt-6">
+              <div className="mt-0 lg:mt-6">
+                <div className="mb-5 border-b border-slate-200 pb-4 dark:border-zinc-700"><h2 className="font-bold text-slate-900 dark:text-white">Finalize seu agendamento</h2><p className="mt-1 text-sm text-slate-500 dark:text-zinc-400">Informe os dados abaixo para reservar seu horário.</p></div>
                 <TextInput
                   titulo="Serviço"
                   type="select"
@@ -348,6 +338,7 @@ function TelaAgendamento() {
                 {configuracao.modalidade === "online" && <p className="mb-4 rounded-lg bg-violet-50 p-3 text-xs text-violet-900 dark:bg-violet-400/10 dark:text-violet-100">Este atendimento será online.</p>}
                 <button
                   onClick={handleClickAgendar}
+                  aria-disabled={!isValid}
                   className={`
                   w-full py-4 rounded-xl text-white font-semibold mb-10
                   ${
@@ -362,12 +353,12 @@ function TelaAgendamento() {
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 w-full md:w-4/5 min-h-0">
+            <div className="hidden min-h-0 w-full flex-col gap-3 lg:flex lg:w-auto lg:flex-1">
               <div className="ui-card flex min-h-0 flex-1 flex-col overflow-hidden p-3">
                 {/* Aqui é o conteúdo do calendário do principal da empresa */}
                 {form.data ? (
                   <>
-                    <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3 dark:border-zinc-700">
+                    <div className="mb-2 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-2 dark:border-zinc-700">
                       <div>
                         <h2 className="font-bold text-slate-800 dark:text-zinc-100">Escolha seu horário</h2>
                         <p className="text-sm text-slate-500 dark:text-zinc-400">{new Date(`${form.data}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })}</p>
@@ -397,7 +388,7 @@ function TelaAgendamento() {
 
           {/* ── Bottom sheet mobile — aparece ao clicar num dia disponível ── */}
           {modalMobileAberto && (
-            <div className="md:hidden fixed inset-0 z-50 flex flex-col justify-end">
+            <div className="hidden fixed inset-0 z-50 flex flex-col justify-end">
               {/* Overlay */}
               <div
                 className="absolute inset-0 bg-black/40 backdrop-blur-sm"
@@ -405,7 +396,7 @@ function TelaAgendamento() {
               />
 
               {/* Painel */}
-              <div className="relative bg-white dark:bg-zinc-800 rounded-t-2xl p-5 flex flex-col gap-3 shadow-xl max-h-[85vh] overflow-y-auto">
+              <div className="relative flex max-h-[88dvh] flex-col gap-3 overflow-y-auto rounded-t-2xl bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-xl dark:bg-zinc-800">
                 {/* Handle + cabeçalho */}
                 <div className="w-10 h-1 rounded-full bg-gray-300 dark:bg-zinc-600 mx-auto mb-1" />
                 <div className="flex items-center justify-between">
@@ -453,10 +444,8 @@ function TelaAgendamento() {
                 {configuracao.modalidade === "online" && <p className="rounded-lg bg-violet-50 p-3 text-xs text-violet-900 dark:bg-violet-400/10 dark:text-violet-100">Este atendimento será online.</p>}
 
                 <button
-                  onClick={() => {
-                    handleClickAgendar();
-                    setModalMobileAberto(false);
-                  }}
+                  aria-disabled={!isValid}
+                  onClick={() => { handleClickAgendar(); if (isValid) setModalMobileAberto(false); }}
                   className={`w-full py-3 rounded-xl text-white text-sm font-semibold transition-all
                     ${
                       isValid

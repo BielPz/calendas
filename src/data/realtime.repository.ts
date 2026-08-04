@@ -4,7 +4,7 @@ import type { Agendamento, AvaliacaoServico, Cliente, Servico, Usuario } from ".
 import { getAuth, updateProfile } from "firebase/auth";
 import { getTipoUsuario } from "./auth.repository";
 import { calcularDisponibilidadeDiaria, calcularDisponibilidadeMensal } from "../lib/disponibilidade";
-import { duracaoServicoEmMinutos, horariosSeSobrepoem } from "../lib/agenda";
+import { duracaoServicoEmMinutos, estaDentroDoFuncionamento, horariosSeSobrepoem } from "../lib/agenda";
 
 const comResumoAvaliacoes = (id: string, dados: Omit<Servico, "id">): Servico => {
   const avaliacoes = Object.values(dados.avaliacoes ?? {}).filter(
@@ -256,6 +256,9 @@ export const agendarServico = async (
     }
 
     const servico = { id: idServico, ...servicoSnap.val() } as Servico;
+    if (!estaDentroDoFuncionamento(servico, agendamento.data, agendamento.horario)) {
+      throw new Error("Este horário está fora do período de funcionamento do serviço.");
+    }
     const servicosEmpresa = await getServicosDaEmpresa(servico.idEmpresa!);
     const conflitos = servicosEmpresa.filter((outro) => outro.id && outro.id !== idServico && (
       servico.servicosConflitantes?.includes(outro.id) || outro.servicosConflitantes?.includes(idServico)

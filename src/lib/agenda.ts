@@ -19,3 +19,11 @@ export const horariosSeSobrepoem = (inicioA: string, duracaoA: number, inicioB: 
   const b = horarioParaMinutos(inicioB);
   return a < b + duracaoB && a + duracaoA > b;
 };
+
+export const estaDentroDoFuncionamento = (servico: Servico, data: string, horario: string): boolean => {
+  const dia = servico.diasDisponiveis[new Date(`${data}T12:00:00`).getDay()];
+  if (!dia?.ativo || !dia.inicio || !dia.fim) return false;
+  const inicio = horarioParaMinutos(horario);
+  const fim = inicio + duracaoServicoEmMinutos(servico);
+  return inicio >= horarioParaMinutos(dia.inicio) && fim <= horarioParaMinutos(dia.fim);
+};

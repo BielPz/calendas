@@ -43,9 +43,11 @@ export function calcularDisponibilidadeMensal(
       const data = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
       const diario = calcularDisponibilidadeDiaria(servico, data, horarios, agendamentos);
       const livres = Object.values(diario).filter(Boolean).length;
-      const status: StatusDisponibilidade = livres === 0
+      const possuiAgendamento = agendamentos.some((agendamento) => agendamento.data === data && agendamento.status !== "cancelado");
+      const statusBase: StatusDisponibilidade = livres === 0
         ? "sem-horario"
         : livres === horarios.length ? "disponivel" : "parcial";
+      const status: StatusDisponibilidade = possuiAgendamento && statusBase === "disponivel" ? "parcial" : statusBase;
       return [dia, status];
     }),
   );

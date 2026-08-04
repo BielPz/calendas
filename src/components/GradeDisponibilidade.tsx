@@ -52,12 +52,12 @@ function GradeDisponibilidade({ ano, mes, diasFuncionamento, disponibilidades, o
     <div className="mb-2 grid grid-cols-7 gap-1.5">
       {DIAS_SEMANA.map((dia) => <div key={dia} className="py-1 text-center text-xs font-semibold text-gray-600 dark:text-gray-300">{dia}</div>)}
     </div>
-    <div className={`mb-3 grid grid-cols-7 gap-1.5 ${preencherAltura ? "min-h-0 flex-1 auto-rows-fr" : ""}`}>
+    <div className={`mb-2 grid grid-cols-7 gap-1.5 ${preencherAltura ? "min-h-0 flex-1 auto-rows-fr" : ""}`}>
       {celulas.map((celula, indice) => {
         const selecionado = celula.dia > 0 && dataSelecionada === paraData(celula.dia);
         const hojeSelecionado = mesAtual && celula.dia === diaHoje;
         const bloqueado = celula.status === "vazio" || (modo !== "agenda" && celula.status === "passado");
-        return <button key={celula.dia ? paraData(celula.dia) : `vazio-${indice}`} type="button" disabled={bloqueado} onClick={() => !bloqueado && onDiaSelecionado?.(celula.dia)} className={`flex items-center justify-center rounded-lg text-sm font-semibold transition-colors ${preencherAltura ? "h-full min-h-12" : "h-12 sm:h-14 lg:h-16"} ${STATUS_CLASSES[celula.status]} ${selecionado || hojeSelecionado ? "ring-2 ring-orange-500 ring-offset-2 dark:ring-orange-400 dark:ring-offset-zinc-800" : ""}`}>{celula.dia || ""}</button>;
+        return <button key={celula.dia ? paraData(celula.dia) : `vazio-${indice}`} type="button" disabled={bloqueado} onClick={() => !bloqueado && onDiaSelecionado?.(celula.dia)} className={`flex items-center justify-center rounded-lg border-2 border-transparent text-sm font-semibold transition-colors ${preencherAltura ? "h-full min-h-0" : "h-12 sm:h-14 lg:h-16"} ${STATUS_CLASSES[celula.status]} ${selecionado || hojeSelecionado ? "border-orange-500 dark:border-orange-400" : ""}`}>{celula.dia || ""}</button>;
       })}
     </div>
     <div className="flex flex-wrap gap-3 border-t border-gray-100 pt-3 dark:border-zinc-700">
