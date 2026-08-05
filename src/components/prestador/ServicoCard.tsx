@@ -8,9 +8,9 @@ interface Props {
 
 function ServicoCard({ servico, onClick }: Props) {
   return (
-    <button type="button" onClick={onClick} className="ui-card shrink-0 flex h-28 w-28 cursor-pointer flex-col justify-center overflow-hidden p-2 text-left transition hover:border-orange-300 hover:shadow-md sm:h-36 sm:w-36">
+    <button type="button" onClick={onClick} className="ui-card flex h-36 w-36 shrink-0 flex-col overflow-hidden p-2 text-left transition hover:border-orange-300 hover:shadow-md">
       {/* Imagem superior */}
-      <div className="h-20 w-full bg-slate-100 dark:bg-zinc-800 sm:h-24">
+      <div className="h-16 w-full shrink-0 bg-slate-100 dark:bg-zinc-800">
         {servico.imagem != undefined ? (
           <img
             src={servico.imagem}
@@ -27,11 +27,11 @@ function ServicoCard({ servico, onClick }: Props) {
       </div>
 
       {/* Informações abaixo */}
-      <div className="p-2 flex flex-col gap-0.5">
-        <p className="font-semibold text-sm leading-tight sm:text-sm">
+      <div className="flex min-h-0 flex-1 flex-col pt-2">
+        <p className="min-h-7 line-clamp-2 font-semibold text-sm leading-tight">
           {servico.nome}
         </p>
-        <p className="text-xs text-slate-600 dark:text-zinc-300">R$ {servico.preco}</p>
+        <p className="mt-auto text-xs text-slate-600 dark:text-zinc-300">R$ {servico.preco}</p>
         {/* Avaliação 
         {servico.avaliacao != undefined && (
           <div className="flex items-center gap-1 mt-0.5">

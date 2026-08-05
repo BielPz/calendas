@@ -21,13 +21,13 @@ function CaptionComBotoes() {
       <div className="flex gap-1">
         <button
           onClick={() => previousMonth && goToMonth(previousMonth)}
-          className="p-1 hover:bg-gray-100 rounded"
+          className="rounded p-1 text-slate-600 hover:bg-orange-50 dark:text-zinc-300 dark:hover:bg-zinc-800"
         >
           <ChevronLeft size={16} className="dark:text-gray-100" />
         </button>
         <button
           onClick={() => nextMonth && goToMonth(nextMonth)}
-          className="p-1 hover:bg-gray-100 rounded"
+          className="rounded p-1 text-slate-600 hover:bg-orange-50 dark:text-zinc-300 dark:hover:bg-zinc-800"
         >
           <ChevronRight size={16} className="dark:text-gray-100" />
         </button>
@@ -95,7 +95,7 @@ function MiniCalendario({ onChange, agendamento, value, datasComAgendamento = []
         today: "font-bold",
       }}
       modifiersClassNames={{
-        selected: "!bg-violet-600 !text-white !rounded-full hover:!bg-violet-600 hover:!text-white",
+        selected: "!rounded-full !bg-linear-to-br !from-orange-500 !to-violet-600 !text-white hover:!from-orange-600 hover:!to-violet-700",
         comAgendamento: "!bg-orange-100 !text-orange-900 !font-bold hover:!bg-orange-200 hover:!text-orange-950 dark:!bg-orange-400/20 dark:!text-orange-100",
       }}
       modifiers={{ comAgendamento: diasAgendados }}

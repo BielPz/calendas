@@ -7,32 +7,15 @@ import { atualizarPerfil, excluirConta } from "../features/perfil/perfil.service
 import { auth, db } from "../firebase/config";
 import { useAlerta } from "../provider/AlertContext";
 import { useNavigate } from "react-router-dom";
-import {
-  User,
-  Settings,
-  Shield,
-  Bell,
-  HelpCircle,
-  LogOut,
-  CreditCard,
-  ChevronRight,
-  Pencil,
-  Trash2,
-  Camera,
-} from "lucide-react";
+import { User, Settings, Shield, Bell, HelpCircle, LogOut, CreditCard, Pencil, Trash2, Camera } from "lucide-react";
 import Cabecalho from "../components/Cabecalho";
 import { get, ref } from "firebase/database";
 import { useGradiente } from "../hooks/useGradiente";
 import Loading from "../components/Loading";
 import { uploadImage } from "../cloudinary/upload";
+import PainelLateral from "../components/PainelLateral";
 
-type Secao =
-  | "perfil"
-  | "configuracoes"
-  | "privacidade"
-  | "notificacoes"
-  | "pagamentos"
-  | "ajuda";
+type Secao = "perfil" | "configuracoes" | "privacidade" | "notificacoes" | "pagamentos" | "ajuda";
 
 const itensMenu: { id: Secao; label: string; icon: React.ReactNode }[] = [
   { id: "perfil", label: "Perfil", icon: <User size={18} /> },
@@ -86,10 +69,9 @@ function TelaPerfil() {
 
     try {
       const url = await uploadImage(file);
-      await atualizarPerfil(tipo!, { ...dadosEditados, imagem: url });
-      setDados((prev) => ({ ...prev, imagem: url }));
       setDadosEditados((prev) => ({ ...prev, imagem: url }));
-      showAlerta("Sucesso", "Imagem de perfil atualizada!", "sucesso");
+      setEditando(true);
+      showAlerta("Imagem pronta", "Salve as alterações para atualizar sua foto de perfil.", "sucesso");
     } catch (error) {
       console.error(error);
       showAlerta("Erro", "Erro ao fazer upload da imagem.", "erro");
@@ -165,36 +147,13 @@ function TelaPerfil() {
       <Cabecalho none />
 
       <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-4 overflow-hidden p-4 md:flex-row">
-        <nav className="ui-card flex gap-1 overflow-x-auto p-2 md:hidden" aria-label="Seções do perfil">
-          {itensMenu.map((item) => (
-            <button key={item.id} onClick={() => setSecaoAtiva(item.id)} className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold ${secaoAtiva === item.id ? "bg-linear-to-r from-orange-500 to-violet-600 text-white" : "text-slate-600 dark:text-zinc-300"}`}>
-              {item.icon}<span>{item.label}</span>
-            </button>
-          ))}
-        </nav>
-        {/* Sidebar Desktop */}
-        <aside className="ui-card hidden w-72 shrink-0 flex-col p-4 md:flex">
-          <div className="flex-1 overflow-y-auto pr-2">
-            {itensMenu.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setSecaoAtiva(item.id)}
-                className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-semibold transition-all mb-1
-                  ${secaoAtiva === item.id ? "bg-linear-to-r from-orange-500 to-violet-600 text-white shadow-sm" : "text-slate-600 hover:bg-orange-50 dark:text-zinc-300 dark:hover:bg-zinc-800"}`}
-              >
-                {item.icon}
-                <span className="flex-1">{item.label}</span>
-                {secaoAtiva === item.id && <ChevronRight size={14} />}
-              </button>
-            ))}
-          </div>
-          <button
-            onClick={handleLogout}
-            className="mt-4 flex w-full items-center gap-3 border-t border-slate-200 bg-slate-50 px-4 pt-4 pb-3 text-sm font-bold text-red-600 transition-colors hover:bg-red-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-red-400"
-          >
-            <LogOut size={18} /> Sair
-          </button>
-        </aside>
+        <PainelLateral
+          itens={itensMenu}
+          itemAtivo={secaoAtiva}
+          onSelecionar={(id) => setSecaoAtiva(id as Secao)}
+          rotuloAcessivel="Seções do perfil"
+          rodape={<button type="button" onClick={handleLogout} className="mt-4 flex w-full items-center gap-3 border-t border-slate-200 bg-slate-50 px-4 pb-3 pt-4 text-sm font-bold text-red-600 transition-colors hover:bg-red-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-red-400"><LogOut size={18} /> Sair</button>}
+        />
 
         {/* Área Central */}
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">

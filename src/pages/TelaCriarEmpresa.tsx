@@ -206,7 +206,7 @@ function TelaAdicionarEmpresa() {
             w-full py-4 rounded-xl text-white font-semibold mb-10 transition-all
             ${
               isValid && !carregando
-                ? "bg-linear-to-br from-orange-500 to-purple-500 hover:from-orange-700 hover:to-purple-700 dark:from-indigo-600 dark:to-zinc-600 dark:hover:from-indigo-950 dark:hover:to-zinc-950 cursor-pointer"
+                ? "bg-linear-to-br from-orange-500 to-violet-600 hover:from-orange-600 hover:to-violet-700 cursor-pointer"
                 : "bg-gray-400 cursor-not-allowed opacity-70"
             }
           `}

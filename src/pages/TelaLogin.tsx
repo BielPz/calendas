@@ -80,7 +80,7 @@ function TelaLogin() {
             ui-button-primary w-full py-4 mb-3
             ${
               isValid
-                ? "bg-linear-to-br from-orange-500 to-purple-500 dark:from-indigo-600 dark:to-zinc-600 dark:hover:from-indigo-950 dark:hover:to-zinc-950 hover:from-orange-700 hover:to-purple-700 cursor-pointer"
+                ? "bg-linear-to-br from-orange-500 to-violet-600 hover:from-orange-600 hover:to-violet-700 cursor-pointer"
                 : "bg-gray-400 cursor-not-allowed opacity-70"
             }
           `}

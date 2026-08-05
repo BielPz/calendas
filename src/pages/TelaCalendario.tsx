@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Cabecalho from "../components/Cabecalho";
 import { getAuth } from "firebase/auth";
-import { CalendarClock, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
+import { CalendarClock, ChevronLeft, ChevronRight, Info, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import GradeDisponibilidade from "../components/GradeDisponibilidade";
 import { useGradiente } from "../hooks/useGradiente";
@@ -86,6 +86,14 @@ function TelaCalendario() {
     }
   };
 
+  const acoesDoAgendamento = (agendamento: Agendamento) => (
+    <>
+      {tipoUsuario === "cliente" && <button type="button" onClick={() => reagendar(agendamento)} className="rounded-md p-2 text-orange-600 transition hover:bg-orange-100 hover:text-orange-800 dark:text-orange-300 dark:hover:bg-orange-400/15" aria-label="Reagendar" title="Reagendar"><CalendarClock size={17} /></button>}
+      <button type="button" onClick={() => abrirDetalhes(agendamento)} className="rounded-md p-2 text-slate-600 transition hover:bg-orange-100 hover:text-orange-800 dark:text-zinc-300 dark:hover:bg-orange-400/15" aria-label="Ver detalhes" title="Ver detalhes"><Info size={17} /></button>
+      <button type="button" onClick={() => cancelar(agendamento)} className="rounded-md p-2 text-red-600 transition hover:bg-red-100 hover:text-red-800 dark:text-red-300 dark:hover:bg-red-400/15" aria-label="Cancelar agendamento" title="Cancelar agendamento"><Trash2 size={17} /></button>
+    </>
+  );
+
   if (!id) return <Loading />;
 
   return (
@@ -100,16 +108,10 @@ function TelaCalendario() {
                 <p className="rounded-lg bg-slate-50 p-3 text-sm text-slate-500 dark:bg-zinc-800 dark:text-zinc-400">Você ainda não possui agendamentos.</p>
               ) : todosAgendamentos.map((agendamento) => (
                 <article key={agendamento.id} className={`rounded-lg border p-3 transition ${selecionadoId === agendamento.id ? "border-orange-400 bg-orange-50 dark:bg-orange-400/10" : "border-slate-200 bg-slate-50 hover:border-orange-300 dark:border-zinc-700 dark:bg-zinc-800"}`}>
-                  <button type="button" onClick={() => abrirDetalhes(agendamento)} className="w-full text-left">
+                  <button type="button" onClick={() => selecionarAgendamento(agendamento)} className="w-full text-left">
                     <span className="block text-xs font-semibold text-orange-700 dark:text-orange-300">{new Date(`${agendamento.data}T12:00:00`).toLocaleDateString("pt-BR")} às {agendamento.horario}</span>
-                    <span className="block text-sm font-bold text-slate-800 dark:text-zinc-100">{agendamento.servico.nome}</span>
                   </button>
-                  {agendamento.idCliente === id && (
-                    <div className="mt-3 flex justify-end gap-1 border-t border-slate-200 pt-2 dark:border-zinc-700">
-                      <button type="button" onClick={() => reagendar(agendamento)} className="rounded-md p-2 text-orange-600 transition hover:bg-orange-100 hover:text-orange-800 dark:text-orange-300 dark:hover:bg-orange-400/15" aria-label="Reagendar" title="Reagendar"><CalendarClock size={17} /></button>
-                      <button type="button" onClick={() => cancelar(agendamento)} className="rounded-md p-2 text-red-600 transition hover:bg-red-100 hover:text-red-800 dark:text-red-300 dark:hover:bg-red-400/15" aria-label="Cancelar agendamento" title="Cancelar"><Trash2 size={17} /></button>
-                    </div>
-                  )}
+                  <div className="mt-1 flex items-center gap-1"><button type="button" onClick={() => selecionarAgendamento(agendamento)} className="min-w-0 flex-1 truncate text-left text-sm font-bold text-slate-800 dark:text-zinc-100">{agendamento.servico.nome}</button><div className="flex shrink-0 items-center gap-1">{acoesDoAgendamento(agendamento)}</div></div>
                 </article>
               ))}
             </div>
@@ -124,7 +126,8 @@ function TelaCalendario() {
             data={dataSelecionada}
             agendamentos={todosAgendamentos}
             selecionadoId={selecionadoId}
-            onSelecionar={abrirDetalhes}
+            onSelecionar={selecionarAgendamento}
+            acoesAgendamento={acoesDoAgendamento}
             acaoCabecalho={<button type="button" className="ui-button-secondary text-sm" onClick={() => setMostrandoAgenda(false)}>Alterar data</button>}
             rotuloAgendamento={(agendamento) => agendamento.idCliente === id ? agendamento.servico.nome : `${agendamento.clienteNome ?? "Cliente"} — ${agendamento.servico.nome}`}
           /> : <section className="ui-card flex h-full min-h-0 flex-col p-5">

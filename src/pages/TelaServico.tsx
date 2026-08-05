@@ -26,6 +26,7 @@ function TelaServico() {
   const [agendamentosDoDia, setAgendamentosDoDia] = useState<Agendamento[]>([]);
   const [agendamentoDetalhado, setAgendamentoDetalhado] = useState<Agendamento>();
   const idUsuario = getAuth().currentUser?.uid;
+  const nomeUsuario = getAuth().currentUser?.displayName || "Perfil";
 
   useEffect(() => {
     const carregar = async () => {
@@ -55,7 +56,7 @@ function TelaServico() {
   const comentarios = avaliacoes.filter(([, avaliacao]) => avaliacao.comentario?.trim());
 
   if (carregando) return <Loading />;
-  if (!servico) return <div className={`${corFundo} min-h-dvh`}><Cabecalho perfil /><main className="mx-auto max-w-3xl p-4"><div className="ui-card p-8 text-center"><p className="text-lg font-bold dark:text-white">Serviço não encontrado.</p><button onClick={() => navigate("/feed")} className="ui-button-primary mt-4">Voltar ao feed</button></div></main></div>;
+  if (!servico) return <div className={`${corFundo} flex h-dvh flex-col overflow-hidden dark:!bg-none dark:!bg-zinc-950`}><Cabecalho perfil nome={nomeUsuario} /><main className="flex-1 overflow-y-auto"><div className="mx-auto max-w-3xl p-4"><div className="ui-card p-8 text-center"><p className="text-lg font-bold dark:text-white">Serviço não encontrado.</p><button onClick={() => navigate("/feed")} className="ui-button-primary mt-4">Voltar ao feed</button></div></div></main></div>;
 
   const modalidade = servico.configuracaoAtendimento?.modalidade;
   const atendimento = modalidade === "online" ? { texto: "Atendimento online", Icone: Monitor } : modalidade === "presencial-prestador" ? { texto: "O prestador vai até você", Icone: MapPin } : { texto: "Atendimento no estabelecimento", Icone: MapPin };
@@ -71,9 +72,10 @@ function TelaServico() {
   };
 
   return (
-    <div className={`${corFundo} min-h-dvh`}>
-      <Cabecalho perfil />
-      <main className="mx-auto w-full max-w-6xl px-4 py-5 md:py-8">
+    <div className={`${corFundo} flex h-dvh flex-col overflow-hidden dark:!bg-none dark:!bg-zinc-950`}>
+      <Cabecalho perfil nome={nomeUsuario} />
+      <main className="flex-1 overflow-y-auto">
+      <div className="mx-auto w-full max-w-6xl px-4 py-5 md:py-8">
         <button onClick={() => navigate(-1)} className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-white transition hover:text-orange-100"><ArrowLeft size={18} /> Voltar</button>
 
         <section className="ui-card overflow-hidden">
@@ -93,7 +95,7 @@ function TelaServico() {
         <div className="mt-5 grid gap-5 lg:grid-cols-[1.45fr_0.85fr]">
           <section className="ui-card p-5 md:p-6">
             <div className="mb-5 flex items-center justify-between gap-3"><h2 className="text-lg font-bold text-slate-900 dark:text-white">Avaliações</h2><span className="text-sm text-slate-500 dark:text-zinc-400">{avaliacoes.length} no total</span></div>
-            {comentarios.length ? <div className="space-y-4">{comentarios.map(([uid, avaliacao]) => <article key={uid} className="rounded-xl border border-slate-100 bg-slate-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/70"><div className="flex items-center justify-between gap-3"><div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-br from-orange-500 to-violet-600 text-xs font-bold text-white">C</span><span className="text-sm font-semibold text-slate-700 dark:text-zinc-200">Cliente</span></div><span className="inline-flex items-center gap-1 text-sm font-bold text-amber-600 dark:text-amber-300"><Star size={15} className="fill-current" /> {avaliacao.nota}</span></div><p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-zinc-300">{avaliacao.comentario}</p></article>)}</div> : <p className="ui-card-muted p-4 text-sm text-slate-500 dark:text-zinc-400">Ainda não há comentários. As notas sem comentário continuam contando na média.</p>}
+            {comentarios.length ? <div className="space-y-4">{comentarios.map(([uid, avaliacao]) => { const nomeAutor = avaliacao.nomeAutor || "Cliente"; const iniciais = nomeAutor.split(" ").map((nome) => nome[0]).slice(0, 2).join("").toUpperCase(); return <article key={uid} className="rounded-xl border border-slate-100 bg-slate-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/70"><div className="flex items-center justify-between gap-3"><div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-br from-orange-500 to-violet-600 text-xs font-bold text-white">{iniciais}</span><span className="text-sm font-semibold text-slate-700 dark:text-zinc-200">{nomeAutor}</span></div><span className="inline-flex items-center gap-1 text-sm font-bold text-amber-600 dark:text-amber-300"><Star size={15} className="fill-current" /> {avaliacao.nota}</span></div><p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-zinc-300">{avaliacao.comentario}</p></article>; })}</div> : <p className="ui-card-muted p-4 text-sm text-slate-500 dark:text-zinc-400">Ainda não há comentários. As notas sem comentário continuam contando na média.</p>}
           </section>
 
           <aside className="ui-card p-5 md:p-6">
@@ -113,6 +115,7 @@ function TelaServico() {
           {visibilidadeAgenda === "todos" && <label className="mb-3 block max-w-xs text-sm font-semibold text-white">Data da agenda<input type="date" value={dataAgenda} min={hoje()} onChange={(event) => setDataAgenda(event.target.value)} className="ui-input mt-1 py-2" /></label>}
           <Agenda titulo="Agenda do serviço" data={visibilidadeAgenda === "dia" ? hoje() : dataAgenda} agendamentos={agendaServico} janelaHoras={4} onSelecionar={setAgendamentoDetalhado} rotuloAgendamento="Horário reservado" />
         </div>}
+      </div>
       </main>
       {agendamentoDetalhado && <DetalhesAgendamento
         agendamento={agendamentoDetalhado}

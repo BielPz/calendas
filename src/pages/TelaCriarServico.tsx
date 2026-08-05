@@ -1,9 +1,10 @@
 import { useEffect, useState, useRef } from "react";
-import { ArrowLeft, Pencil, Star, Trash2 } from "lucide-react";
+import { ArrowLeft, CalendarDays, Clock3, Info, Phone, Pencil, ShieldAlert, Star, Trash2, X } from "lucide-react";
 import Formulario from "../components/Formulario";
 import TextInput from "../components/TextInput";
 import type { Servico, DiaDisponivel, Agendamento } from "../firebase/types";
 import CabecalhoBranco from "../components/CabecalhoBranco";
+import Cabecalho from "../components/Cabecalho";
 import { atualizarServico, criarServico, excluirServico, getServico, getServicosDaEmpresa } from "../features/servicos/servico.service";
 import { cancelarAgendamento, getAgendamentosDoServico } from "../features/agendamentos/agendamento.service";
 import { getEmpresaPorId } from "../features/empresas/empresa.service";
@@ -12,6 +13,9 @@ import UploadImagem from "../components/UploadImagem";
 import { useAlerta } from "../provider/AlertContext";
 import DetalhesAgendamento from "../components/DetalhesAgendamento";
 import PainelAgenda from "../components/PainelAgenda";
+import { useGradiente } from "../hooks/useGradiente";
+import { getAuth } from "firebase/auth";
+import PainelLateral from "../components/PainelLateral";
 
 // ─── Configuração dos dias da semana ─────────────────────────────────────────
 const DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -29,6 +33,8 @@ function TelaCriarServico() {
   const location = useLocation();
   const navigate = useNavigate();
   const { showAlerta } = useAlerta();
+  const corFundo = useGradiente();
+  const nomeUsuario = getAuth().currentUser?.displayName || "Perfil";
   const idEmpresa = location.state?.idEmpresa;
   const idServico = location.state?.idServico as string | undefined;
 
@@ -55,6 +61,8 @@ function TelaCriarServico() {
   const [agendamentoDetalhado, setAgendamentoDetalhado] = useState<Agendamento>();
   const [outrosServicos, setOutrosServicos] = useState<Servico[]>([]);
   const [secaoAtiva, setSecaoAtiva] = useState("basicos");
+  const [editando, setEditando] = useState(!idServico);
+  const [rascunhoOriginal, setRascunhoOriginal] = useState<Servico | null>(null);
 
   // Refs síncronas para gravar qual índice de dia ativou a propagação inicial.
   // Evita lags de estado assíncrono entre keystrokes rápidas.
@@ -64,7 +72,11 @@ function TelaCriarServico() {
   useEffect(() => {
     if (idServico) {
       getServico(idServico).then((dados) => {
-        if (dados) setForm({ ...dados, modoHorario: dados.modoHorario ?? "duracao" });
+        if (dados) {
+          const servico = { ...dados, modoHorario: dados.modoHorario ?? "duracao" };
+          setForm(servico);
+          setRascunhoOriginal(structuredClone(servico));
+        }
       });
       return;
     }
@@ -191,11 +203,14 @@ function TelaCriarServico() {
 
       if (idServico) {
         await atualizarServico(idServico, formSanitizado);
+        setForm(formSanitizado);
+        setRascunhoOriginal(structuredClone(formSanitizado));
+        setEditando(false);
       } else {
         await criarServico(formSanitizado, idEmpresa);
       }
       showAlerta("Sucesso", idServico ? "Serviço atualizado com sucesso!" : "Serviço criado com sucesso!", "sucesso");
-      navigate("/feed");
+      if (!idServico) navigate("/feed");
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Erro desconhecido";
@@ -235,6 +250,8 @@ function TelaCriarServico() {
     ["agenda", "Agenda"],
     ["avaliacoes", "Avaliações"],
   ] as const;
+  const iconesSecao = { basicos: <Info size={18} />, atendimento: <Phone size={18} />, horarios: <Clock3 size={18} />, conflitos: <ShieldAlert size={18} />, agenda: <CalendarDays size={18} />, avaliacoes: <Star size={18} /> };
+  const itensMenuServico = secoesEdicao.map(([id, label]) => ({ id, label, icon: iconesSecao[id] }));
   const visibilidadePorSecao: Record<string, string> = {
     basicos: "[&>div]:hidden [&>div:nth-child(1)]:block [&>div:nth-child(2)]:block [&>div:nth-child(3)]:block [&>div:nth-child(4)]:block [&>div:nth-child(5)]:block [&>div:nth-child(6)]:block",
     atendimento: "[&>div]:hidden [&>div:nth-child(7)]:block",
@@ -246,27 +263,47 @@ function TelaCriarServico() {
   const classeFormularioEdicao = idServico
     ? `grid gap-4 md:grid-cols-2 [&>div]:rounded-2xl [&>div]:border [&>div]:border-slate-200 [&>div]:bg-white/95 [&>div]:p-4 [&>div]:shadow-sm dark:[&>div]:border-zinc-700 dark:[&>div]:bg-zinc-900/95 ${visibilidadePorSecao[secaoAtiva]}`
     : "";
+  const avaliacoes = Object.entries(form.avaliacoes ?? {}).sort(([, a], [, b]) => b.atualizadoEm - a.atualizadoEm);
+  const cancelarEdicao = () => {
+    if (rascunhoOriginal) setForm(structuredClone(rascunhoOriginal));
+    setEditando(false);
+  };
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className={`flex min-h-screen flex-col items-center justify-start ${idServico ? "bg-linear-to-br from-orange-400 via-rose-400 to-violet-500" : "dark:bg-zinc-900"}`}>
-      {idServico ? <div className="sticky top-0 z-20 flex w-full max-w-6xl items-center px-4 py-3"><button type="button" onClick={() => navigate(-1)} className="inline-flex items-center gap-2 text-sm font-semibold text-white"><ArrowLeft size={16} /> Voltar</button></div> : <CabecalhoBranco titulo="Cadastre seu Serviço" />}
-      <div className={`flex w-full flex-col gap-3 px-4 ${idServico ? "max-w-6xl py-3" : "max-w-xl"}`}>
+    <div className={`flex min-h-dvh flex-col items-center justify-start ${idServico ? `md:h-dvh md:overflow-hidden ${corFundo} dark:!bg-none dark:!bg-zinc-950` : "dark:bg-zinc-900"}`}>
+      {idServico ? <><Cabecalho perfil nome={nomeUsuario} /><div className="sticky top-0 z-20 flex w-full max-w-6xl items-center px-4 py-3 md:hidden"><button type="button" onClick={() => navigate(-1)} className="inline-flex items-center gap-2 text-sm font-semibold text-white"><ArrowLeft size={16} /> Voltar</button></div></> : <CabecalhoBranco titulo="Cadastre seu Serviço" />}
+      <div className={`${idServico ? "grid w-full max-w-7xl gap-4 px-4 pb-4 pt-4 md:h-[calc(100dvh-4rem)] md:grid-cols-[18rem_minmax(0,1fr)] md:overflow-y-auto" : "flex w-full flex-col gap-3 px-4 max-w-xl"}`}>
         {idServico && (
-          <section className="ui-card overflow-hidden">
-            <div className="grid sm:grid-cols-[9rem_1fr]">
-              <div className="min-h-36 bg-linear-to-br from-orange-100 to-violet-200 dark:from-orange-500/15 dark:to-violet-500/15">{form.imagem && <img src={form.imagem} alt={form.nome} className="h-full w-full object-cover" />}</div>
-              <div className="flex flex-wrap items-center justify-between gap-4 p-5"><div><p className="text-sm font-semibold text-orange-700 dark:text-orange-300">Modo de edição</p><h1 className="mt-1 flex items-center gap-2 text-2xl font-bold text-slate-900 dark:text-white">{form.nome || "Serviço"}<Pencil size={16} className="text-orange-500" /></h1><p className="mt-2 text-sm text-slate-600 dark:text-zinc-300">R$ {Number(form.preco || 0).toFixed(2)} · {form.duracao || "—"} {form.tempo}</p><p className="mt-3 text-sm text-slate-500 dark:text-zinc-400">Edite os campos abaixo e salve quando terminar.</p></div><button type="button" disabled={!isValid} onClick={handleConfirmar} className={`rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-lg transition ${isValid ? "bg-gradient-to-r from-orange-600 via-red-500 to-violet-700 hover:-translate-y-0.5" : "cursor-not-allowed bg-slate-400 opacity-70"}`}>Salvar alterações</button></div>
+          <section className="ui-card min-h-[9rem] self-start overflow-hidden md:col-start-2 md:row-start-1">
+            <div className="grid min-h-[9rem] sm:grid-cols-[9rem_minmax(0,1fr)]">
+              <div className="min-h-[9rem] bg-linear-to-br from-orange-100 to-violet-200 dark:from-orange-500/15 dark:to-violet-500/15">{form.imagem && <img src={form.imagem} alt={form.nome} className="h-full min-h-[9rem] w-full object-cover" />}</div>
+              <div className="flex min-w-0 flex-wrap items-center justify-between gap-4 p-5"><div className="min-w-0"><p className="text-sm font-semibold text-orange-700 dark:text-orange-300">{editando ? "Modo de edição" : "Serviço"}</p><h1 className="mt-1 truncate text-2xl font-bold text-slate-900 dark:text-white">{form.nome || "Serviço"}</h1><p className="mt-2 text-sm text-slate-600 dark:text-zinc-300">R$ {Number(form.preco || 0).toFixed(2)} · {form.duracao || "—"} {form.tempo}</p></div><div className="flex shrink-0 flex-wrap gap-2">{editando ? <><button type="button" onClick={cancelarEdicao} className="ui-button-secondary inline-flex items-center gap-2"><X size={16} /> Cancelar</button><button type="button" disabled={!isValid} onClick={handleConfirmar} className="ui-button-primary">Salvar alterações</button></> : <button type="button" onClick={() => setEditando(true)} className="ui-button-secondary inline-flex items-center gap-2"><Pencil size={16} /> Editar</button>}</div></div>
             </div>
           </section>
         )}
-        {idServico && <nav className="ui-card flex gap-2 overflow-x-auto p-2" aria-label="Seções da edição">
-          {secoesEdicao.map(([idSecao, titulo]) => <button key={idSecao} type="button" onClick={() => setSecaoAtiva(idSecao)} aria-pressed={secaoAtiva === idSecao} className={`shrink-0 rounded-lg px-3 py-2 text-sm font-bold transition ${secaoAtiva === idSecao ? "bg-gradient-to-r from-orange-500 to-violet-600 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-orange-50 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"}`}>{titulo}</button>)}
-        </nav>}
-        {idServico && secaoAtiva === "agenda" && <div className="w-full">
+        {idServico && <PainelLateral
+          itens={itensMenuServico}
+          itemAtivo={secaoAtiva}
+          onSelecionar={setSecaoAtiva}
+          titulo="Gerenciar serviço"
+          rotuloAcessivel="Seções da edição do serviço"
+          className="md:col-start-1 md:row-start-1 md:row-span-6 md:sticky md:top-0 md:h-[calc(100dvh-6rem)]"
+          rodape={<button type="button" onClick={() => navigate(-1)} className="mt-4 flex w-full items-center gap-3 border-t border-slate-200 bg-slate-50 px-4 pb-3 pt-4 text-sm font-bold text-slate-600 transition-colors hover:bg-orange-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"><ArrowLeft size={18} /> Voltar</button>}
+        />}
+        {idServico && secaoAtiva === "agenda" && <div className="w-full md:col-start-2">
           <section className="ui-card p-5"><h2 className="font-bold text-slate-900 dark:text-white">Visibilidade da agenda</h2><p className="mt-1 text-sm text-slate-500 dark:text-zinc-400">Defina o que clientes podem consultar.</p><div className="mt-4 flex flex-wrap gap-2">{[["dia", "Somente hoje"], ["todos", "Todos os dias"], ["oculta", "Ocultar"]].map(([valor, titulo]) => <button key={valor} type="button" onClick={() => setForm((prev) => ({ ...prev, visibilidadeAgenda: valor as Servico["visibilidadeAgenda"] }))} className={`rounded-lg px-3 py-2 text-sm font-bold ${(form.visibilidadeAgenda ?? "todos") === valor ? "bg-orange-100 text-orange-800 dark:bg-orange-400/15 dark:text-orange-200" : "bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-300"}`}>{titulo}</button>)}</div></section>
         </div>}
-        <Formulario className={classeFormularioEdicao}>
+        {idServico && !editando && (
+          <section className="ui-card p-5 md:col-start-2">
+            {secaoAtiva === "basicos" && <div className="space-y-5"><div><p className="text-xs font-black uppercase tracking-widest text-slate-500">Descrição</p><p className="mt-2 leading-relaxed text-slate-700 dark:text-zinc-200">{form.descricao || "Sem descrição cadastrada."}</p></div><dl className="grid gap-3 sm:grid-cols-3"><div className="ui-card-muted p-3"><dt className="text-xs text-slate-500">Preço</dt><dd className="mt-1 font-bold text-slate-900 dark:text-white">R$ {Number(form.preco || 0).toFixed(2)}</dd></div><div className="ui-card-muted p-3"><dt className="text-xs text-slate-500">Duração</dt><dd className="mt-1 font-bold text-slate-900 dark:text-white">{form.duracao} {form.tempo}</dd></div><div className="ui-card-muted p-3"><dt className="text-xs text-slate-500">CNPJ</dt><dd className="mt-1 font-bold text-slate-900 dark:text-white">{form.cnpj}</dd></div></dl></div>}
+            {secaoAtiva === "atendimento" && <div className="grid gap-3 sm:grid-cols-2"><div className="ui-card-muted p-4"><p className="text-xs font-black uppercase tracking-widest text-slate-500">Modalidade</p><p className="mt-2 font-bold text-slate-900 dark:text-white">{form.configuracaoAtendimento?.modalidade === "online" ? "Online" : form.configuracaoAtendimento?.modalidade === "presencial-prestador" ? "Prestador vai até o cliente" : "Cliente vai até o local"}</p></div><div className="ui-card-muted p-4"><p className="text-xs font-black uppercase tracking-widest text-slate-500">Dados solicitados</p><p className="mt-2 font-bold text-slate-900 dark:text-white">{form.configuracaoAtendimento?.solicitarTelefone ? "Telefone de contato" : "Nenhum dado adicional"}{form.configuracaoAtendimento?.observacaoObrigatoria ? " e observação obrigatória" : ""}</p></div><div className="ui-card-muted p-4 sm:col-span-2"><p className="text-xs font-black uppercase tracking-widest text-slate-500">Orientação para observação</p><p className="mt-2 text-slate-700 dark:text-zinc-200">{form.configuracaoAtendimento?.placeholderObservacao || "Nenhuma orientação cadastrada."}</p></div></div>}
+            {secaoAtiva === "horarios" && <div className="space-y-4"><div className="ui-card-muted p-4"><p className="text-xs font-black uppercase tracking-widest text-slate-500">Marcação de horário</p><p className="mt-2 font-bold text-slate-900 dark:text-white">{form.modoHorario === "livre" ? "Horário livre" : "Por duração"}</p></div><div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{DIAS_SEMANA.map((dia, indice) => { const item = form.diasDisponiveis[indice]; return <div key={dia} className="ui-card-muted flex items-center justify-between p-3"><strong>{dia}</strong><span className="text-sm text-slate-600 dark:text-zinc-300">{item?.ativo ? `${item.inicio} – ${item.fim}` : "Fechado"}</span></div>; })}</div></div>}
+            {secaoAtiva === "conflitos" && <div><p className="text-sm text-slate-600 dark:text-zinc-300">Serviços que não podem ocorrer ao mesmo tempo.</p><div className="mt-4 flex flex-wrap gap-2">{(form.servicosConflitantes ?? []).length ? outrosServicos.filter((servico) => form.servicosConflitantes?.includes(servico.id!)).map((servico) => <span key={servico.id} className="rounded-full bg-orange-100 px-3 py-2 text-sm font-bold text-orange-800 dark:bg-orange-400/15 dark:text-orange-200">{servico.nome}</span>) : <p className="ui-card-muted p-4 text-sm text-slate-600 dark:text-zinc-300">Nenhum conflito configurado.</p>}</div></div>}
+            {secaoAtiva === "avaliacoes" && <div className="max-h-80 space-y-3 overflow-y-auto">{avaliacoes.length ? avaliacoes.map(([id, avaliacao]) => <article key={id} className="ui-card-muted p-4"><div className="flex items-center justify-between"><strong>{avaliacao.nomeAutor || "Cliente"}</strong><span className="inline-flex items-center gap-1 font-bold text-amber-600"><Star size={15} className="fill-current" /> {avaliacao.nota}</span></div>{avaliacao.comentario && <p className="mt-2 text-sm text-slate-600 dark:text-zinc-300">{avaliacao.comentario}</p>}</article>) : <p className="ui-card-muted p-4 text-sm text-slate-600 dark:text-zinc-300">Ainda não há avaliações para este serviço.</p>}</div>}
+          </section>
+        )}
+        {(!idServico || editando) && <Formulario className={`${classeFormularioEdicao} ${idServico ? "md:col-start-2" : ""}`}>
           <TextInput
             titulo="CNPJ da Empresa"
             type="text"
@@ -422,13 +459,13 @@ function TelaCriarServico() {
               </p>
             )}
           </div>
-          {idServico && <section className="ui-card h-full max-h-80 overflow-y-auto p-5 md:col-span-2"><div className="flex items-center justify-between"><h2 className="font-bold text-slate-900 dark:text-white">Avaliações</h2><span className="text-sm text-slate-500">{form.totalAvaliacoes ?? 0} no total</span></div><div className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-600 dark:bg-zinc-800 dark:text-zinc-300">{form.totalAvaliacoes ? <span className="inline-flex items-center gap-1 font-bold text-amber-600"><Star size={16} className="fill-current" /> {form.avaliacaoMedia?.toFixed(1)}</span> : null}<p className="mt-2">As avaliações dos clientes aparecem aqui.</p></div></section>}
-        </Formulario>
+          {idServico && <section className="ui-card h-full max-h-80 overflow-y-auto p-5 md:col-span-2"><div className="flex items-center justify-between"><h2 className="font-bold text-slate-900 dark:text-white">Avaliações</h2><span className="text-sm text-slate-500">{form.totalAvaliacoes ?? 0} no total</span></div><div className="mt-4 space-y-3">{form.totalAvaliacoes ? <span className="inline-flex items-center gap-1 font-bold text-amber-600"><Star size={16} className="fill-current" /> {form.avaliacaoMedia?.toFixed(1)}</span> : null}{avaliacoes.length ? avaliacoes.map(([id, avaliacao]) => <article key={id} className="rounded-xl bg-slate-50 p-3 text-sm dark:bg-zinc-800"><div className="flex items-center justify-between gap-3"><strong className="text-slate-800 dark:text-zinc-100">{avaliacao.nomeAutor || "Cliente"}</strong><span className="inline-flex items-center gap-1 font-bold text-amber-600"><Star size={14} className="fill-current" /> {avaliacao.nota}</span></div>{avaliacao.comentario && <p className="mt-2 text-slate-600 dark:text-zinc-300">{avaliacao.comentario}</p>}</article>) : <p className="rounded-xl bg-slate-50 p-4 text-sm text-slate-600 dark:bg-zinc-800 dark:text-zinc-300">Ainda não há avaliações para este serviço.</p>}</div></section>}
+        </Formulario>}
 
         {idServico && secaoAtiva === "agenda" && (
-          <section className="ui-card p-3">
+          <section className="ui-card p-3 md:col-start-2">
             <label className="mb-3 block text-sm font-semibold text-slate-700 dark:text-zinc-200">Agenda deste serviço<input type="date" value={dataAgenda} onChange={(event) => setDataAgenda(event.target.value)} className="ui-input mt-2 py-2" /></label>
-            <PainelAgenda className="h-96" tituloLista="Agendamentos deste serviço" tituloAgenda="Agenda do serviço" data={dataAgenda} agendamentos={agendaServico} selecionadoId={agendamentoDetalhado?.id} onSelecionar={(agendamento) => { setDataAgenda(agendamento.data); setAgendamentoDetalhado(agendamento); }} janelaHoras={4} rotuloAgendamento={(agendamento) => `${agendamento.clienteNome ?? "Cliente"} — ${agendamento.servico.nome}`} />
+            <PainelAgenda className="h-96" tituloLista="Notificações de agendamento" tituloAgenda="Agenda do serviço" data={dataAgenda} agendamentos={agendaServico} selecionadoId={agendamentoDetalhado?.id} onSelecionar={(agendamento) => { setDataAgenda(agendamento.data); setAgendamentoDetalhado(agendamento); }} janelaHoras={4} ocultarAgendaNoMobile rotuloAgendamento={(agendamento) => `${agendamento.clienteNome ?? "Cliente"} — ${agendamento.servico.nome}`} />
           </section>
         )}
         {agendamentoDetalhado && <DetalhesAgendamento
@@ -456,7 +493,7 @@ function TelaCriarServico() {
             w-full rounded-xl py-4 font-bold text-white transition-all ${idServico ? "shadow-lg ring-2 ring-orange-200 ring-offset-2 ring-offset-white hover:-translate-y-0.5 dark:ring-offset-zinc-900" : "mb-10"}
             ${
               isValid
-                ? "bg-linear-to-r from-orange-600 via-red-500 to-violet-700 hover:from-orange-700 hover:via-red-600 hover:to-violet-800 cursor-pointer"
+                ? "bg-linear-to-br from-orange-500 to-violet-600 hover:from-orange-600 hover:to-violet-700 cursor-pointer"
                 : "bg-gray-400 cursor-not-allowed opacity-70"
             }
           `}
@@ -467,14 +504,14 @@ function TelaCriarServico() {
         </button>
         </div>}
         {idServico && (
-          <section className="mb-10 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-900/60 dark:bg-red-950/25">
-            <h2 className="font-bold text-red-900 dark:text-red-100">Zona de perigo</h2>
-            <p className="mt-1 text-sm text-red-800 dark:text-red-200">A exclusão remove o serviço da sua empresa. Serviços com agendamentos não podem ser excluídos.</p>
-            <button type="button" onClick={handleExcluir} className="mt-4 inline-flex items-center gap-2 rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-bold text-red-700 transition hover:bg-red-100 dark:border-red-700 dark:bg-transparent dark:text-red-200 dark:hover:bg-red-900/30">
-              <Trash2 size={17} />
-              Excluir serviço
-            </button>
-          </section>
+          <><section className="mx-1 min-w-0 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-900/60 dark:bg-red-950/25 md:col-start-2">
+              <h2 className="font-bold text-red-900 dark:text-red-100">Zona de perigo</h2>
+              <p className="mt-1 text-sm text-red-800 dark:text-red-200">A exclusão remove o serviço da sua empresa. Serviços com agendamentos não podem ser excluídos.</p>
+              <button type="button" onClick={handleExcluir} className="ui-button-danger mt-4 inline-flex items-center gap-2">
+                <Trash2 size={17} />
+                Excluir serviço
+              </button>
+            </section><div className="hidden h-px md:col-start-2 md:block" aria-hidden="true" /></>
         )}
       </div>
     </div>

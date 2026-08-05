@@ -44,12 +44,15 @@
         "avaliacoes": {
           "$uid": {
             ".write": "auth != null && auth.uid === $uid && root.child('clientes').child(auth.uid).exists() && newData.exists()",
-            ".validate": "newData.hasChildren(['nota', 'comentario', 'atualizadoEm'])",
+            ".validate": "newData.hasChildren(['nota', 'comentario', 'atualizadoEm', 'nomeAutor']) && newData.child('nomeAutor').val() === root.child('clientes').child(auth.uid).child('nome').val()",
             "nota": {
               ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 5 && newData.val() % 1 === 0"
             },
             "comentario": {
               ".validate": "newData.isString() && newData.val().length <= 500"
+            },
+            "nomeAutor": {
+              ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 100"
             },
             "atualizadoEm": {
               ".validate": "newData.isNumber()"

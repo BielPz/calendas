@@ -630,11 +630,14 @@ export const salvarAvaliacaoServico = async (
   if (!Number.isInteger(nota) || nota < 1 || nota > 5) {
     throw new Error("Escolha uma nota entre 1 e 5 estrelas.");
   }
+  const clienteSnap = await get(ref(db, `clientes/${uid}`));
+  const nomeAutor = String(clienteSnap.val()?.nome ?? getAuth().currentUser?.displayName ?? "Cliente").trim() || "Cliente";
 
   await set(ref(db, `servicos/${idServico}/avaliacoes/${uid}`), {
     nota,
     comentario: comentario.trim(),
     atualizadoEm: Date.now(),
+    nomeAutor,
   });
 };
 

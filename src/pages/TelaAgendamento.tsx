@@ -343,7 +343,7 @@ function TelaAgendamento() {
                   w-full py-4 rounded-xl text-white font-semibold mb-10
                   ${
                     isValid
-                      ? "bg-gradient-to-br from-orange-500 to-purple-500 hover:from-orange-700 hover:to-purple-700 cursor-pointer"
+                      ? "bg-linear-to-br from-orange-500 to-violet-600 hover:from-orange-600 hover:to-violet-700 cursor-pointer"
                       : "bg-gray-400 cursor-not-allowed opacity-70"
                   }
                 `}
@@ -449,7 +449,7 @@ function TelaAgendamento() {
                   className={`w-full py-3 rounded-xl text-white text-sm font-semibold transition-all
                     ${
                       isValid
-                        ? "bg-gradient-to-br from-orange-500 to-purple-500 hover:from-orange-700 hover:to-purple-700 cursor-pointer shadow-md"
+                        ? "bg-linear-to-br from-orange-500 to-violet-600 hover:from-orange-600 hover:to-violet-700 cursor-pointer shadow-md"
                         : "bg-gray-300 dark:bg-zinc-600 cursor-not-allowed opacity-60"
                     }`}
                 >

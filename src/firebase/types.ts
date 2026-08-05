@@ -64,6 +64,7 @@ export interface AvaliacaoServico {
   nota: number;
   comentario: string;
   atualizadoEm: number;
+  nomeAutor?: string;
 }
 
 export interface Servico {
