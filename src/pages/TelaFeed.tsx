@@ -35,6 +35,7 @@ function TelaFeed() {
   const [somenteFavoritos, setSomenteFavoritos] = useState(false);
   const [ordenacaoSelecionada, setOrdenacaoSelecionada] = useState<"relevancia" | "avaliacao" | "menor-preco" | "maior-preco">("relevancia");
   const [ordenacao, setOrdenacao] = useState<"relevancia" | "avaliacao" | "menor-preco" | "maior-preco">("relevancia");
+  const [limiteServicos, setLimiteServicos] = useState(20);
 
   const auth = getAuth();
   const id = auth.currentUser?.uid;
@@ -152,7 +153,10 @@ function TelaFeed() {
     setBusca(buscaDigitada);
     setSomenteFavoritos(somenteFavoritosSelecionado);
     setOrdenacao(ordenacaoSelecionada);
+    setLimiteServicos(20);
   };
+
+  useEffect(() => setLimiteServicos(20), [busca, somenteFavoritos, ordenacao]);
 
   const removerFavorito = async (idServico: string) => {
     try {
@@ -192,9 +196,22 @@ function TelaFeed() {
 
   useEffect(() => {
     if (!id || usuario !== "prestador") return;
-    const atualizarAgendamentos = () => getAgendamentosUsuario(id).then(setAgendamentos).catch(console.error);
-    const cancelarInscricao = onValue(ref(db, "servicos"), atualizarAgendamentos);
-    return () => cancelarInscricao();
+    let ativo = true;
+    let temporizador: ReturnType<typeof setTimeout> | undefined;
+    const inscricoes: (() => void)[] = [];
+    const atualizarAgendamentos = () => {
+      if (temporizador) clearTimeout(temporizador);
+      temporizador = setTimeout(() => getAgendamentosUsuario(id).then((itens) => { if (ativo) setAgendamentos(itens); }).catch(console.error), 150);
+    };
+    getEmpresasDoPrestador().then(async (lista) => {
+      const idsPorEmpresa = await Promise.all(lista.map(async (empresa) => {
+        const snapshot = await get(ref(db, `empresas/${empresa.id}/servicos`));
+        return snapshot.exists() ? Object.keys(snapshot.val() as Record<string, true>) : [];
+      }));
+      if (!ativo) return;
+      idsPorEmpresa.flat().forEach((idServico) => inscricoes.push(onValue(ref(db, `servicos/${idServico}/agendamentos`), atualizarAgendamentos)));
+    }).catch(console.error);
+    return () => { ativo = false; if (temporizador) clearTimeout(temporizador); inscricoes.forEach((cancelar) => cancelar()); };
   }, [id, usuario]);
 
   if (!usuario) return <Loading />;
@@ -296,7 +313,7 @@ function TelaFeed() {
               <div className="ui-card p-3 overflow-y-auto flex-1 min-h-0">
                 {usuario === "cliente" && (
                   <div className="flex flex-col gap-3">
-                    {servicosFiltrados.map((servico) => (
+                    {servicosFiltrados.slice(0, limiteServicos).map((servico) => (
                       <ServicoItem
                         key={servico.id}
                         servico={servico}
@@ -307,6 +324,7 @@ function TelaFeed() {
                         onAvaliacaoChange={atualizarAvaliacao}
                       />
                     ))}
+                    {servicosFiltrados.length > limiteServicos && <button type="button" className="ui-button-secondary self-center px-5 py-2 text-sm" onClick={() => setLimiteServicos((limite) => limite + 20)}>Carregar mais serviços</button>}
                     {servicosFiltrados.length === 0 && <p className="ui-card-muted p-5 text-center text-sm text-slate-600 dark:text-zinc-300">Nenhum serviço encontrado com esses filtros.</p>}
                   </div>
                 )}

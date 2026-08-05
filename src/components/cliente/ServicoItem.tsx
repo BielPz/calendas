@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import type { Servico } from "../../firebase/types";
 import { getEmpresaPorId } from "../../features/empresas/empresa.service";
 import { toggleFavorito } from "../../features/perfil/perfil.service";
@@ -209,4 +209,4 @@ function ServicoItem({ servico, favoritoInicial = false, onFavoritoChange, onAva
   );
 }
 
-export default ServicoItem;
+export default memo(ServicoItem);

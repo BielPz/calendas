@@ -5,6 +5,7 @@ import { getAuth, updateProfile } from "firebase/auth";
 import { getTipoUsuario } from "./auth.repository";
 import { calcularDisponibilidadeDiaria, calcularDisponibilidadeMensal } from "../lib/disponibilidade";
 import { duracaoServicoEmMinutos, estaDentroDoFuncionamento, horariosSeSobrepoem } from "../lib/agenda";
+import { consultarComCache, invalidarConsultas } from "./consulta.cache";
 
 const comResumoAvaliacoes = (id: string, dados: Omit<Servico, "id">): Servico => {
   const avaliacoes = Object.values(dados.avaliacoes ?? {}).filter(
@@ -37,6 +38,8 @@ export const criarServico = async (item: Servico, idEmpresa: string) => {
       [`servicos/${idServico}`]: servico,
       [`empresas/${idEmpresa}/servicos/${idServico}`]: true,
     });
+    invalidarConsultas("servicos:");
+    invalidarConsultas(`empresa:${idEmpresa}`);
 
     return idServico;
   } catch (error) {
@@ -173,11 +176,10 @@ export const responderAgendamento = async (idAgendamento: string, aprovar: boole
 // buscar serviço especifico
 
 export const getServico = async (idServico: string) => {
-  const snap = await get(ref(db, `servicos/${idServico}`));
-  if (snap.exists()) {
-    return comResumoAvaliacoes(idServico, snap.val());
-  }
-  return null;
+  return consultarComCache(`servico:${idServico}`, async () => {
+    const snap = await get(ref(db, `servicos/${idServico}`));
+    return snap.exists() ? comResumoAvaliacoes(idServico, snap.val()) : null;
+  });
 };
 
 /* -----------------------------------------------------------------------------*/
@@ -211,11 +213,10 @@ export const getEmpresasDoPrestador = async (): Promise<
 
 // Pega a empresa or ID
 export const getEmpresaPorId = async (id: string) => {
-  const snap = await get(ref(db, `empresas/${id}`));
-  if (snap.exists()) {
-    return snap.val();
-  }
-  return null;
+  return consultarComCache(`empresa:${id}`, async () => {
+    const snap = await get(ref(db, `empresas/${id}`));
+    return snap.exists() ? snap.val() : null;
+  }, 30_000);
 };
 
 /* -----------------------------------------------------------------------------*/
@@ -251,7 +252,8 @@ export const getServicosDaEmpresa = async (
 /* -----------------------------------------------------------------------------*/
 
 export const getTodosServicos = async (): Promise<Servico[]> => {
-  try {
+  return consultarComCache("servicos:todos", async () => {
+    try {
     const snapshot = await get(ref(db, "servicos"));
     if (!snapshot.exists()) return [];
 
@@ -259,10 +261,11 @@ export const getTodosServicos = async (): Promise<Servico[]> => {
     return Object.entries(snapshot.val()).map(([id, dados]: any) =>
       comResumoAvaliacoes(id, dados),
     );
-  } catch (error) {
+    } catch (error) {
     console.error("Erro ao buscar serviços:", error);
-    return [];
-  }
+      return [];
+    }
+  }, 15_000);
 };
 
 /* -----------------------------------------------------------------------------*/

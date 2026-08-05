@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { getUsuarioQueAgendou } from "../../features/agendamentos/agendamento.service";
 import type { Agendamento } from "../../firebase/types";
 import { CalendarDays, Clock } from "lucide-react";
@@ -101,4 +101,4 @@ function NotificacaoAgendamento({ agendamento, onRespondida }: Props) {
   );
 }
 
-export default NotificacaoAgendamento;
+export default memo(NotificacaoAgendamento);
