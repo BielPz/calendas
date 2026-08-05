@@ -1,0 +1,3 @@
+import { ChevronLeft, ChevronRight } from "lucide-react";
+interface Props { onAnterior: () => void; onProximo: () => void; }
+export default function NavegacaoMes({ onAnterior, onProximo }: Props) { return <div className="flex overflow-hidden rounded-lg border border-slate-200 dark:border-zinc-700"><button type="button" onClick={onAnterior} className="ui-button-icon rounded-none" aria-label="Mês anterior"><ChevronLeft size={18} /></button><button type="button" onClick={onProximo} className="ui-button-icon rounded-none border-l border-slate-200 dark:border-zinc-700" aria-label="Próximo mês"><ChevronRight size={18} /></button></div>; }

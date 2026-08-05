@@ -16,6 +16,7 @@ import PainelAgenda from "../components/PainelAgenda";
 import { useGradiente } from "../hooks/useGradiente";
 import { getAuth } from "firebase/auth";
 import PainelLateral from "../components/PainelLateral";
+import ResumoServico from "../components/ResumoServico";
 
 // ─── Configuração dos dias da semana ─────────────────────────────────────────
 const DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -274,14 +275,7 @@ function TelaCriarServico() {
     <div className={`flex min-h-dvh flex-col items-center justify-start ${idServico ? `md:h-dvh md:overflow-hidden ${corFundo} dark:!bg-none dark:!bg-zinc-950` : "dark:bg-zinc-900"}`}>
       {idServico ? <><Cabecalho perfil nome={nomeUsuario} /><div className="sticky top-0 z-20 flex w-full max-w-6xl items-center px-4 py-3 md:hidden"><button type="button" onClick={() => navigate(-1)} className="inline-flex items-center gap-2 text-sm font-semibold text-white"><ArrowLeft size={16} /> Voltar</button></div></> : <CabecalhoBranco titulo="Cadastre seu Serviço" />}
       <div className={`${idServico ? "grid w-full max-w-7xl gap-4 px-4 pb-4 pt-4 md:h-[calc(100dvh-4rem)] md:grid-cols-[18rem_minmax(0,1fr)] md:overflow-y-auto" : "flex w-full flex-col gap-3 px-4 max-w-xl"}`}>
-        {idServico && (
-          <section className="ui-card min-h-[9rem] self-start overflow-hidden md:col-start-2 md:row-start-1">
-            <div className="grid min-h-[9rem] sm:grid-cols-[9rem_minmax(0,1fr)]">
-              <div className="min-h-[9rem] bg-linear-to-br from-orange-100 to-violet-200 dark:from-orange-500/15 dark:to-violet-500/15">{form.imagem && <img src={form.imagem} alt={form.nome} className="h-full min-h-[9rem] w-full object-cover" />}</div>
-              <div className="flex min-w-0 flex-wrap items-center justify-between gap-4 p-5"><div className="min-w-0"><p className="text-sm font-semibold text-orange-700 dark:text-orange-300">{editando ? "Modo de edição" : "Serviço"}</p><h1 className="mt-1 truncate text-2xl font-bold text-slate-900 dark:text-white">{form.nome || "Serviço"}</h1><p className="mt-2 text-sm text-slate-600 dark:text-zinc-300">R$ {Number(form.preco || 0).toFixed(2)} · {form.duracao || "—"} {form.tempo}</p></div><div className="flex shrink-0 flex-wrap gap-2">{editando ? <><button type="button" onClick={cancelarEdicao} className="ui-button-secondary inline-flex items-center gap-2"><X size={16} /> Cancelar</button><button type="button" disabled={!isValid} onClick={handleConfirmar} className="ui-button-primary">Salvar alterações</button></> : <button type="button" onClick={() => setEditando(true)} className="ui-button-secondary inline-flex items-center gap-2"><Pencil size={16} /> Editar</button>}</div></div>
-            </div>
-          </section>
-        )}
+        {idServico && <ResumoServico servico={form} rotulo={editando ? "Modo de edição" : "Serviço"} className="md:col-start-2 md:row-start-1" acoes={editando ? <><button type="button" onClick={cancelarEdicao} className="ui-button-secondary inline-flex items-center gap-2"><X size={16} /> Cancelar</button><button type="button" disabled={!isValid} onClick={handleConfirmar} className="ui-button-primary">Salvar alterações</button></> : <button type="button" onClick={() => setEditando(true)} className="ui-button-secondary inline-flex items-center gap-2"><Pencil size={16} /> Editar</button>} />}
         {idServico && <PainelLateral
           itens={itensMenuServico}
           itemAtivo={secaoAtiva}

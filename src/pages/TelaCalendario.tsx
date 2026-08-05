@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Cabecalho from "../components/Cabecalho";
 import { getAuth } from "firebase/auth";
-import { CalendarClock, ChevronLeft, ChevronRight, Info, Trash2 } from "lucide-react";
+import { CalendarClock, Info, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import GradeDisponibilidade from "../components/GradeDisponibilidade";
 import { useGradiente } from "../hooks/useGradiente";
@@ -12,6 +12,8 @@ import { useAlerta } from "../provider/AlertContext";
 import { getTipoUsuario } from "../features/auth/auth.service";
 import DetalhesAgendamento from "../components/DetalhesAgendamento";
 import PainelAgenda from "../components/PainelAgenda";
+import NavegacaoMes from "../components/NavegacaoMes";
+import CardAgendamento from "../components/CardAgendamento";
 
 function TelaCalendario() {
   const corFundo = useGradiente();
@@ -107,12 +109,14 @@ function TelaCalendario() {
               {todosAgendamentos.length === 0 ? (
                 <p className="rounded-lg bg-slate-50 p-3 text-sm text-slate-500 dark:bg-zinc-800 dark:text-zinc-400">Você ainda não possui agendamentos.</p>
               ) : todosAgendamentos.map((agendamento) => (
-                <article key={agendamento.id} className={`rounded-lg border p-3 transition ${selecionadoId === agendamento.id ? "border-orange-400 bg-orange-50 dark:bg-orange-400/10" : "border-slate-200 bg-slate-50 hover:border-orange-300 dark:border-zinc-700 dark:bg-zinc-800"}`}>
-                  <button type="button" onClick={() => selecionarAgendamento(agendamento)} className="w-full text-left">
-                    <span className="block text-xs font-semibold text-orange-700 dark:text-orange-300">{new Date(`${agendamento.data}T12:00:00`).toLocaleDateString("pt-BR")} às {agendamento.horario}</span>
-                  </button>
-                  <div className="mt-1 flex items-center gap-1"><button type="button" onClick={() => selecionarAgendamento(agendamento)} className="min-w-0 flex-1 truncate text-left text-sm font-bold text-slate-800 dark:text-zinc-100">{agendamento.servico.nome}</button><div className="flex shrink-0 items-center gap-1">{acoesDoAgendamento(agendamento)}</div></div>
-                </article>
+                <CardAgendamento
+                  key={agendamento.id}
+                  agendamento={agendamento}
+                  selecionado={selecionadoId === agendamento.id}
+                  rotulo={agendamento.servico.nome}
+                  onSelecionar={() => selecionarAgendamento(agendamento)}
+                  acoes={acoesDoAgendamento(agendamento)}
+                />
               ))}
             </div>
           </div>
@@ -131,7 +135,7 @@ function TelaCalendario() {
             acaoCabecalho={<button type="button" className="ui-button-secondary text-sm" onClick={() => setMostrandoAgenda(false)}>Alterar data</button>}
             rotuloAgendamento={(agendamento) => agendamento.idCliente === id ? agendamento.servico.nome : `${agendamento.clienteNome ?? "Cliente"} — ${agendamento.servico.nome}`}
           /> : <section className="ui-card flex h-full min-h-0 flex-col p-5">
-            <header className="mb-4 flex items-center justify-between gap-3"><div><h2 className="font-bold text-slate-800 dark:text-zinc-100">Escolha uma data</h2><p className="mt-1 text-sm text-slate-500 dark:text-zinc-400">Depois, você verá os horários em uma linha do tempo.</p></div><div className="flex overflow-hidden rounded-lg border border-slate-200 dark:border-zinc-700"><button type="button" onClick={() => setMesCalendario((data) => new Date(data.getFullYear(), data.getMonth() - 1, 1))} className="p-2 text-slate-600 hover:bg-orange-50 dark:text-zinc-300 dark:hover:bg-zinc-800" aria-label="Mês anterior"><ChevronLeft size={18} /></button><button type="button" onClick={() => setMesCalendario((data) => new Date(data.getFullYear(), data.getMonth() + 1, 1))} className="border-l border-slate-200 p-2 text-slate-600 hover:bg-orange-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800" aria-label="Próximo mês"><ChevronRight size={18} /></button></div></header>
+            <header className="mb-4 flex items-center justify-between gap-3"><div><h2 className="font-bold text-slate-800 dark:text-zinc-100">Escolha uma data</h2><p className="mt-1 text-sm text-slate-500 dark:text-zinc-400">Depois, você verá os horários em uma linha do tempo.</p></div><NavegacaoMes onAnterior={() => setMesCalendario((data) => new Date(data.getFullYear(), data.getMonth() - 1, 1))} onProximo={() => setMesCalendario((data) => new Date(data.getFullYear(), data.getMonth() + 1, 1))} /></header>
             <GradeDisponibilidade ano={mesCalendario.getFullYear()} mes={mesCalendario.getMonth()} diasFuncionamento={[0, 1, 2, 3, 4, 5, 6]} disponibilidades={{}} modo="agenda" preencherAltura datasComAgendamento={todosAgendamentos.map((agendamento) => agendamento.data)} dataSelecionada={dataSelecionada} onDiaSelecionado={(dia) => selecionarData(`${mesCalendario.getFullYear()}-${String(mesCalendario.getMonth() + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`)} />
           </section>}
         </div>

@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import Logo from "../images/logo.png";
-import LogoEscuro from "../images/logo_escuro.png";
 import { getAuth } from "firebase/auth";
+import MarcaLogo from "./MarcaLogo";
 
 interface Props {
   tipo?: "cliente" | "prestador";
@@ -24,13 +23,7 @@ function CabecalhoBranco({ tipo, setTipo, titulo }: Props) {
   return (
     <div className="flex w-full max-w-xl flex-col gap-2 px-4">
       <div className="w-full flex justify-center">
-        <img
-          src={Logo}
-          alt="logo"
-          className="w-80 cursor-pointer object-contain dark:hidden"
-          onClick={handleCliqueLogo}
-        />
-        <img src={LogoEscuro} alt="logo" className="hidden w-80 cursor-pointer object-contain dark:block" onClick={handleCliqueLogo} />
+        <MarcaLogo className="w-80" onClick={handleCliqueLogo} />
       </div>
       <div className="flex flex-col gap-2">
         <div className="flex items-center w-full my-2">

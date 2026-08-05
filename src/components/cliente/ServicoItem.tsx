@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { Servico } from "../../firebase/types";
 import { getEmpresaPorId } from "../../features/empresas/empresa.service";
 import { toggleFavorito } from "../../features/perfil/perfil.service";
-import imgErrorInternet from "../../images/erroInternet.jpg";
+import ImagemServico from "../ImagemServico";
 import { useAlerta } from "../../provider/AlertContext";
 import { useNavigate } from "react-router-dom";
 import { getAuth } from "firebase/auth";
@@ -123,14 +123,7 @@ function ServicoItem({ servico, favoritoInicial = false, onFavoritoChange, onAva
       {modalAberto && <ModalAvaliacao aberto notaInicial={notaInicialModal || avaliacao} comentarioInicial={comentarioAvaliacao} nomeServico={servico.nome} salvando={salvandoAvaliacao} onFechar={() => setModalAberto(false)} onSalvar={salvarAvaliacao} />}
       {/* ── DESKTOP (md+) ─────────────────────────────────────────────── */}
       <div onClick={abrirDetalhes} className="ui-card hidden w-full cursor-pointer flex-row overflow-hidden md:flex">
-        <div className="w-24 shrink-0 bg-gray-100 dark:bg-zinc-900 self-stretch">
-          {servico.imagem ? (
-            <img src={servico.imagem} alt={servico.nome} className="w-full h-full object-cover" loading="lazy"
-              onError={(e) => { e.currentTarget.src = imgErrorInternet; }} />
-          ) : (
-            <div className="w-full h-full bg-gray-100 dark:bg-zinc-700" />
-          )}
-        </div>
+        <ImagemServico src={servico.imagem} alt={servico.nome} className="w-24 shrink-0 self-stretch" />
 
         <div className="flex-1 min-w-0 px-3 py-2 flex flex-col">
           <div className="flex items-start justify-between gap-1">
@@ -180,14 +173,7 @@ function ServicoItem({ servico, favoritoInicial = false, onFavoritoChange, onAva
 
       {/* ── MOBILE (< md) ─────────────────────────────────────────────── */}
       <div onClick={abrirDetalhes} className="ui-card flex w-full cursor-pointer flex-row overflow-hidden md:hidden">
-        <div className="w-20 shrink-0 bg-gray-100 dark:bg-zinc-900 self-stretch">
-          {servico.imagem ? (
-            <img src={servico.imagem} alt={servico.nome} className="w-full h-full object-cover" loading="lazy"
-              onError={(e) => { e.currentTarget.src = imgErrorInternet; }} />
-          ) : (
-            <div className="w-full h-full bg-gray-100 dark:bg-zinc-700" />
-          )}
-        </div>
+        <ImagemServico src={servico.imagem} alt={servico.nome} className="w-20 shrink-0 self-stretch" />
 
         <div className="flex-1 min-w-0 px-3 py-2 flex flex-col">
           <div className="flex items-start justify-between gap-1">

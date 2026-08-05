@@ -1,11 +1,10 @@
 import { useState } from "react";
-import imgLogo from "../images/logo.png";
-import imgLogoEscuro from "../images/logo_escuro.png";
 import { Link, useNavigate } from "react-router-dom";
 import { getAuth, signOut } from "firebase/auth";
 import imgLogout from "../images/logout.png";
 import { useTheme } from "../provider/ThemeContext";
 import { Moon, Sun } from "lucide-react";
+import MarcaLogo from "./MarcaLogo";
 
 interface Props {
   perfil?: boolean;
@@ -36,19 +35,7 @@ function Cabecalho({ perfil, none, nome, fotoPerfil }: Props) {
   return (
     <div className="w-full z-50 flex justify-center">
       <div className="w-[95%] border-b border-white flex items-center py-2 px-3">
-        <img
-          src={imgLogo}
-          alt="logo"
-          className="w-24 rounded focus-visible:ring-white dark:hidden"
-          onClick={() => {
-            if (perfil === undefined && none === undefined) {
-              navigate("/");
-              return;
-            }
-            navigate("/feed");
-          }}
-        />
-        <img src={imgLogoEscuro} alt="logo" className="hidden w-24 rounded focus-visible:ring-white dark:block" onClick={() => navigate("/feed")} />
+        <MarcaLogo className="w-24" onClick={() => navigate(perfil === undefined && none === undefined ? "/" : "/feed")} />
         <button
           onClick={toggleDarkMode}
           className="ml-4 rounded-full p-2 text-white hover:bg-white/15 transition-colors duration-200 focus-visible:ring-white"

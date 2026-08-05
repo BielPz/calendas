@@ -1,6 +1,8 @@
 import type { Agendamento } from "../firebase/types";
 import type { ReactNode } from "react";
 import Agenda from "./Agenda";
+import CardAgendamento from "./CardAgendamento";
+import EstadoVazio from "./EstadoVazio";
 
 interface Props {
   tituloLista: string;
@@ -23,14 +25,11 @@ function PainelAgenda({ tituloLista, tituloAgenda, data, agendamentos, seleciona
     .sort((a, b) => `${a.data} ${a.horario}`.localeCompare(`${b.data} ${b.horario}`));
   const agendamentosDoDia = agendamentosAtivos.filter((agendamento) => agendamento.data === data);
 
-  return <div className={`flex min-h-0 w-full flex-col gap-3 md:flex-row ${className}`}>
+  return <div className={`flex min-h-0 w-full flex-col gap-3 md:gap-4 md:flex-row ${className}`}>
     <aside className="ui-card flex min-h-0 w-full flex-col p-3 md:w-72 md:flex-none">
       <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600 dark:text-zinc-300">{tituloLista}</h2>
       <div className="mt-3 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
-        {agendamentosAtivos.length === 0 ? <p className="rounded-lg bg-slate-50 p-3 text-sm text-slate-500 dark:bg-zinc-800 dark:text-zinc-400">Nenhum agendamento encontrado.</p> : agendamentosAtivos.map((agendamento) => <article key={agendamento.id} className={`w-full rounded-lg border p-3 transition ${selecionadoId === agendamento.id ? "border-orange-400 bg-orange-50 dark:bg-orange-400/10" : "border-slate-200 bg-slate-50 hover:border-orange-300 dark:border-zinc-700 dark:bg-zinc-800"}`}>
-          <span className="block text-xs font-semibold text-orange-700 dark:text-orange-300">{new Date(`${agendamento.data}T12:00:00`).toLocaleDateString("pt-BR")} às {agendamento.horario}</span>
-          <div className="mt-1 flex items-center gap-1"><button type="button" onClick={() => onSelecionar(agendamento)} className="min-w-0 flex-1 truncate text-left text-sm font-bold text-slate-800 dark:text-zinc-100">{typeof rotuloAgendamento === "function" ? rotuloAgendamento(agendamento) : agendamento.servico.nome}</button>{acoesAgendamento && <div className="flex shrink-0 items-center gap-1">{acoesAgendamento(agendamento)}</div>}</div>
-        </article>)}
+        {agendamentosAtivos.length === 0 ? <EstadoVazio titulo="Nenhum agendamento encontrado." className="min-h-0" /> : agendamentosAtivos.map((agendamento) => <CardAgendamento key={agendamento.id} agendamento={agendamento} selecionado={selecionadoId === agendamento.id} onSelecionar={() => onSelecionar(agendamento)} rotulo={typeof rotuloAgendamento === "function" ? rotuloAgendamento(agendamento) : agendamento.servico.nome} acoes={acoesAgendamento?.(agendamento)} />)}
       </div>
     </aside>
     <div className={`min-h-0 flex-1 ${ocultarAgendaNoMobile ? "hidden md:block" : ""}`}><Agenda titulo={tituloAgenda} data={data} agendamentos={agendamentosDoDia} selecionadoId={selecionadoId} onSelecionar={onSelecionar} janelaHoras={janelaHoras} acaoCabecalho={acaoCabecalho} rotuloAgendamento={rotuloAgendamento} /></div>

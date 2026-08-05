@@ -14,6 +14,7 @@ import { useGradiente } from "../hooks/useGradiente";
 import Loading from "../components/Loading";
 import { uploadImage } from "../cloudinary/upload";
 import PainelLateral from "../components/PainelLateral";
+import GrupoFormulario from "../components/GrupoFormulario";
 
 type Secao = "perfil" | "configuracoes" | "privacidade" | "notificacoes" | "pagamentos" | "ajuda";
 
@@ -225,11 +226,8 @@ function TelaPerfil() {
 
                 {/* AREA DE SCROLL ISOLADA */}
                 <div className="ui-card p-5 sm:p-8">
-                  <h3 className="mb-8 border-b border-slate-200 pb-4 text-xs font-black uppercase tracking-widest text-slate-500 dark:border-zinc-700 dark:text-zinc-300">
-                    Informações Pessoais
-                  </h3>
-
-                  <Formulario>
+                  <GrupoFormulario titulo="Informações Pessoais">
+                  <Formulario className="mt-0">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <TextInput
                         titulo="Nome Completo"
@@ -315,6 +313,7 @@ function TelaPerfil() {
                       </div>
                     )}
                   </Formulario>
+                  </GrupoFormulario>
                   <div className="mt-8 pt-8 border-t border-gray-300 dark:border-gray-500">
                     <h3 className="text-xs font-black text-gray-400 dark:text-gray-200 uppercase tracking-widest mb-4">
                       Zona de perigo
