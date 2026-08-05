@@ -1,0 +1,64 @@
+import { lazy, Suspense } from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import Loading from "@/components/Loading";
+import { AlertaProvider } from "@/provider/AlertContext";
+import { ThemeProvider } from "@/provider/ThemeContext";
+import AppErrorBoundary from "@/components/AppErrorBoundary";
+
+const TelaInicial = lazy(() => import("@/pages/TelaInicial"));
+const TelaLogin = lazy(() => import("@/pages/TelaLogin"));
+const TelaCadastro = lazy(() => import("@/pages/TelaCadastro"));
+const TelaFeed = lazy(() => import("@/pages/TelaFeed"));
+const TelaEsqueciSenha = lazy(() => import("@/pages/TelaEsqueciSenha"));
+const TelaResetSenha = lazy(() => import("@/pages/TelaResetSenha"));
+const TelaCriarServico = lazy(() => import("@/pages/TelaCriarServico"));
+const TelaPerfil = lazy(() => import("@/pages/TelaPerfil"));
+const TelaCalendario = lazy(() => import("@/pages/TelaCalendario"));
+const TelaAgendamento = lazy(() => import("@/pages/TelaAgendamento"));
+const TelaCriarEmpresa = lazy(() => import("@/pages/TelaCriarEmpresa"));
+
+const proteger = (element: React.ReactNode) => (
+  <ProtectedRoute>{element}</ProtectedRoute>
+);
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AlertaProvider>
+        <ThemeProvider>
+          <AppErrorBoundary>
+            <Suspense fallback={<Loading />}>
+              <Routes>
+                <Route path="/" element={<TelaInicial />} />
+                <Route path="/login" element={<TelaLogin />} />
+                <Route path="/cadastro" element={<TelaCadastro />} />
+                <Route path="/esqueci-senha" element={<TelaEsqueciSenha />} />
+                <Route path="/reset-senha" element={<TelaResetSenha />} />
+                <Route path="/feed" element={proteger(<TelaFeed />)} />
+                <Route
+                  path="/cadastro-servico"
+                  element={proteger(<TelaCriarServico />)}
+                />
+                <Route path="/perfil" element={proteger(<TelaPerfil />)} />
+                <Route
+                  path="/calendario"
+                  element={proteger(<TelaCalendario />)}
+                />
+                <Route
+                  path="/agendamento"
+                  element={proteger(<TelaAgendamento />)}
+                />
+                <Route
+                  path="/cadastro-empresa"
+                  element={proteger(<TelaCriarEmpresa />)}
+                />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Suspense>
+          </AppErrorBoundary>
+        </ThemeProvider>
+      </AlertaProvider>
+    </BrowserRouter>
+  );
+}
