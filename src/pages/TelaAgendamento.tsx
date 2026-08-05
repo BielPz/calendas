@@ -52,6 +52,7 @@ function TelaAgendamento() {
     solicitarTelefone: false,
     placeholderObservacao: "",
     observacaoObrigatoria: false,
+    requerAprovacao: false,
   };
   const duracaoMinutos = (() => {
     const valor = Number(form.servico.duracao) || 60;
@@ -123,7 +124,7 @@ function TelaAgendamento() {
         if (idAgendamentoOriginal) await cancelarAgendamento(idAgendamentoOriginal);
         showAlerta(
           "Sucesso",
-          idAgendamentoOriginal ? "Agendamento reagendado com sucesso!" : "Agendamento realizado com sucesso!",
+          idAgendamentoOriginal ? "Agendamento reagendado com sucesso!" : configuracao.requerAprovacao ? "Solicitação enviada. Aguarde a aprovação do prestador." : "Agendamento realizado com sucesso!",
           "sucesso",
         );
         navigate("/feed");

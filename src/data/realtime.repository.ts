@@ -57,6 +57,27 @@ export const cancelarAgendamento = async (idAgendamento: string): Promise<void> 
     throw new Error("Você não tem permissão para cancelar este agendamento.");
   }
 
+  const canceladoPeloPrestador = agendamento.idPrestador === uid;
+  const nomeServico = agendamento.servico?.nome ?? (await get(ref(db, `servicos/${agendamento.idServico}`))).val()?.nome ?? "serviço";
+  await criarNotificacaoCliente(agendamento.idCliente, {
+    tipo: "agendamento",
+    titulo: canceladoPeloPrestador ? "Agendamento cancelado pelo prestador" : "Agendamento cancelado",
+    mensagem: canceladoPeloPrestador
+      ? `O prestador cancelou seu agendamento de ${nomeServico} em ${agendamento.data} às ${agendamento.horario}.`
+      : `Seu agendamento de ${nomeServico} em ${agendamento.data} às ${agendamento.horario} foi cancelado.`,
+    idAgendamento,
+    idServico: agendamento.idServico,
+  });
+  if (!canceladoPeloPrestador) {
+    await criarNotificacaoPrestador(agendamento.idPrestador, idAgendamento, {
+      tipo: "agendamento",
+      titulo: "Agendamento cancelado pelo cliente",
+      mensagem: `${agendamento.clienteNome ?? "O cliente"} cancelou ${nomeServico} de ${agendamento.data} às ${agendamento.horario}.`,
+      idServico: agendamento.idServico,
+      manterAposEncerramento: true,
+    });
+  }
+
   await update(ref(db), {
     [`agendamentos/${idAgendamento}`]: null,
     [`clientes/${agendamento.idCliente}/agendamentos/${idAgendamento}`]: null,
@@ -64,7 +85,87 @@ export const cancelarAgendamento = async (idAgendamento: string): Promise<void> 
     ...Object.fromEntries((agendamento.servicosConflitantes ?? []).map((id: string) => [`servicos/${id}/agendamentos/${idAgendamento}`, null])),
     [`slots/${agendamento.idServico}/${agendamento.data}/${agendamento.horario}`]: null,
     [`slotsClientes/${agendamento.idCliente}/${agendamento.data}/${agendamento.horario}`]: null,
+    ...(canceladoPeloPrestador ? { [`prestadores/${agendamento.idPrestador}/notificacoes/${idAgendamento}`]: null } : {}),
   });
+};
+
+const criarNotificacaoCliente = async (idCliente: string, notificacao: Omit<import("../firebase/types").Notificacao, "id" | "criadoEm" | "lida">) => {
+  const novaRef = push(ref(db, `clientes/${idCliente}/notificacoes`));
+  await set(novaRef, { ...notificacao, criadoEm: Date.now(), lida: false });
+};
+
+const criarNotificacaoPrestador = async (idPrestador: string, idAgendamento: string, notificacao: Omit<import("../firebase/types").Notificacao, "id" | "criadoEm" | "lida">) => {
+  await set(ref(db, `prestadores/${idPrestador}/notificacoes/${idAgendamento}`), { ...notificacao, criadoEm: Date.now(), lida: false, idAgendamento });
+};
+
+export const getNotificacoesCliente = async (idCliente: string) => {
+  const limite = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const snapshot = await get(ref(db, `clientes/${idCliente}/notificacoes`));
+  if (!snapshot.exists()) return [];
+  const itens = Object.entries(snapshot.val() as Record<string, import("../firebase/types").Notificacao>)
+    .map(([id, dados]) => ({ id, ...dados }))
+    .sort((a, b) => b.criadoEm - a.criadoEm);
+  const expiradas = itens.filter((item) => item.criadoEm < limite);
+  if (expiradas.length) await update(ref(db), Object.fromEntries(expiradas.map((item) => [`clientes/${idCliente}/notificacoes/${item.id}`, null])));
+  const atualizadas = await Promise.all(itens.map(async (item) => {
+    if (!item.idServico) return item;
+    const servico = await get(ref(db, `servicos/${item.idServico}`));
+    const nomeServico = servico.val()?.nome;
+    return nomeServico && !item.mensagem.toLocaleLowerCase("pt-BR").includes(nomeServico.toLocaleLowerCase("pt-BR")) ? { ...item, mensagem: `${nomeServico}: ${item.mensagem}` } : item;
+  }));
+  const comNomeIncluido = atualizadas.filter((item, indice) => item.mensagem !== itens[indice].mensagem);
+  if (comNomeIncluido.length) await update(ref(db), Object.fromEntries(comNomeIncluido.map((item) => [`clientes/${idCliente}/notificacoes/${item.id}/mensagem`, item.mensagem])));
+  return atualizadas.filter((item) => item.criadoEm >= limite);
+};
+
+export const marcarNotificacaoLida = async (idCliente: string, idNotificacao: string) => update(ref(db, `clientes/${idCliente}/notificacoes/${idNotificacao}`), { lida: true });
+export const excluirNotificacao = async (idCliente: string, idNotificacao: string) => set(ref(db, `clientes/${idCliente}/notificacoes/${idNotificacao}`), null);
+export const getNotificacoesPrestador = async (idPrestador: string) => {
+  const limite = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const snapshot = await get(ref(db, `prestadores/${idPrestador}/notificacoes`));
+  if (!snapshot.exists()) return [];
+  const itens = Object.entries(snapshot.val() as Record<string, import("../firebase/types").Notificacao>).map(([id, dados]) => ({ id, ...dados })).sort((a, b) => b.criadoEm - a.criadoEm);
+  const expiradas = itens.filter((item) => item.criadoEm < limite);
+  const ativas = itens.filter((item) => item.criadoEm >= limite && item.titulo !== "Novo agendamento" && item.titulo !== "Nova solicitação de agendamento");
+  if (expiradas.length) await update(ref(db), Object.fromEntries(expiradas.map((item) => [`prestadores/${idPrestador}/notificacoes/${item.id}`, null])));
+  const comNomeServico = await Promise.all(ativas.map(async (item) => {
+    if (!item.idServico) return item;
+    const servico = await get(ref(db, `servicos/${item.idServico}`));
+    const nomeServico = servico.val()?.nome;
+    return nomeServico && !item.mensagem.toLocaleLowerCase("pt-BR").includes(nomeServico.toLocaleLowerCase("pt-BR")) ? { ...item, mensagem: `${nomeServico}: ${item.mensagem}` } : item;
+  }));
+  const mensagensAtualizadas = comNomeServico.filter((item, indice) => item.mensagem !== ativas[indice].mensagem);
+  if (mensagensAtualizadas.length) await update(ref(db), Object.fromEntries(mensagensAtualizadas.map((item) => [`prestadores/${idPrestador}/notificacoes/${item.id}/mensagem`, item.mensagem])));
+  return comNomeServico;
+};
+export const marcarNotificacaoPrestadorLida = async (idPrestador: string, idNotificacao: string) => update(ref(db, `prestadores/${idPrestador}/notificacoes/${idNotificacao}`), { lida: true });
+export const excluirNotificacaoPrestador = async (idPrestador: string, idNotificacao: string) => set(ref(db, `prestadores/${idPrestador}/notificacoes/${idNotificacao}`), null);
+
+export const responderAgendamento = async (idAgendamento: string, aprovar: boolean) => {
+  const uid = getAuth().currentUser?.uid;
+  if (!uid) throw new Error("Usuário não logado");
+  const snapshot = await get(ref(db, `agendamentos/${idAgendamento}`));
+  if (!snapshot.exists()) throw new Error("Agendamento não encontrado");
+  const agendamento = snapshot.val() as Agendamento;
+  if (agendamento.idPrestador !== uid || agendamento.status !== "aguardando_aprovacao") throw new Error("Você não pode responder este agendamento.");
+
+  if (aprovar) {
+    await update(ref(db, `agendamentos/${idAgendamento}`), { status: "agendado" });
+    await set(ref(db, `prestadores/${uid}/notificacoes/${idAgendamento}`), null);
+    await criarNotificacaoCliente(agendamento.idCliente!, { tipo: "agendamento", titulo: "Agendamento aprovado", mensagem: `${agendamento.servico?.nome ?? "Seu serviço"} foi aprovado pelo prestador.`, idAgendamento, idServico: agendamento.idServico });
+    return;
+  }
+
+  await update(ref(db), {
+    [`agendamentos/${idAgendamento}/status`]: "recusado",
+    [`clientes/${agendamento.idCliente}/agendamentos/${idAgendamento}`]: null,
+    [`servicos/${agendamento.idServico}/agendamentos/${idAgendamento}`]: null,
+    ...Object.fromEntries((agendamento.servicosConflitantes ?? []).map((id) => [`servicos/${id}/agendamentos/${idAgendamento}`, null])),
+    [`slots/${agendamento.idServico}/${agendamento.data}/${agendamento.horario}`]: null,
+    [`slotsClientes/${agendamento.idCliente}/${agendamento.data}/${agendamento.horario}`]: null,
+    [`prestadores/${uid}/notificacoes/${idAgendamento}`]: null,
+  });
+  await criarNotificacaoCliente(agendamento.idCliente!, { tipo: "agendamento", titulo: "Agendamento recusado", mensagem: `${agendamento.servico?.nome ?? "Seu serviço"} não foi aprovado pelo prestador.`, idAgendamento, idServico: agendamento.idServico });
 };
 
 /* -----------------------------------------------------------------------------*/
@@ -371,13 +472,17 @@ export const agendarServico = async (
       throw new Error("Você já possui outro agendamento neste horário.");
     }
 
+    const requerAprovacao = configuracao.requerAprovacao ?? false;
     try {
-      await update(ref(db, `agendamentos/${idAgendamento}`), { status: "agendado" });
+      await update(ref(db, `agendamentos/${idAgendamento}`), { status: requerAprovacao ? "aguardando_aprovacao" : "agendado" });
     } catch (error) {
       await limparPendente();
       throw error;
     }
 
+    if (!requerAprovacao) {
+      await criarNotificacaoCliente(idCliente, { tipo: "agendamento", titulo: "Agendamento confirmado", mensagem: `${servico.nome} foi confirmado para ${agendamento.data} às ${agendamento.horario}.`, idAgendamento, idServico });
+    }
     return idAgendamento;
   } catch (error) {
     console.error("Erro ao agendar serviço:", error);
@@ -595,11 +700,18 @@ export const excluirServico = async (idServico: string): Promise<void> => {
   const servicoSnap = await get(ref(db, `servicos/${idServico}`));
   if (!servicoSnap.exists()) throw new Error("Serviço não encontrado.");
 
-  const servico = servicoSnap.val() as Servico & { agendamentos?: Record<string, true> };
+  const servico = servicoSnap.val() as Servico & { agendamentos?: Record<string, true>; favoritos?: Record<string, true> };
   if (servico.agendamentos && Object.keys(servico.agendamentos).length > 0) {
     throw new Error("Este serviço possui agendamentos. Cancele ou conclua os atendimentos antes de excluí-lo.");
   }
   if (!servico.idEmpresa) throw new Error("Empresa do serviço não encontrada.");
+
+  await Promise.all(Object.keys(servico.favoritos ?? {}).map((idCliente) => criarNotificacaoCliente(idCliente, {
+    tipo: "favorito",
+    titulo: "Serviço removido",
+    mensagem: `${servico.nome} foi removido pela empresa.`,
+    idServico,
+  })));
 
   await update(ref(db), {
     [`servicos/${idServico}`]: null,
@@ -643,10 +755,10 @@ export const toggleFavorito = async (idServico: string): Promise<boolean> => {
   const favRef = ref(db, `clientes/${uid}/favoritos/${idServico}`);
   const snap = await get(favRef);
   if (snap.exists()) {
-    await set(favRef, null); // remove
+    await update(ref(db), { [`clientes/${uid}/favoritos/${idServico}`]: null, [`servicos/${idServico}/favoritos/${uid}`]: null });
     return false;
   } else {
-    await set(favRef, true); // adiciona
+    await update(ref(db), { [`clientes/${uid}/favoritos/${idServico}`]: true, [`servicos/${idServico}/favoritos/${uid}`]: true });
     return true;
   }
 };

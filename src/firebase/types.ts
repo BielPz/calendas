@@ -58,6 +58,7 @@ export interface ConfiguracaoAtendimento {
   solicitarTelefone: boolean;
   placeholderObservacao: string;
   observacaoObrigatoria?: boolean;
+  requerAprovacao?: boolean;
 }
 
 export interface AvaliacaoServico {
@@ -105,7 +106,19 @@ export interface Agendamento {
   enderecoCliente?: string;
   modalidadeAtendimento?: ModalidadeAtendimento;
   duracaoMinutos?: number;
-  status?: "pendente" | "agendado" | "concluido" | "cancelado";
+  status?: "pendente" | "aguardando_aprovacao" | "agendado" | "recusado" | "concluido" | "cancelado";
+}
+
+export interface Notificacao {
+  id?: string;
+  titulo: string;
+  mensagem: string;
+  tipo: "agendamento" | "favorito" | "sistema";
+  criadoEm: number;
+  lida?: boolean;
+  idAgendamento?: string;
+  idServico?: string;
+  manterAposEncerramento?: boolean;
 }
 
 export interface Disponibilidade {

@@ -1,6 +1,7 @@
 export {
   agendarServico,
   cancelarAgendamento,
+  responderAgendamento,
   getAgendamento,
   getAgendamentosCliente,
   getAgendamentosDoServico,

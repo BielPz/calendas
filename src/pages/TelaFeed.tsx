@@ -18,7 +18,7 @@ import { useGradiente } from "../hooks/useGradiente";
 import Loading from "../components/Loading";
 import NotificacaoAgendamento from "../components/prestador/NotificacaoAgendamento";
 import { db } from "../firebase/config";
-import { get, ref } from "firebase/database";
+import { get, onValue, ref } from "firebase/database";
 
 function TelaFeed() {
   const [usuario, setUsuario] = useState<"cliente" | "prestador" | null>(null);
@@ -183,12 +183,19 @@ function TelaFeed() {
 
   useEffect(() => {
     const carregar = async () => {
+      if (!id) return;
       const lista = await getAgendamentosUsuario(id!);
       setAgendamentos(lista);
-      console.log(agendamento);
     };
     carregar();
-  }, []);
+  }, [id]);
+
+  useEffect(() => {
+    if (!id || usuario !== "prestador") return;
+    const atualizarAgendamentos = () => getAgendamentosUsuario(id).then(setAgendamentos).catch(console.error);
+    const cancelarInscricao = onValue(ref(db, "servicos"), atualizarAgendamentos);
+    return () => cancelarInscricao();
+  }, [id, usuario]);
 
   if (!usuario) return <Loading />;
 
@@ -305,8 +312,8 @@ function TelaFeed() {
                 )}
                 {usuario === "prestador" && idEmpresaAtiva && (
                   <div className="flex flex-col gap-3">
-                    {agendamento.map((ag, i) => (
-                      <NotificacaoAgendamento key={i} agendamento={ag} />
+                    {agendamento.map((ag) => (
+                      <NotificacaoAgendamento key={ag.id} agendamento={ag} onRespondida={(idAgendamento) => setAgendamentos((itens) => itens.filter((item) => item.id !== idAgendamento))} />
                     ))}
                   </div>
                 )}

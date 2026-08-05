@@ -2,12 +2,15 @@ import { useEffect, useState } from "react";
 import { getUsuarioQueAgendou } from "../../features/agendamentos/agendamento.service";
 import type { Agendamento } from "../../firebase/types";
 import { CalendarDays, Clock } from "lucide-react";
+import { Check, X } from "lucide-react";
+import { responderAgendamento } from "../../features/agendamentos/agendamento.service";
 
 interface Props {
   agendamento: Agendamento;
+  onRespondida?: (idAgendamento: string) => void;
 }
 
-function NotificacaoAgendamento({ agendamento }: Props) {
+function NotificacaoAgendamento({ agendamento, onRespondida }: Props) {
   const [nomeCliente, setNomeCliente] = useState<string>("");
   const [imagemCliente, setImagemCliente] = useState<string | null>(null);
 
@@ -27,6 +30,16 @@ function NotificacaoAgendamento({ agendamento }: Props) {
     .map((n) => n[0])
     .join("")
     .toUpperCase();
+
+  const responder = async (aprovar: boolean) => {
+    if (!agendamento.id) return;
+    try {
+      await responderAgendamento(agendamento.id, aprovar);
+      onRespondida?.(agendamento.id);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-3 bg-white dark:bg-zinc-700 border border-gray-200 dark:border-zinc-600 rounded-xl p-3">
@@ -76,6 +89,13 @@ function NotificacaoAgendamento({ agendamento }: Props) {
           </span>
         </div>
       </div>
+
+      {agendamento.status === "aguardando_aprovacao" && (
+        <div className="flex items-center justify-end gap-2">
+          <button type="button" onClick={() => responder(false)} className="ui-button-secondary px-3 py-2 text-xs text-red-600" title="Recusar agendamento"><X size={15} /> Recusar</button>
+          <button type="button" onClick={() => responder(true)} className="ui-button px-3 py-2 text-xs" title="Aprovar agendamento"><Check size={15} /> Aprovar</button>
+        </div>
+      )}
 
     </div>
   );

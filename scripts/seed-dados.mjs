@@ -6,7 +6,7 @@ const app = initializeApp({ apiKey: "AIzaSyCaehx_gf0BJTd1Vjksg2GWoAZiu6r7QOQ", a
 const auth = getAuth(app);
 const db = getDatabase(app);
 const dias = () => [false, true, true, true, true, true, false].map((ativo) => ({ ativo, inicio: ativo ? "09:00" : "", fim: ativo ? "18:00" : "" }));
-const atendimento = (modalidade, solicitarTelefone = false, placeholderObservacao = "") => ({ modalidade, solicitarTelefone, placeholderObservacao });
+const atendimento = (modalidade, solicitarTelefone = false, placeholderObservacao = "", requerAprovacao = false) => ({ modalidade, solicitarTelefone, placeholderObservacao, observacaoObrigatoria: Boolean(placeholderObservacao), requerAprovacao });
 
 async function criar(email, nome, empresaId, empresaNome, servicos) {
   let credencial;
@@ -21,10 +21,10 @@ async function criar(email, nome, empresaId, empresaNome, servicos) {
 await criar("empresa1@gmail.com", "Prestador Um", "empresa-1", "Empresa Um", [
   { id: "corte", cnpj: "11111111111111", nome: "Corte", descricao: "Corte no estabelecimento", preco: 35, duracao: "30", tempo: "minuto", diasDisponiveis: dias(), modoHorario: "duracao", visibilidadeAgenda: "todos", configuracaoAtendimento: atendimento("presencial-cliente", false, "Informe como prefere o corte"), servicosConflitantes: ["barba"] },
   { id: "barba", cnpj: "11111111111111", nome: "Barba", descricao: "Barba no estabelecimento", preco: 25, duracao: "30", tempo: "minuto", diasDisponiveis: dias(), modoHorario: "duracao", visibilidadeAgenda: "dia", configuracaoAtendimento: atendimento("presencial-cliente"), servicosConflitantes: ["corte"] },
-  { id: "consultoria-online", cnpj: "11111111111111", nome: "Consultoria Online", descricao: "Atendimento online", preco: 80, duracao: "45", tempo: "minuto", diasDisponiveis: dias(), modoHorario: "livre", visibilidadeAgenda: "oculta", configuracaoAtendimento: atendimento("online", true, "Descreva o tema da consultoria") },
+  { id: "consultoria-online", cnpj: "11111111111111", nome: "Consultoria Online", descricao: "Atendimento online", preco: 80, duracao: "45", tempo: "minuto", diasDisponiveis: dias(), modoHorario: "livre", visibilidadeAgenda: "oculta", configuracaoAtendimento: atendimento("online", true, "Descreva o tema da consultoria", true) },
 ]);
 await criar("empresa2@gmail.com", "Prestador Dois", "empresa-2", "Empresa Dois", [
-  { id: "visita-tecnica", cnpj: "22222222222222", nome: "Visita Tecnica", descricao: "Visita no endereco do cliente", preco: 120, duracao: "1", tempo: "hora", diasDisponiveis: dias(), modoHorario: "livre", visibilidadeAgenda: "todos", configuracaoAtendimento: atendimento("presencial-prestador", true, "Descreva o problema encontrado"), servicosConflitantes: ["manutencao"] },
+  { id: "visita-tecnica", cnpj: "22222222222222", nome: "Visita Tecnica", descricao: "Visita no endereco do cliente", preco: 120, duracao: "1", tempo: "hora", diasDisponiveis: dias(), modoHorario: "livre", visibilidadeAgenda: "todos", configuracaoAtendimento: atendimento("presencial-prestador", true, "Descreva o problema encontrado", true), servicosConflitantes: ["manutencao"] },
   { id: "manutencao", cnpj: "22222222222222", nome: "Manutencao", descricao: "Manutencao no local", preco: 90, duracao: "1", tempo: "hora", diasDisponiveis: dias(), modoHorario: "duracao", visibilidadeAgenda: "dia", configuracaoAtendimento: atendimento("presencial-cliente", true), servicosConflitantes: ["visita-tecnica"] },
   { id: "aula-online", cnpj: "22222222222222", nome: "Aula Online", descricao: "Aula individual pela internet", preco: 60, duracao: "50", tempo: "minuto", diasDisponiveis: dias(), modoHorario: "livre", visibilidadeAgenda: "oculta", configuracaoAtendimento: atendimento("online", false, "Informe seu objetivo para a aula") },
 ]);

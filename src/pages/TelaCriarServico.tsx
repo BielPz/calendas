@@ -6,7 +6,7 @@ import type { Servico, DiaDisponivel, Agendamento } from "../firebase/types";
 import CabecalhoBranco from "../components/CabecalhoBranco";
 import Cabecalho from "../components/Cabecalho";
 import { atualizarServico, criarServico, excluirServico, getServico, getServicosDaEmpresa } from "../features/servicos/servico.service";
-import { cancelarAgendamento, getAgendamentosDoServico } from "../features/agendamentos/agendamento.service";
+import { cancelarAgendamento, getAgendamentosDoServico, responderAgendamento } from "../features/agendamentos/agendamento.service";
 import { getEmpresaPorId } from "../features/empresas/empresa.service";
 import { useLocation, useNavigate } from "react-router-dom";
 import UploadImagem from "../components/UploadImagem";
@@ -53,6 +53,7 @@ function TelaCriarServico() {
       solicitarTelefone: false,
       placeholderObservacao: "",
       observacaoObrigatoria: false,
+      requerAprovacao: false,
     },
     modoHorario: "duracao",
   });
@@ -106,7 +107,7 @@ function TelaCriarServico() {
   };
 
   const atualizarConfiguracao = (
-    campo: "modalidade" | "solicitarTelefone" | "placeholderObservacao" | "observacaoObrigatoria",
+    campo: "modalidade" | "solicitarTelefone" | "placeholderObservacao" | "observacaoObrigatoria" | "requerAprovacao",
     valor: string | boolean,
   ) => {
     setForm((prev) => ({
@@ -116,6 +117,7 @@ function TelaCriarServico() {
         solicitarTelefone: false,
         placeholderObservacao: "",
         observacaoObrigatoria: false,
+        requerAprovacao: false,
         ...prev.configuracaoAtendimento,
         [campo]: valor,
       },
@@ -367,6 +369,7 @@ function TelaCriarServico() {
               Solicitar telefone de contato no agendamento
             </label>
             <label className="mt-2 flex items-center gap-3 rounded-lg bg-slate-50 p-3 text-sm font-medium text-slate-700 dark:bg-zinc-800 dark:text-zinc-200"><input type="checkbox" checked={form.configuracaoAtendimento?.observacaoObrigatoria ?? false} onChange={(event) => atualizarConfiguracao("observacaoObrigatoria", event.target.checked)} /> Exigir observacao no agendamento</label>
+            <label className="mt-2 flex items-center gap-3 rounded-lg bg-slate-50 p-3 text-sm font-medium text-slate-700 dark:bg-zinc-800 dark:text-zinc-200"><input type="checkbox" checked={form.configuracaoAtendimento?.requerAprovacao ?? false} onChange={(event) => atualizarConfiguracao("requerAprovacao", event.target.checked)} /> Exigir aprovacao antes de confirmar o agendamento</label>
             <div className="mt-4">
               <TextInput titulo="Instrução para a observação do cliente" value={form.configuracaoAtendimento?.placeholderObservacao ?? ""} placeholder="Ex.: Informe o modelo do equipamento e o problema encontrado" onChange={(valor) => atualizarConfiguracao("placeholderObservacao", valor)} maxLength={160} />
               <p className="-mt-3 text-xs text-slate-500 dark:text-zinc-400">Este texto aparecerá como orientação no campo de observação do agendamento.</p>
@@ -459,7 +462,7 @@ function TelaCriarServico() {
         {idServico && secaoAtiva === "agenda" && (
           <section className="ui-card p-3 md:col-start-2">
             <label className="mb-3 block text-sm font-semibold text-slate-700 dark:text-zinc-200">Agenda deste serviço<input type="date" value={dataAgenda} onChange={(event) => setDataAgenda(event.target.value)} className="ui-input mt-2 py-2" /></label>
-            <PainelAgenda className="h-96" tituloLista="Notificações de agendamento" tituloAgenda="Agenda do serviço" data={dataAgenda} agendamentos={agendaServico} selecionadoId={agendamentoDetalhado?.id} onSelecionar={(agendamento) => { setDataAgenda(agendamento.data); setAgendamentoDetalhado(agendamento); }} janelaHoras={4} ocultarAgendaNoMobile rotuloAgendamento={(agendamento) => `${agendamento.clienteNome ?? "Cliente"} — ${agendamento.servico.nome}`} />
+            <PainelAgenda className="h-96" tituloLista="Solicitações aguardando aprovação" tituloAgenda="Agenda do serviço" data={dataAgenda} agendamentos={agendaServico.filter((agendamento) => agendamento.status === "aguardando_aprovacao")} selecionadoId={agendamentoDetalhado?.id} onSelecionar={(agendamento) => { setDataAgenda(agendamento.data); setAgendamentoDetalhado(agendamento); }} janelaHoras={4} ocultarAgendaNoMobile rotuloAgendamento={(agendamento) => `${agendamento.clienteNome ?? "Cliente"} — ${agendamento.servico.nome}`} acoesAgendamento={(agendamento) => agendamento.status === "aguardando_aprovacao" ? <><button type="button" onClick={async () => { if (!agendamento.id) return; await responderAgendamento(agendamento.id, true); setAgendaServico((itens) => itens.map((item) => item.id === agendamento.id ? { ...item, status: "agendado" } : item)); showAlerta("Agendamento aprovado", "O cliente foi notificado.", "sucesso"); }} className="rounded px-2 py-1 text-xs font-bold text-green-700 hover:bg-green-100">Aprovar</button><button type="button" onClick={async () => { if (!agendamento.id) return; await responderAgendamento(agendamento.id, false); setAgendaServico((itens) => itens.filter((item) => item.id !== agendamento.id)); showAlerta("Agendamento recusado", "O cliente foi notificado.", "sucesso"); }} className="rounded px-2 py-1 text-xs font-bold text-red-700 hover:bg-red-100">Recusar</button></> : undefined} />
           </section>
         )}
         {agendamentoDetalhado && <DetalhesAgendamento
