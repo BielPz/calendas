@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getAuth, signOut } from "firebase/auth";
+import { get, ref } from "firebase/database";
 import imgLogout from "../images/logout.png";
 import { useTheme } from "../provider/ThemeContext";
 import { Moon, Sun } from "lucide-react";
 import MarcaLogo from "./MarcaLogo";
+import { db } from "../firebase/config";
+import { getTipoUsuario } from "../features/auth/auth.service";
 
 interface Props {
   perfil?: boolean;
@@ -15,8 +18,20 @@ interface Props {
 
 function Cabecalho({ perfil, none, nome, fotoPerfil }: Props) {
   const [hovered, setHovered] = useState(false);
+  const [fotoCarregada, setFotoCarregada] = useState<string>();
   const navigate = useNavigate();
   const { darkMode, toggleDarkMode } = useTheme();
+
+  useEffect(() => {
+    if (perfil === undefined || fotoPerfil) return;
+    const uid = getAuth().currentUser?.uid;
+    if (!uid) return;
+
+    getTipoUsuario()
+      .then((tipo) => get(ref(db, `${tipo === "cliente" ? "clientes" : "prestadores"}/${uid}/imagem`)))
+      .then((snapshot) => setFotoCarregada(snapshot.val() ?? undefined))
+      .catch(() => setFotoCarregada(undefined));
+  }, [perfil, fotoPerfil]);
 
   const handleLogout = async () => {
     await signOut(getAuth());
@@ -82,9 +97,9 @@ function Cabecalho({ perfil, none, nome, fotoPerfil }: Props) {
                 {nome || "Perfil"}
               </span>
               <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 flex items-center justify-center bg-gray-700">
-                {fotoPerfil ? (
+                {fotoPerfil || fotoCarregada ? (
                   <img
-                    src={fotoPerfil}
+                    src={fotoPerfil || fotoCarregada}
                     alt="perfil"
                     className="w-full h-full object-cover"
                   />

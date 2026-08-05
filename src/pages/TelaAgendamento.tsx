@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import Cabecalho from "../components/Cabecalho";
-import MiniCalendario from "../components/MiniCalendario";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { getAuth } from "firebase/auth";
 import { ArrowLeft, Clock3, X } from "lucide-react";
@@ -15,6 +14,7 @@ import {
   getDisponibilidadeMensal,
 } from "../features/agendamentos/agendamento.service";
 import GradeDisponibilidade from "../components/GradeDisponibilidade";
+import NavegacaoMes from "../components/NavegacaoMes";
 import { useGradiente } from "../hooks/useGradiente";
 import { useAlerta } from "../provider/AlertContext";
 import Loading from "../components/Loading";
@@ -65,13 +65,9 @@ function TelaAgendamento() {
     return estaDentroDoFuncionamento(form.servico, form.data, form.horario);
   }, [form.data, form.horario, form.servico]);
 
-  const hoje = new Date();
-  const mes = form.data
-    ? new Date(form.data + "T12:00:00").getMonth()
-    : hoje.getMonth(); // 0-11
-  const ano = form.data
-    ? new Date(form.data + "T12:00:00").getFullYear()
-    : hoje.getFullYear();
+  const [mesCalendario, setMesCalendario] = useState(() => new Date());
+  const mes = mesCalendario.getMonth();
+  const ano = mesCalendario.getFullYear();
 
   const diasDisponiveis = useMemo(() => {
     if (!form.servico) return [];
@@ -88,12 +84,10 @@ function TelaAgendamento() {
     useState<Disponibilidade | null>(null);
   const [agendaDoServico, setAgendaDoServico] = useState<Agendamento[]>([]);
   const [modalMobileAberto, setModalMobileAberto] = useState(false);
-
-  // Converte dia numérico (ex: 15) + ano/mes atual para ISO string e abre modal mobile
-  const handleDiaSelecionadoMobile = (dia: number) => {
+  // Converte o dia da grade principal para a data usada no agendamento.
+  const handleDiaSelecionado = (dia: number) => {
     const dataISO = `${ano}-${String(mes + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
     handleChange("data", dataISO);
-    setModalMobileAberto(true);
   };
 
   const handleChange = (campo: string, value: string) => {
@@ -136,8 +130,8 @@ function TelaAgendamento() {
       } catch (error) {
         console.error("Erro ao agendar serviço:", error);
         showAlerta(
-          "Erro",
-          "Não foi possível realizar o agendamento. Tente novamente.",
+          error instanceof Error && error.message.includes("outro agendamento") ? "Horário indisponível" : "Erro",
+          error instanceof Error ? error.message : "Não foi possível realizar o agendamento. Tente novamente.",
           "erro",
         );
       }
@@ -295,15 +289,8 @@ function TelaAgendamento() {
           <div className="flex flex-col gap-3 grow min-h-0 lg:flex-row">
             {/* Sidebar vertical — só desktop */}
             <div className="ui-card block h-full w-full shrink-0 overflow-y-auto p-3 lg:w-72">
-              <div className="hidden lg:block"><MiniCalendario
-                onChange={(date) =>
-                  handleChange("data", date?.toISOString().split("T")[0] ?? "")
-                }
-                agendamento
-                value={form.data === undefined ? undefined : form.data}
-              /></div>
               {/* Adicionar seleção de serviço e horário e botão para agendar */}
-              <div className="mt-0 lg:mt-6">
+              <div>
                 <div className="mb-5 border-b border-slate-200 pb-4 dark:border-zinc-700"><h2 className="font-bold text-slate-900 dark:text-white">Finalize seu agendamento</h2><p className="mt-1 text-sm text-slate-500 dark:text-zinc-400">Informe os dados abaixo para reservar seu horário.</p></div>
                 <TextInput
                   titulo="Serviço"
@@ -316,7 +303,10 @@ function TelaAgendamento() {
                   titulo="Data"
                   type="date"
                   value={form.data === undefined ? undefined : form.data}
-                  onChange={(value) => handleChange("data", value)}
+                  onChange={(value) => {
+                    handleChange("data", value);
+                    if (value) setMesCalendario(new Date(`${value}T12:00:00`));
+                  }}
                   agendamento
                 />
                 {modoHorarioLivre ? (
@@ -370,14 +360,16 @@ function TelaAgendamento() {
                   </>
                 ) : (
                   <div className="flex min-h-0 flex-1 flex-col">
-                    <h2 className="mb-2 font-bold text-slate-800 dark:text-zinc-100">Escolha uma data</h2>
-                    <p className="mb-4 text-sm text-slate-500 dark:text-zinc-400">Depois, você verá os horários disponíveis em uma linha do tempo.</p>
+                    <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                      <div><h2 className="font-bold text-slate-800 dark:text-zinc-100">Escolha uma data</h2><p className="mt-1 text-sm text-slate-500 dark:text-zinc-400">Depois, você verá os horários disponíveis em uma linha do tempo.</p></div>
+                      <NavegacaoMes mes={mesCalendario} onAnterior={() => setMesCalendario((data) => new Date(data.getFullYear(), data.getMonth() - 1, 1))} onProximo={() => setMesCalendario((data) => new Date(data.getFullYear(), data.getMonth() + 1, 1))} />
+                    </div>
                     <GradeDisponibilidade
                       ano={ano}
                       mes={mes}
                       diasFuncionamento={diasDisponiveis}
                       disponibilidades={atualizarDisponibilidade || {}}
-                      onDiaSelecionado={handleDiaSelecionadoMobile}
+                      onDiaSelecionado={handleDiaSelecionado}
                       preencherAltura
                     />
                   </div>

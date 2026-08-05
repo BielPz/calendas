@@ -63,6 +63,7 @@ export const cancelarAgendamento = async (idAgendamento: string): Promise<void> 
     [`servicos/${agendamento.idServico}/agendamentos/${idAgendamento}`]: null,
     ...Object.fromEntries((agendamento.servicosConflitantes ?? []).map((id: string) => [`servicos/${id}/agendamentos/${idAgendamento}`, null])),
     [`slots/${agendamento.idServico}/${agendamento.data}/${agendamento.horario}`]: null,
+    [`slotsClientes/${agendamento.idCliente}/${agendamento.data}/${agendamento.horario}`]: null,
   });
 };
 
@@ -259,6 +260,19 @@ export const agendarServico = async (
     if (!estaDentroDoFuncionamento(servico, agendamento.data, agendamento.horario)) {
       throw new Error("Este horário está fora do período de funcionamento do serviço.");
     }
+    const agendamentosDoCliente = await getAgendamentosCliente(idCliente);
+    if (agendamentosDoCliente.some((outro) => (
+      outro.data === agendamento.data
+      && outro.status !== "cancelado"
+      && horariosSeSobrepoem(
+        agendamento.horario,
+        duracaoServicoEmMinutos(servico),
+        outro.horario,
+        outro.duracaoMinutos ?? duracaoServicoEmMinutos(outro.servico),
+      )
+    ))) {
+      throw new Error("Você já possui outro agendamento neste horário.");
+    }
     const servicosEmpresa = await getServicosDaEmpresa(servico.idEmpresa!);
     const conflitos = servicosEmpresa.filter((outro) => outro.id && outro.id !== idServico && (
       servico.servicosConflitantes?.includes(outro.id) || outro.servicosConflitantes?.includes(idServico)
@@ -278,6 +292,7 @@ export const agendarServico = async (
     const idAgendamento = newAgendamentoRef.key!;
 
     const slotPath = `slots/${idServico}/${agendamento.data}/${agendamento.horario}`;
+    const slotClientePath = `slotsClientes/${idCliente}/${agendamento.data}/${agendamento.horario}`;
     const configuracao = servico.configuracaoAtendimento ?? {
       modalidade: "presencial-cliente" as const,
       solicitarTelefone: false,
@@ -336,8 +351,11 @@ export const agendarServico = async (
         [`clientes/${idCliente}/agendamentos/${idAgendamento}`]: null,
         [`servicos/${idServico}/agendamentos/${idAgendamento}`]: null,
         ...Object.fromEntries(idsConflitos.map((id) => [`servicos/${id}/agendamentos/${idAgendamento}`, null])),
-        [slotPath]: null,
       });
+      await Promise.all([
+        runTransaction(ref(db, slotPath), (atual) => atual === idAgendamento ? null : atual),
+        runTransaction(ref(db, slotClientePath), (atual) => atual === idAgendamento ? null : atual),
+      ]);
     };
 
     const slotRef = ref(db, slotPath);
@@ -345,6 +363,12 @@ export const agendarServico = async (
     if (!reserva.committed || reserva.snapshot.val() !== idAgendamento) {
       await limparPendente();
       throw new Error("Este horário acabou de ser reservado por outra pessoa.");
+    }
+
+    const reservaCliente = await runTransaction(ref(db, slotClientePath), (atual) => atual ?? idAgendamento);
+    if (!reservaCliente.committed || reservaCliente.snapshot.val() !== idAgendamento) {
+      await limparPendente();
+      throw new Error("Você já possui outro agendamento neste horário.");
     }
 
     try {
@@ -432,19 +456,26 @@ export const getAgendamentosCliente = async (
     // Busca os dados de cada agendamento em paralelo
     const agendamentos = await Promise.all(
       ids.map(async (idAg) => {
-        const snap = await get(ref(db, `agendamentos/${idAg}`));
-        if (!snap.exists()) return null;
-        const data = snap.val();
+        try {
+          const snap = await get(ref(db, `agendamentos/${idAg}`));
+          if (!snap.exists()) return null;
+          const data = snap.val();
 
-        // buscar o serviço pelo idServico
-        const ServicoSnap = await get(ref(db, `servicos/${data.idServico}`));
-        const servico = ServicoSnap.exists()
-          ? ({ id: data.idServico, ...ServicoSnap.val() } as Servico)
-          : null;
+          // buscar o serviço pelo idServico
+          const ServicoSnap = await get(ref(db, `servicos/${data.idServico}`));
+          const servico = ServicoSnap.exists()
+            ? ({ id: data.idServico, ...ServicoSnap.val() } as Servico)
+            : null;
 
-        if (!servico) return null;
+          if (!servico) return null;
 
-        return { id: idAg, ...data, servico } as Agendamento;
+          return { id: idAg, ...data, servico } as Agendamento;
+        } catch (error) {
+          // Referências antigas podem apontar para um agendamento já removido.
+          // Elas não devem impedir o carregamento dos demais itens da agenda.
+          console.warn("Índice de agendamento do cliente ignorado:", idAg, error);
+          return null;
+        }
       }),
     );
 

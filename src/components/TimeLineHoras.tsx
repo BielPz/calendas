@@ -104,7 +104,7 @@ function TimelineHoras({ inicio = 0, fim = 24, agendamentos = [], selecionadoId,
       ))}
 
       {posicaoAgora >= 0 && posicaoAgora <= horas.length * pixelsPorHora && (
-        <div className="pointer-events-none absolute inset-x-0 grid grid-cols-[64px_minmax(0,1fr)]" style={{ top: `${posicaoAgora}px` }}>
+        <div className="pointer-events-none absolute inset-x-0 z-20 grid grid-cols-[64px_minmax(0,1fr)]" style={{ top: `${posicaoAgora}px` }}>
           <span />
           <div className="relative flex h-0.5 items-center bg-black dark:bg-white">
             <span className="absolute left-0 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black dark:bg-white" />
@@ -115,7 +115,7 @@ function TimelineHoras({ inicio = 0, fim = 24, agendamentos = [], selecionadoId,
         </div>
       )}
 
-      <div className="absolute top-0 right-0 bottom-0" style={{ left: `${LARGURA_COLUNA_HORA}px` }}>
+      <div className="absolute top-0 right-0 bottom-0 z-10" style={{ left: `${LARGURA_COLUNA_HORA}px` }}>
         {eventos.map(({ agendamento, coluna, colunas, top, altura }) => (
           <button
             type="button"
