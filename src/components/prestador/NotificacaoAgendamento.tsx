@@ -13,6 +13,9 @@ interface Props {
 function NotificacaoAgendamento({ agendamento, onRespondida }: Props) {
   const [nomeCliente, setNomeCliente] = useState<string>("");
   const [imagemCliente, setImagemCliente] = useState<string | null>(null);
+  const [acaoEmAndamento, setAcaoEmAndamento] = useState<"aprovar" | "recusar" | null>(null);
+  const [resultado, setResultado] = useState<"aprovar" | "recusar" | null>(null);
+  const [erro, setErro] = useState("");
 
   useEffect(() => {
     const carregarNome = async () => {
@@ -32,17 +35,24 @@ function NotificacaoAgendamento({ agendamento, onRespondida }: Props) {
     .toUpperCase();
 
   const responder = async (aprovar: boolean) => {
-    if (!agendamento.id) return;
+    if (!agendamento.id || acaoEmAndamento) return;
+    const acao = aprovar ? "aprovar" : "recusar";
+    setAcaoEmAndamento(acao);
+    setErro("");
     try {
       await responderAgendamento(agendamento.id, aprovar);
-      onRespondida?.(agendamento.id);
+      setResultado(acao);
+      window.setTimeout(() => onRespondida?.(agendamento.id!), 650);
     } catch (error) {
       console.error(error);
+      setErro("Não foi possível responder ao agendamento.");
+    } finally {
+      setAcaoEmAndamento(null);
     }
   };
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-3 dark:border-zinc-600 dark:bg-zinc-700 sm:flex-row sm:items-center">
+    <div className={`flex flex-col gap-3 rounded-xl border p-3 transition-colors sm:flex-row sm:items-center ${resultado === "aprovar" ? "border-emerald-400 bg-emerald-50 dark:border-emerald-400/50 dark:bg-emerald-400/10" : resultado === "recusar" ? "border-red-400 bg-red-50 dark:border-red-400/50 dark:bg-red-400/10" : "border-gray-200 bg-white dark:border-zinc-600 dark:bg-zinc-700"}`}>
       <div className="flex min-w-0 flex-1 items-center gap-2.5">
         {imagemCliente ? (
           <img
@@ -72,12 +82,15 @@ function NotificacaoAgendamento({ agendamento, onRespondida }: Props) {
         </div>
       </div>
 
-      {agendamento.status === "aguardando_aprovacao" && (
+      {resultado ? (
+        <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-bold ${resultado === "aprovar" ? "border-emerald-300 bg-emerald-100 text-emerald-800 dark:border-emerald-400/40 dark:bg-emerald-400/15 dark:text-emerald-200" : "border-red-300 bg-red-100 text-red-800 dark:border-red-400/40 dark:bg-red-400/15 dark:text-red-200"}`}><Check size={15} />{resultado === "aprovar" ? "Aprovado" : "Recusado"}</span>
+      ) : agendamento.status === "aguardando_aprovacao" && (
         <div className="flex shrink-0 items-center gap-2 self-end sm:self-auto">
-          <button type="button" onClick={() => responder(false)} className="ui-button-secondary inline-flex items-center whitespace-nowrap px-3 py-2 text-xs text-red-600" title="Recusar agendamento"><X size={15} /> Recusar</button>
-          <button type="button" onClick={() => responder(true)} className="ui-button inline-flex items-center whitespace-nowrap px-3 py-2 text-xs" title="Aprovar agendamento"><Check size={15} /> Aprovar</button>
+          <button type="button" disabled={Boolean(acaoEmAndamento)} onClick={() => responder(false)} className="ui-button-secondary inline-flex items-center whitespace-nowrap px-3 py-2 text-xs text-red-600 disabled:cursor-wait disabled:opacity-60" title="Recusar agendamento"><X size={15} />{acaoEmAndamento === "recusar" ? "Recusando..." : "Recusar"}</button>
+          <button type="button" disabled={Boolean(acaoEmAndamento)} onClick={() => responder(true)} className="inline-flex items-center whitespace-nowrap rounded-xl border border-emerald-400 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800 shadow-sm transition hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 disabled:cursor-wait disabled:opacity-60 dark:border-emerald-400/50 dark:bg-emerald-400/15 dark:text-emerald-200 dark:hover:bg-emerald-400/25" title="Aprovar agendamento"><Check size={15} />{acaoEmAndamento === "aprovar" ? "Aprovando..." : "Aprovar"}</button>
         </div>
       )}
+      {erro && <p className="w-full text-xs font-medium text-red-600 dark:text-red-300">{erro}</p>}
 
     </div>
   );
