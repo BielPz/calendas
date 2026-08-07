@@ -14,6 +14,7 @@ import DetalhesAgendamento from "../components/DetalhesAgendamento";
 import PainelAgenda from "../components/PainelAgenda";
 import NavegacaoMes from "../components/NavegacaoMes";
 import CardAgendamento from "../components/CardAgendamento";
+import AgendaUnificada from "../components/AgendaUnificada";
 
 function TelaCalendario() {
   const corFundo = useGradiente();
@@ -50,7 +51,6 @@ function TelaCalendario() {
   };
 
   const abrirDetalhes = (agendamento: Agendamento) => {
-    selecionarAgendamento(agendamento);
     setAgendamentoDetalhado(agendamento);
   };
 
@@ -97,6 +97,25 @@ function TelaCalendario() {
   );
 
   if (!id) return <Loading />;
+
+  return (
+    <div className={`${corFundo} flex h-dvh w-full flex-col overflow-hidden`}>
+      <Cabecalho perfil nome={nomeUsuario} />
+      <main className="mx-auto flex w-full max-w-7xl flex-1 min-h-0 p-4 md:p-6">
+        <AgendaUnificada
+          tituloLista={tipoUsuario === "prestador" ? "Agendamentos da empresa" : "Meus agendamentos"}
+          tituloAgenda={tituloAgenda}
+          agendamentos={todosAgendamentos}
+          permitirReagendar={tipoUsuario === "cliente"}
+          onReagendar={reagendar}
+          onDetalhes={setAgendamentoDetalhado}
+          onCancelar={cancelar}
+          rotuloAgendamento={(agendamento) => agendamento.idCliente === id ? agendamento.servico.nome : `${agendamento.clienteNome ?? "Cliente"} — ${agendamento.servico.nome}`}
+        />
+      </main>
+      {agendamentoDetalhado && <DetalhesAgendamento agendamento={agendamentoDetalhado!} tipoUsuario={tipoUsuario} onFechar={() => setAgendamentoDetalhado(undefined)} onCancelar={cancelar} />}
+    </div>
+  );
 
   return (
     <div className={`${corFundo} flex h-dvh w-full flex-col overflow-hidden`}>
@@ -160,7 +179,7 @@ function TelaCalendario() {
           </div>
         </section>*/}
       </main>
-      {agendamentoDetalhado && <DetalhesAgendamento agendamento={agendamentoDetalhado} tipoUsuario={tipoUsuario} onFechar={() => setAgendamentoDetalhado(undefined)} onCancelar={cancelar} />}
+      {agendamentoDetalhado && <DetalhesAgendamento agendamento={agendamentoDetalhado!} tipoUsuario={tipoUsuario} onFechar={() => setAgendamentoDetalhado(undefined)} onCancelar={cancelar} />}
     </div>
   );
 }

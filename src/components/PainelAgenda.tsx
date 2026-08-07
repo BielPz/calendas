@@ -17,9 +17,10 @@ interface Props {
   className?: string;
   ocultarAgendaNoMobile?: boolean;
   acoesAgendamento?: (agendamento: Agendamento) => ReactNode;
+  conteudoPrincipal?: ReactNode;
 }
 
-function PainelAgenda({ tituloLista, tituloAgenda, data, agendamentos, selecionadoId, onSelecionar, rotuloAgendamento, janelaHoras, acaoCabecalho, className = "", ocultarAgendaNoMobile = false, acoesAgendamento }: Props) {
+function PainelAgenda({ tituloLista, tituloAgenda, data, agendamentos, selecionadoId, onSelecionar, rotuloAgendamento, janelaHoras, acaoCabecalho, className = "", ocultarAgendaNoMobile = false, acoesAgendamento, conteudoPrincipal }: Props) {
   const agendamentosAtivos = [...agendamentos]
     .filter((agendamento) => agendamento.status !== "cancelado")
     .sort((a, b) => `${a.data} ${a.horario}`.localeCompare(`${b.data} ${b.horario}`));
@@ -32,7 +33,7 @@ function PainelAgenda({ tituloLista, tituloAgenda, data, agendamentos, seleciona
         {agendamentosAtivos.length === 0 ? <EstadoVazio titulo="Nenhum agendamento encontrado." className="min-h-0" /> : agendamentosAtivos.map((agendamento) => <CardAgendamento key={agendamento.id} agendamento={agendamento} selecionado={selecionadoId === agendamento.id} onSelecionar={() => onSelecionar(agendamento)} rotulo={typeof rotuloAgendamento === "function" ? rotuloAgendamento(agendamento) : agendamento.servico.nome} acoes={acoesAgendamento?.(agendamento)} />)}
       </div>
     </aside>
-    <div className={`min-h-0 flex-1 ${ocultarAgendaNoMobile ? "hidden md:block" : ""}`}><Agenda titulo={tituloAgenda} data={data} agendamentos={agendamentosDoDia} selecionadoId={selecionadoId} onSelecionar={onSelecionar} janelaHoras={janelaHoras} acaoCabecalho={acaoCabecalho} rotuloAgendamento={rotuloAgendamento} /></div>
+    <div className={`min-h-0 flex-1 ${ocultarAgendaNoMobile ? "hidden md:block" : ""}`}>{conteudoPrincipal ?? <Agenda titulo={tituloAgenda} data={data} agendamentos={agendamentosDoDia} selecionadoId={selecionadoId} onSelecionar={onSelecionar} janelaHoras={janelaHoras} acaoCabecalho={acaoCabecalho} rotuloAgendamento={rotuloAgendamento} />}</div>
   </div>;
 }
 

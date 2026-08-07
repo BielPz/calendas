@@ -111,7 +111,7 @@ function TelaFeed() {
     const handleCtrlS = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === "s" && usuario === "prestador") {
         e.preventDefault(); // evita o "Salvar" padrão do browser
-        navigate("/cadastro-servico");
+        navigate("/gerenciar-servico");
       }
     };
 

@@ -17,6 +17,9 @@ import { useGradiente } from "../hooks/useGradiente";
 import { getAuth } from "firebase/auth";
 import PainelLateral from "../components/PainelLateral";
 import ResumoServico from "../components/ResumoServico";
+import GradeDisponibilidade from "../components/GradeDisponibilidade";
+import NavegacaoMes from "../components/NavegacaoMes";
+import AgendaUnificada from "../components/AgendaUnificada";
 
 // ─── Configuração dos dias da semana ─────────────────────────────────────────
 const DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -59,8 +62,10 @@ function TelaCriarServico() {
   });
   const [erro, setErro] = useState("");
   const [dataAgenda, setDataAgenda] = useState(() => new Date().toLocaleDateString("en-CA"));
+  const [mesAgenda, setMesAgenda] = useState(() => new Date());
   const [agendaServico, setAgendaServico] = useState<Agendamento[]>([]);
   const [agendamentoDetalhado, setAgendamentoDetalhado] = useState<Agendamento>();
+  const [mostrandoHorariosAgenda, setMostrandoHorariosAgenda] = useState(false);
   const [outrosServicos, setOutrosServicos] = useState<Servico[]>([]);
   const [secaoAtiva, setSecaoAtiva] = useState("basicos");
   const [editando, setEditando] = useState(!idServico);
@@ -271,6 +276,17 @@ function TelaCriarServico() {
     if (rascunhoOriginal) setForm(structuredClone(rascunhoOriginal));
     setEditando(false);
   };
+  const cancelarAgendamentoDaAgenda = async (agendamento: Agendamento) => {
+    if (!agendamento.id || !window.confirm("Cancelar este agendamento?")) return;
+    try {
+      await cancelarAgendamento(agendamento.id);
+      setAgendaServico((itens) => itens.filter((item) => item.id !== agendamento.id));
+      setAgendamentoDetalhado(undefined);
+      showAlerta("Agendamento cancelado", "O horário voltou a ficar disponível.", "sucesso");
+    } catch (error) {
+      showAlerta("Não foi possível cancelar", error instanceof Error ? error.message : "Tente novamente.", "erro");
+    }
+  };
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -281,7 +297,10 @@ function TelaCriarServico() {
         {idServico && <PainelLateral
           itens={itensMenuServico}
           itemAtivo={secaoAtiva}
-          onSelecionar={setSecaoAtiva}
+          onSelecionar={(secao) => {
+            setSecaoAtiva(secao);
+            if (secao === "agenda") setMostrandoHorariosAgenda(false);
+          }}
           titulo="Gerenciar serviço"
           rotuloAcessivel="Seções da edição do serviço"
           className="md:col-start-1 md:row-start-1 md:row-span-6 md:sticky md:top-0 md:h-[calc(100dvh-6rem)]"
@@ -290,7 +309,7 @@ function TelaCriarServico() {
         {idServico && secaoAtiva === "agenda" && <div className="w-full md:col-start-2">
           <section className="ui-card p-5"><h2 className="font-bold text-slate-900 dark:text-white">Visibilidade da agenda</h2><p className="mt-1 text-sm text-slate-500 dark:text-zinc-400">Defina o que clientes podem consultar.</p><div className="mt-4 flex flex-wrap gap-2">{[["dia", "Somente hoje"], ["todos", "Todos os dias"], ["oculta", "Ocultar"]].map(([valor, titulo]) => <button key={valor} type="button" onClick={() => setForm((prev) => ({ ...prev, visibilidadeAgenda: valor as Servico["visibilidadeAgenda"] }))} className={`rounded-lg px-3 py-2 text-sm font-bold ${(form.visibilidadeAgenda ?? "todos") === valor ? "bg-orange-100 text-orange-800 dark:bg-orange-400/15 dark:text-orange-200" : "bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-300"}`}>{titulo}</button>)}</div></section>
         </div>}
-        {idServico && !editando && (
+        {idServico && !editando && secaoAtiva !== "agenda" && (
           <section className="ui-card p-5 md:col-start-2">
             {secaoAtiva === "basicos" && <div className="space-y-5"><div><p className="text-xs font-black uppercase tracking-widest text-slate-500">Descrição</p><p className="mt-2 leading-relaxed text-slate-700 dark:text-zinc-200">{form.descricao || "Sem descrição cadastrada."}</p></div><dl className="grid gap-3 sm:grid-cols-3"><div className="ui-card-muted p-3"><dt className="text-xs text-slate-500">Preço</dt><dd className="mt-1 font-bold text-slate-900 dark:text-white">R$ {Number(form.preco || 0).toFixed(2)}</dd></div><div className="ui-card-muted p-3"><dt className="text-xs text-slate-500">Duração</dt><dd className="mt-1 font-bold text-slate-900 dark:text-white">{form.duracao} {form.tempo}</dd></div><div className="ui-card-muted p-3"><dt className="text-xs text-slate-500">CNPJ</dt><dd className="mt-1 font-bold text-slate-900 dark:text-white">{form.cnpj}</dd></div></dl></div>}
             {secaoAtiva === "atendimento" && <div className="grid gap-3 sm:grid-cols-2"><div className="ui-card-muted p-4"><p className="text-xs font-black uppercase tracking-widest text-slate-500">Modalidade</p><p className="mt-2 font-bold text-slate-900 dark:text-white">{form.configuracaoAtendimento?.modalidade === "online" ? "Online" : form.configuracaoAtendimento?.modalidade === "presencial-prestador" ? "Prestador vai até o cliente" : "Cliente vai até o local"}</p></div><div className="ui-card-muted p-4"><p className="text-xs font-black uppercase tracking-widest text-slate-500">Dados solicitados</p><p className="mt-2 font-bold text-slate-900 dark:text-white">{form.configuracaoAtendimento?.solicitarTelefone ? "Telefone de contato" : "Nenhum dado adicional"}{form.configuracaoAtendimento?.observacaoObrigatoria ? " e observação obrigatória" : ""}</p></div><div className="ui-card-muted p-4 sm:col-span-2"><p className="text-xs font-black uppercase tracking-widest text-slate-500">Orientação para observação</p><p className="mt-2 text-slate-700 dark:text-zinc-200">{form.configuracaoAtendimento?.placeholderObservacao || "Nenhuma orientação cadastrada."}</p></div></div>}
@@ -459,10 +478,10 @@ function TelaCriarServico() {
           {idServico && <section className="ui-card h-full max-h-80 overflow-y-auto p-5 md:col-span-2"><div className="flex items-center justify-between"><h2 className="font-bold text-slate-900 dark:text-white">Avaliações</h2><span className="text-sm text-slate-500">{form.totalAvaliacoes ?? 0} no total</span></div><div className="mt-4 space-y-3">{form.totalAvaliacoes ? <span className="inline-flex items-center gap-1 font-bold text-amber-600"><Star size={16} className="fill-current" /> {form.avaliacaoMedia?.toFixed(1)}</span> : null}{avaliacoes.length ? avaliacoes.map(([id, avaliacao]) => <article key={id} className="rounded-xl bg-slate-50 p-3 text-sm dark:bg-zinc-800"><div className="flex items-center justify-between gap-3"><strong className="text-slate-800 dark:text-zinc-100">{avaliacao.nomeAutor || "Cliente"}</strong><span className="inline-flex items-center gap-1 font-bold text-amber-600"><Star size={14} className="fill-current" /> {avaliacao.nota}</span></div>{avaliacao.comentario && <p className="mt-2 text-slate-600 dark:text-zinc-300">{avaliacao.comentario}</p>}</article>) : <p className="rounded-xl bg-slate-50 p-4 text-sm text-slate-600 dark:bg-zinc-800 dark:text-zinc-300">Ainda não há avaliações para este serviço.</p>}</div></section>}
         </Formulario>}
 
-        {idServico && secaoAtiva === "agenda" && (
+        {idServico && secaoAtiva === "agenda" && <section className="ui-card h-96 min-h-0 p-3 md:col-start-2"><AgendaUnificada tituloLista="Agendamentos deste serviço" tituloAgenda="Agenda do serviço" agendamentos={agendaServico} janelaHoras={4} ocultarAgendaNoMobile rotuloAgendamento={(agendamento) => `${agendamento.clienteNome ?? "Cliente"} — ${agendamento.servico.nome}`} onDetalhes={setAgendamentoDetalhado} onCancelar={cancelarAgendamentoDaAgenda} /></section>}
+        {false && idServico && secaoAtiva === "agenda" && (
           <section className="ui-card p-3 md:col-start-2">
-            <label className="mb-3 block text-sm font-semibold text-slate-700 dark:text-zinc-200">Agenda deste serviço<input type="date" value={dataAgenda} onChange={(event) => setDataAgenda(event.target.value)} className="ui-input mt-2 py-2" /></label>
-            <PainelAgenda className="h-96" tituloLista="Solicitações aguardando aprovação" tituloAgenda="Agenda do serviço" data={dataAgenda} agendamentos={agendaServico.filter((agendamento) => agendamento.status === "aguardando_aprovacao")} selecionadoId={agendamentoDetalhado?.id} onSelecionar={(agendamento) => { setDataAgenda(agendamento.data); setAgendamentoDetalhado(agendamento); }} janelaHoras={4} ocultarAgendaNoMobile rotuloAgendamento={(agendamento) => `${agendamento.clienteNome ?? "Cliente"} — ${agendamento.servico.nome}`} acoesAgendamento={(agendamento) => agendamento.status === "aguardando_aprovacao" ? <><button type="button" onClick={async () => { if (!agendamento.id) return; await responderAgendamento(agendamento.id, true); setAgendaServico((itens) => itens.map((item) => item.id === agendamento.id ? { ...item, status: "agendado" } : item)); showAlerta("Agendamento aprovado", "O cliente foi notificado.", "sucesso"); }} className="rounded px-2 py-1 text-xs font-bold text-green-700 hover:bg-green-100">Aprovar</button><button type="button" onClick={async () => { if (!agendamento.id) return; await responderAgendamento(agendamento.id, false); setAgendaServico((itens) => itens.filter((item) => item.id !== agendamento.id)); showAlerta("Agendamento recusado", "O cliente foi notificado.", "sucesso"); }} className="rounded px-2 py-1 text-xs font-bold text-red-700 hover:bg-red-100">Recusar</button></> : undefined} />
+            {mostrandoHorariosAgenda ? <PainelAgenda className="h-96" tituloLista="Agendamentos deste serviço" tituloAgenda="Agenda do serviço" data={dataAgenda} agendamentos={agendaServico} selecionadoId={agendamentoDetalhado?.id} onSelecionar={(agendamento) => { setDataAgenda(agendamento.data); setMesAgenda(new Date(`${agendamento.data}T12:00:00`)); setAgendamentoDetalhado(agendamento); }} janelaHoras={4} ocultarAgendaNoMobile acaoCabecalho={<button type="button" className="ui-button-secondary text-sm" onClick={() => setMostrandoHorariosAgenda(false)}>Alterar data</button>} rotuloAgendamento={(agendamento) => `${agendamento.clienteNome ?? "Cliente"} — ${agendamento.servico.nome}`} acoesAgendamento={(agendamento) => agendamento.status === "aguardando_aprovacao" ? <><button type="button" onClick={async () => { if (!agendamento.id) return; await responderAgendamento(agendamento.id, true); setAgendaServico((itens) => itens.map((item) => item.id === agendamento.id ? { ...item, status: "agendado" } : item)); showAlerta("Agendamento aprovado", "O cliente foi notificado.", "sucesso"); }} className="rounded px-2 py-1 text-xs font-bold text-green-700 hover:bg-green-100">Aprovar</button><button type="button" onClick={async () => { if (!agendamento.id) return; await responderAgendamento(agendamento.id, false); setAgendaServico((itens) => itens.filter((item) => item.id !== agendamento.id)); showAlerta("Agendamento recusado", "O cliente foi notificado.", "sucesso"); }} className="rounded px-2 py-1 text-xs font-bold text-red-700 hover:bg-red-100">Recusar</button></> : undefined} /> : <div className="hidden h-96 flex-col md:flex"><header className="mb-4 flex items-center justify-between gap-3"><div><h2 className="font-bold text-slate-900 dark:text-white">Escolha uma data</h2><p className="mt-1 text-sm text-slate-500 dark:text-zinc-400">Depois, você verá os horários em uma linha do tempo.</p></div><NavegacaoMes mes={mesAgenda} onAnterior={() => setMesAgenda((mes) => new Date(mes.getFullYear(), mes.getMonth() - 1, 1))} onProximo={() => setMesAgenda((mes) => new Date(mes.getFullYear(), mes.getMonth() + 1, 1))} /></header><GradeDisponibilidade ano={mesAgenda.getFullYear()} mes={mesAgenda.getMonth()} diasFuncionamento={[0, 1, 2, 3, 4, 5, 6]} disponibilidades={{}} modo="agenda" preencherAltura datasComAgendamento={agendaServico.map((agendamento) => agendamento.data)} dataSelecionada={dataAgenda} onDiaSelecionado={(dia) => { setDataAgenda(`${mesAgenda.getFullYear()}-${String(mesAgenda.getMonth() + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`); setMostrandoHorariosAgenda(true); }} /></div>}
           </section>
         )}
         {agendamentoDetalhado && <DetalhesAgendamento
@@ -501,7 +520,7 @@ function TelaCriarServico() {
         </button>
         </div>}
         {idServico && (
-          <><section className="mx-1 min-w-0 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-900/60 dark:bg-red-950/25 md:col-start-2">
+          <><section className="w-full min-w-0 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-900/60 dark:bg-red-950/25 md:col-start-2">
               <h2 className="font-bold text-red-900 dark:text-red-100">Zona de perigo</h2>
               <p className="mt-1 text-sm text-red-800 dark:text-red-200">A exclusão remove o serviço da sua empresa. Serviços com agendamentos não podem ser excluídos.</p>
               <button type="button" onClick={handleExcluir} className="ui-button-danger mt-4 inline-flex items-center gap-2">

@@ -23,7 +23,7 @@ function DisplayServicos({ idEmpresa }: DisplayProps) {
       );
       return;
     }
-    navigate("/cadastro-servico", { state: { idEmpresa } });
+    navigate("/gerenciar-servico", { state: { idEmpresa } });
   };
 
   useEffect(() => {
@@ -57,7 +57,7 @@ function DisplayServicos({ idEmpresa }: DisplayProps) {
         </span>
       </button>
       {servicos.map((servico, index) => (
-        <ServicoCard key={index} servico={servico} onClick={() => navigate("/cadastro-servico", { state: { idEmpresa, idServico: servico.id } })} />
+        <ServicoCard key={index} servico={servico} onClick={() => navigate("/gerenciar-servico", { state: { idEmpresa, idServico: servico.id } })} />
       ))}
     </div>
   );

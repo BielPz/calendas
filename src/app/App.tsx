@@ -37,7 +37,8 @@ export default function App() {
               <Route path="/esqueci-senha" element={<TelaEsqueciSenha />} />
               <Route path="/reset-senha" element={<TelaResetSenha />} />
               <Route path="/feed" element={proteger(<TelaFeed />)} />
-              <Route path="/cadastro-servico" element={proteger(<TelaCriarServico />)} />
+              <Route path="/gerenciar-servico" element={proteger(<TelaCriarServico />)} />
+              <Route path="/cadastro-servico" element={<Navigate to="/gerenciar-servico" replace />} />
               <Route path="/perfil" element={proteger(<TelaPerfil />)} />
               <Route path="/calendario" element={proteger(<TelaCalendario />)} />
               <Route path="/agendamento" element={proteger(<TelaAgendamento />)} />
