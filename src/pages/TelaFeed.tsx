@@ -330,7 +330,7 @@ function TelaFeed() {
                 )}
                 {usuario === "prestador" && idEmpresaAtiva && (
                   <div className="flex flex-col gap-3">
-                    {agendamento.map((ag) => (
+                    {agendamento.filter((ag) => ag.status === "aguardando_aprovacao").map((ag) => (
                       <NotificacaoAgendamento key={ag.id} agendamento={ag} onRespondida={(idAgendamento) => setAgendamentos((itens) => itens.filter((item) => item.id !== idAgendamento))} />
                     ))}
                   </div>

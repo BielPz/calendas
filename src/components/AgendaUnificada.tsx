@@ -20,7 +20,7 @@ interface Props {
 
 const hoje = () => new Date().toLocaleDateString("en-CA");
 
-export default function AgendaUnificada({ tituloLista, tituloAgenda, agendamentos, rotuloAgendamento, permitirReagendar = false, onReagendar, onDetalhes, onCancelar, janelaHoras, ocultarAgendaNoMobile = false }: Props) {
+export default function AgendaUnificada({ tituloLista, tituloAgenda, agendamentos, rotuloAgendamento, permitirReagendar = false, onReagendar, onDetalhes, onCancelar, janelaHoras, ocultarAgendaNoMobile = true }: Props) {
   const [data, setData] = useState(hoje);
   const [mes, setMes] = useState(() => new Date());
   const [selecionadoId, setSelecionadoId] = useState<string>();

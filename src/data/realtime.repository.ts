@@ -129,7 +129,7 @@ export const getNotificacoesPrestador = async (idPrestador: string) => {
   if (!snapshot.exists()) return [];
   const itens = Object.entries(snapshot.val() as Record<string, import("../firebase/types").Notificacao>).map(([id, dados]) => ({ id, ...dados })).sort((a, b) => b.criadoEm - a.criadoEm);
   const expiradas = itens.filter((item) => item.criadoEm < limite);
-  const ativas = itens.filter((item) => item.criadoEm >= limite && item.titulo !== "Novo agendamento" && item.titulo !== "Nova solicitação de agendamento");
+  const ativas = itens.filter((item) => item.criadoEm >= limite);
   if (expiradas.length) await update(ref(db), Object.fromEntries(expiradas.map((item) => [`prestadores/${idPrestador}/notificacoes/${item.id}`, null])));
   const comNomeServico = await Promise.all(ativas.map(async (item) => {
     if (!item.idServico) return item;
@@ -154,7 +154,6 @@ export const responderAgendamento = async (idAgendamento: string, aprovar: boole
 
   if (aprovar) {
     await update(ref(db, `agendamentos/${idAgendamento}`), { status: "agendado" });
-    await set(ref(db, `prestadores/${uid}/notificacoes/${idAgendamento}`), null);
     await criarNotificacaoCliente(agendamento.idCliente!, { tipo: "agendamento", titulo: "Agendamento aprovado", mensagem: `${agendamento.servico?.nome ?? "Seu serviço"} foi aprovado pelo prestador.`, idAgendamento, idServico: agendamento.idServico });
     return;
   }
@@ -166,7 +165,6 @@ export const responderAgendamento = async (idAgendamento: string, aprovar: boole
     ...Object.fromEntries((agendamento.servicosConflitantes ?? []).map((id) => [`servicos/${id}/agendamentos/${idAgendamento}`, null])),
     [`slots/${agendamento.idServico}/${agendamento.data}/${agendamento.horario}`]: null,
     [`slotsClientes/${agendamento.idCliente}/${agendamento.data}/${agendamento.horario}`]: null,
-    [`prestadores/${uid}/notificacoes/${idAgendamento}`]: null,
   });
   await criarNotificacaoCliente(agendamento.idCliente!, { tipo: "agendamento", titulo: "Agendamento recusado", mensagem: `${agendamento.servico?.nome ?? "Seu serviço"} não foi aprovado pelo prestador.`, idAgendamento, idServico: agendamento.idServico });
 };
@@ -484,8 +482,28 @@ export const agendarServico = async (
       throw error;
     }
 
-    if (!requerAprovacao && opcoes.notificarCliente !== false) {
-      await criarNotificacaoCliente(idCliente, { tipo: "agendamento", titulo: "Agendamento confirmado", mensagem: `${servico.nome} foi confirmado para ${agendamento.data} às ${agendamento.horario}.`, idAgendamento, idServico });
+    if (opcoes.notificarCliente !== false) {
+      await Promise.all([
+        criarNotificacaoCliente(idCliente, {
+          tipo: "agendamento",
+          titulo: requerAprovacao ? "Solicitação de agendamento enviada" : "Agendamento confirmado",
+          mensagem: requerAprovacao
+            ? `Sua solicitação para ${servico.nome} em ${agendamento.data} às ${agendamento.horario} aguarda a aprovação do prestador.`
+            : `${servico.nome} foi confirmado para ${agendamento.data} às ${agendamento.horario}.`,
+          idAgendamento,
+          idServico,
+        }),
+        criarNotificacaoPrestador(empresaSnap.val().uidDono, idAgendamento, {
+          tipo: "agendamento",
+          titulo: requerAprovacao ? "Nova solicitação de agendamento" : "Novo agendamento",
+          mensagem: requerAprovacao
+            ? `${cliente.nome} solicitou ${servico.nome} em ${agendamento.data} às ${agendamento.horario} e aguarda aprovação.`
+            : `${cliente.nome} agendou ${servico.nome} para ${agendamento.data} às ${agendamento.horario}.`,
+          idAgendamento,
+          idServico,
+          manterAposEncerramento: true,
+        }),
+      ]);
     }
     return idAgendamento;
   } catch (error) {

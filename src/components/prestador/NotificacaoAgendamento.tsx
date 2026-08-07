@@ -42,9 +42,8 @@ function NotificacaoAgendamento({ agendamento, onRespondida }: Props) {
   };
 
   return (
-    <div className="flex flex-col gap-3 bg-white dark:bg-zinc-700 border border-gray-200 dark:border-zinc-600 rounded-xl p-3">
-      {/* Cabeçalho com avatar */}
-      <div className="flex items-center gap-2.5">
+    <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-3 dark:border-zinc-600 dark:bg-zinc-700 sm:flex-row sm:items-center">
+      <div className="flex min-w-0 flex-1 items-center gap-2.5">
         {imagemCliente ? (
           <img
             src={imagemCliente}
@@ -56,44 +55,27 @@ function NotificacaoAgendamento({ agendamento, onRespondida }: Props) {
             {iniciais}
           </div>
         )}
-        <div className="flex flex-col">
-          <span className="text-sm font-medium text-gray-800 dark:text-gray-100">
+        <div className="min-w-0">
+          <span className="block truncate text-sm font-medium text-gray-800 dark:text-gray-100">
             {nomeCliente}
           </span>
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            agendou um serviço
+          <span className="block text-xs text-gray-500 dark:text-gray-400">
+            solicitou um serviço
           </span>
         </div>
-      </div>
-
-      {/* Detalhes do serviço */}
-      <div className="flex flex-col gap-1 bg-gray-50 dark:bg-zinc-600 rounded-lg px-3 py-2.5">
-        <span className="text-sm font-medium text-gray-800 dark:text-gray-100">
-          {agendamento.servico?.nome}
-        </span>
-        <div className="flex gap-3">
-          <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-            <CalendarDays size={12} color="currentColor" />
-            {new Date(agendamento.data + "T12:00:00").toLocaleDateString(
-              "pt-BR",
-              {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              },
-            )}
-          </span>
-          <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-            <Clock size={12} color="currentColor" />
-            {agendamento.horario}
-          </span>
+        <div className="min-w-0 rounded-lg bg-gray-50 px-3 py-2 dark:bg-zinc-600">
+          <span className="block truncate text-sm font-medium text-gray-800 dark:text-gray-100">{agendamento.servico?.nome}</span>
+          <div className="flex gap-3 whitespace-nowrap">
+            <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400"><CalendarDays size={12} />{new Date(agendamento.data + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}</span>
+            <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400"><Clock size={12} />{agendamento.horario}</span>
+          </div>
         </div>
       </div>
 
       {agendamento.status === "aguardando_aprovacao" && (
-        <div className="flex items-center justify-end gap-2">
-          <button type="button" onClick={() => responder(false)} className="ui-button-secondary px-3 py-2 text-xs text-red-600" title="Recusar agendamento"><X size={15} /> Recusar</button>
-          <button type="button" onClick={() => responder(true)} className="ui-button px-3 py-2 text-xs" title="Aprovar agendamento"><Check size={15} /> Aprovar</button>
+        <div className="flex shrink-0 items-center gap-2 self-end sm:self-auto">
+          <button type="button" onClick={() => responder(false)} className="ui-button-secondary inline-flex items-center whitespace-nowrap px-3 py-2 text-xs text-red-600" title="Recusar agendamento"><X size={15} /> Recusar</button>
+          <button type="button" onClick={() => responder(true)} className="ui-button inline-flex items-center whitespace-nowrap px-3 py-2 text-xs" title="Aprovar agendamento"><Check size={15} /> Aprovar</button>
         </div>
       )}
 
