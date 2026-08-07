@@ -113,12 +113,31 @@ export interface Notificacao {
   id?: string;
   titulo: string;
   mensagem: string;
-  tipo: "agendamento" | "favorito" | "sistema";
+  tipo: "agendamento" | "favorito" | "sistema" | "mensagem";
   criadoEm: number;
   lida?: boolean;
   idAgendamento?: string;
   idServico?: string;
   manterAposEncerramento?: boolean;
+  idConversa?: string;
+}
+
+export interface MensagemChat {
+  id?: string;
+  autorId: string;
+  texto: string;
+  enviadoEm: number;
+}
+
+export interface ConversaChat {
+  id: string;
+  participantes: { cliente: string; prestador: string };
+  nomes: { cliente: string; prestador: string };
+  imagens?: { cliente?: string | null; prestador?: string | null };
+  criadoEm: number;
+  atualizadoEm: number;
+  ultimaMensagem?: { texto: string; autorId: string; enviadoEm: number };
+  ultimaLeitura?: Record<string, number>;
 }
 
 export interface Disponibilidade {

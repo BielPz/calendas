@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getAuth } from "firebase/auth";
-import { ArrowLeft, CalendarDays, Clock3, MapPin, Monitor, Star } from "lucide-react";
+import { ArrowLeft, CalendarDays, Clock3, MapPin, MessageCircle, Monitor, Star } from "lucide-react";
 import Cabecalho from "../components/Cabecalho";
 import Loading from "../components/Loading";
 import type { Agendamento, AvaliacaoServico, Servico } from "../firebase/types";
@@ -22,6 +22,7 @@ function TelaServico() {
   const corFundo = useGradiente();
   const [servico, setServico] = useState<Servico | null>(null);
   const [empresa, setEmpresa] = useState("");
+  const [idPrestador, setIdPrestador] = useState("");
   const [carregando, setCarregando] = useState(true);
   const [dataAgenda, setDataAgenda] = useState(hoje);
   const [agendamentosDoDia, setAgendamentosDoDia] = useState<Agendamento[]>([]);
@@ -39,6 +40,7 @@ function TelaServico() {
         if (item?.idEmpresa) {
           const dadosEmpresa = await getEmpresaPorId(item.idEmpresa);
           setEmpresa(dadosEmpresa?.nome ?? "Empresa");
+          setIdPrestador((dadosEmpresa as (typeof dadosEmpresa & { uidDono?: string }))?.uidDono ?? "");
         }
       } finally {
         setCarregando(false);
@@ -89,7 +91,7 @@ function TelaServico() {
               {servico.totalAvaliacoes ? <div className="mt-3 flex flex-wrap items-center gap-2"><span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-sm font-bold text-amber-700 dark:bg-amber-400/10 dark:text-amber-300"><Star size={16} className="fill-current" /> {servico.avaliacaoMedia?.toFixed(1)}</span><span className="text-sm text-slate-500 dark:text-zinc-400">{servico.totalAvaliacoes} avaliação(ões)</span></div> : null}
               <p className="mt-5 leading-relaxed text-slate-600 dark:text-zinc-300">{servico.descricao || "Este serviço ainda não possui descrição."}</p>
               <div className="mt-6 flex flex-wrap gap-3 text-sm text-slate-600 dark:text-zinc-300"><span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-50 px-3 py-2 dark:bg-zinc-800"><Clock3 size={17} className="text-orange-600 dark:text-orange-300" /> {servico.duracao} {servico.tempo}</span><span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-50 px-3 py-2 dark:bg-zinc-800"><atendimento.Icone size={17} className="text-orange-600 dark:text-orange-300" /> {atendimento.texto}</span></div>
-              <div className="mt-6 flex items-center justify-between gap-4 border-t border-slate-100 pt-5 dark:border-zinc-700"><span className="text-xl font-bold text-slate-900 dark:text-white">R$ {Number(servico.preco).toFixed(2)}</span><button onClick={() => navigate("/agendamento", { state: { servico, empresa } })} className="ui-button-primary">Agendar serviço</button></div>
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-5 dark:border-zinc-700"><span className="text-xl font-bold text-slate-900 dark:text-white">R$ {Number(servico.preco).toFixed(2)}</span><div className="flex flex-wrap gap-2">{idPrestador && idPrestador !== idUsuario && <button type="button" onClick={() => navigate(`/mensagens?contato=${idPrestador}&nome=${encodeURIComponent(empresa)}`)} className="ui-button-secondary inline-flex items-center gap-2"><MessageCircle size={17} /> Falar com o prestador</button>}<button onClick={() => navigate("/agendamento", { state: { servico, empresa } })} className="ui-button-primary">Agendar serviço</button></div></div>
             </div>
           </div>
         </section>

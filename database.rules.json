@@ -36,6 +36,66 @@
         }
       }
     },
+    "conversas": {
+      "$conversaId": {
+        ".read": "auth != null && (data.child('participantes').child('cliente').val() === auth.uid || data.child('participantes').child('prestador').val() === auth.uid)",
+        ".write": "auth != null && !data.exists() && newData.hasChildren(['participantes', 'nomes', 'criadoEm', 'atualizadoEm']) && (newData.child('participantes').child('cliente').val() === auth.uid || newData.child('participantes').child('prestador').val() === auth.uid)",
+        ".validate": "newData.hasChildren(['participantes', 'nomes', 'criadoEm', 'atualizadoEm'])",
+        "participantes": {
+          ".write": "auth != null && !data.exists() && (newData.child('cliente').val() === auth.uid || newData.child('prestador').val() === auth.uid)",
+          ".validate": "newData.hasChildren(['cliente', 'prestador']) && newData.child('cliente').isString() && newData.child('prestador').isString() && newData.child('cliente').val() !== newData.child('prestador').val() && root.child('clientes').child(newData.child('cliente').val()).exists() && root.child('prestadores').child(newData.child('prestador').val()).exists()"
+        },
+        "nomes": {
+          ".write": "auth != null && !data.exists()",
+          ".validate": "newData.hasChildren(['cliente', 'prestador']) && newData.child('cliente').isString() && newData.child('prestador').isString()"
+        },
+        "imagens": {
+          ".write": "auth != null && !data.exists()"
+        },
+        "criadoEm": {
+          ".write": "auth != null && !data.exists()",
+          ".validate": "newData.isNumber()"
+        },
+        "atualizadoEm": {
+          ".write": "auth != null && (!root.child('conversas').child($conversaId).exists() || root.child('conversas').child($conversaId).child('participantes').child('cliente').val() === auth.uid || root.child('conversas').child($conversaId).child('participantes').child('prestador').val() === auth.uid)",
+          ".validate": "newData.isNumber()"
+        },
+        "ultimaMensagem": {
+          ".write": "auth != null && (root.child('conversas').child($conversaId).child('participantes').child('cliente').val() === auth.uid || root.child('conversas').child($conversaId).child('participantes').child('prestador').val() === auth.uid)",
+          ".validate": "newData.hasChildren(['texto', 'autorId', 'enviadoEm']) && newData.child('texto').isString() && newData.child('texto').val().length <= 1000 && newData.child('autorId').val() === auth.uid && newData.child('enviadoEm').isNumber()"
+        },
+        "ultimaLeitura": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid && (!root.child('conversas').child($conversaId).exists() || root.child('conversas').child($conversaId).child('participantes').child('cliente').val() === auth.uid || root.child('conversas').child($conversaId).child('participantes').child('prestador').val() === auth.uid)",
+            ".validate": "newData.isNumber()"
+          }
+        },
+        "mensagens": {
+          "$mensagemId": {
+            ".write": "auth != null && !data.exists() && (root.child('conversas').child($conversaId).child('participantes').child('cliente').val() === auth.uid || root.child('conversas').child($conversaId).child('participantes').child('prestador').val() === auth.uid)",
+            ".validate": "newData.hasChildren(['autorId', 'texto', 'enviadoEm']) && newData.child('autorId').val() === auth.uid && newData.child('texto').isString() && newData.child('texto').val().length >= 1 && newData.child('texto').val().length <= 1000 && newData.child('enviadoEm').isNumber()"
+          }
+        }
+      }
+    },
+    "conversasPorUsuario": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        "$conversaId": {
+          ".write": "auth != null && !data.exists() && newData.val() === true && (root.child('conversas').child($conversaId).child('participantes').child('cliente').val() === auth.uid || root.child('conversas').child($conversaId).child('participantes').child('prestador').val() === auth.uid) && (root.child('conversas').child($conversaId).child('participantes').child('cliente').val() === $uid || root.child('conversas').child($conversaId).child('participantes').child('prestador').val() === $uid)",
+          ".validate": "newData.val() === true"
+        }
+      }
+    },
+    "notificacoesChat": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        "$conversaId": {
+          ".write": "auth != null && ((auth.uid === $uid && data.exists()) || (!data.exists() && newData.exists() && (root.child('conversas').child($conversaId).child('participantes').child('cliente').val() === auth.uid || root.child('conversas').child($conversaId).child('participantes').child('prestador').val() === auth.uid) && (root.child('conversas').child($conversaId).child('participantes').child('cliente').val() === $uid || root.child('conversas').child($conversaId).child('participantes').child('prestador').val() === $uid)))",
+          ".validate": "!newData.exists() || (newData.hasChildren(['titulo', 'mensagem', 'tipo', 'criadoEm', 'lida', 'idConversa']) && newData.child('tipo').val() === 'mensagem' && newData.child('idConversa').val() === $conversaId && newData.child('titulo').isString() && newData.child('mensagem').isString() && newData.child('criadoEm').isNumber() && newData.child('lida').isBoolean())"
+        }
+      }
+    },
     "empresas": {
       "$empresaId": {
         ".read": "auth != null",

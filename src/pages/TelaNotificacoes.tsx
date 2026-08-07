@@ -19,6 +19,7 @@ import type { Notificacao } from "../firebase/types";
 import { useGradiente } from "../hooks/useGradiente";
 import { db } from "../firebase/config";
 import { onValue, ref } from "firebase/database";
+import { excluirNotificacaoChat, getNotificacoesChat, marcarNotificacaoChatLida } from "../features/mensagens/mensagem.service";
 
 export default function TelaNotificacoes() {
   const uid = getAuth().currentUser?.uid;
@@ -32,8 +33,11 @@ export default function TelaNotificacoes() {
     let cancelarInscricao: () => void = () => {};
     getTipoUsuario().then((tipo) => {
       setTipoUsuario(tipo);
-      const carregar = () => (tipo === "prestador" ? getNotificacoesPrestador(uid) : getNotificacoesCliente(uid)).then(setNotificacoes).catch(console.error).finally(() => setCarregando(false));
+      const carregar = () => Promise.all([tipo === "prestador" ? getNotificacoesPrestador(uid) : getNotificacoesCliente(uid), getNotificacoesChat(uid)]).then(([gerais, mensagens]) => setNotificacoes([...gerais, ...mensagens].sort((a, b) => b.criadoEm - a.criadoEm))).catch(console.error).finally(() => setCarregando(false));
       cancelarInscricao = onValue(ref(db, `${tipo === "prestador" ? "prestadores" : "clientes"}/${uid}/notificacoes`), carregar);
+      const cancelarChat = onValue(ref(db, `notificacoesChat/${uid}`), carregar);
+      const cancelarAnterior = cancelarInscricao;
+      cancelarInscricao = () => { cancelarAnterior(); cancelarChat(); };
       carregar();
     }).catch(console.error);
     return () => cancelarInscricao();
@@ -42,6 +46,11 @@ export default function TelaNotificacoes() {
   const abrir = async (notificacao: Notificacao) => {
     if (!uid || !notificacao.id) return;
     if (!notificacao.lida) {
+      if (notificacao.tipo === "mensagem") {
+        await marcarNotificacaoChatLida(uid, notificacao.id);
+        setNotificacoes((itens) => itens.map((item) => item.id === notificacao.id ? { ...item, lida: true } : item));
+        return;
+      }
       await (tipoUsuario === "prestador"
         ? marcarNotificacaoPrestadorLida(uid, notificacao.id)
         : marcarNotificacaoLida(uid, notificacao.id));
@@ -51,7 +60,7 @@ export default function TelaNotificacoes() {
 
   const excluir = async (notificacao: Notificacao) => {
     if (!uid || !notificacao.id) return;
-    await (tipoUsuario === "prestador" ? excluirNotificacaoPrestador(uid, notificacao.id) : excluirNotificacao(uid, notificacao.id));
+    await (notificacao.tipo === "mensagem" ? excluirNotificacaoChat(uid, notificacao.id) : tipoUsuario === "prestador" ? excluirNotificacaoPrestador(uid, notificacao.id) : excluirNotificacao(uid, notificacao.id));
     setNotificacoes((itens) => itens.filter((item) => item.id !== notificacao.id));
   };
 
