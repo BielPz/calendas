@@ -8,7 +8,7 @@ import TextInput from "../components/TextInput";
 import { getServicosDaEmpresa } from "../features/servicos/servico.service";
 import {
   agendarServico,
-  cancelarAgendamento,
+  reagendarServico,
   getAgendamentosDoServico,
   getDisponibilidadeDiaria,
   getDisponibilidadeMensal,
@@ -120,8 +120,8 @@ function TelaAgendamento() {
     }
     if (form.servico && form.data && form.horario) {
       try {
-        await agendarServico(form, getAuth().currentUser!.uid);
-        if (idAgendamentoOriginal) await cancelarAgendamento(idAgendamentoOriginal);
+        if (idAgendamentoOriginal) await reagendarServico(form, getAuth().currentUser!.uid, idAgendamentoOriginal);
+        else await agendarServico(form, getAuth().currentUser!.uid);
         showAlerta(
           "Sucesso",
           idAgendamentoOriginal ? "Agendamento reagendado com sucesso!" : configuracao.requerAprovacao ? "Solicitação enviada. Aguarde a aprovação do prestador." : "Agendamento realizado com sucesso!",

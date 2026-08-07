@@ -48,7 +48,7 @@ export const criarServico = async (item: Servico, idEmpresa: string) => {
   }
 };
 
-export const cancelarAgendamento = async (idAgendamento: string): Promise<void> => {
+export const cancelarAgendamento = async (idAgendamento: string, opcoes: { notificar?: boolean } = {}): Promise<void> => {
   const uid = getAuth().currentUser?.uid;
   if (!uid) throw new Error("Usuário não logado");
 
@@ -62,7 +62,7 @@ export const cancelarAgendamento = async (idAgendamento: string): Promise<void> 
 
   const canceladoPeloPrestador = agendamento.idPrestador === uid;
   const nomeServico = agendamento.servico?.nome ?? (await get(ref(db, `servicos/${agendamento.idServico}`))).val()?.nome ?? "serviço";
-  await criarNotificacaoCliente(agendamento.idCliente, {
+  if (opcoes.notificar !== false) await criarNotificacaoCliente(agendamento.idCliente, {
     tipo: "agendamento",
     titulo: canceladoPeloPrestador ? "Agendamento cancelado pelo prestador" : "Agendamento cancelado",
     mensagem: canceladoPeloPrestador
@@ -71,7 +71,7 @@ export const cancelarAgendamento = async (idAgendamento: string): Promise<void> 
     idAgendamento,
     idServico: agendamento.idServico,
   });
-  if (!canceladoPeloPrestador) {
+  if (!canceladoPeloPrestador && opcoes.notificar !== false) {
     await criarNotificacaoPrestador(agendamento.idPrestador, idAgendamento, {
       tipo: "agendamento",
       titulo: "Agendamento cancelado pelo cliente",
@@ -340,6 +340,7 @@ export const getDisponibilidadeDiaria = async (
 export const agendarServico = async (
   agendamento: Agendamento,
   idCliente: string,
+  opcoes: { notificarCliente?: boolean } = {},
 ) => {
   try {
     const currentUser = getAuth().currentUser;
@@ -483,7 +484,7 @@ export const agendarServico = async (
       throw error;
     }
 
-    if (!requerAprovacao) {
+    if (!requerAprovacao && opcoes.notificarCliente !== false) {
       await criarNotificacaoCliente(idCliente, { tipo: "agendamento", titulo: "Agendamento confirmado", mensagem: `${servico.nome} foi confirmado para ${agendamento.data} às ${agendamento.horario}.`, idAgendamento, idServico });
     }
     return idAgendamento;
@@ -688,6 +689,31 @@ export const getUsuarioQueAgendou = async (idAgendamento: string,): Promise<{ no
     nomeCliente: dados.clienteNome ?? "Cliente",
     imagemCliente: dados.clienteImagem ?? null,
   };
+};
+
+export const reagendarServico = async (agendamento: Agendamento, idCliente: string, idAgendamentoOriginal: string) => {
+  const originalSnap = await get(ref(db, `agendamentos/${idAgendamentoOriginal}`));
+  if (!originalSnap.exists()) throw new Error("O agendamento original não foi encontrado.");
+  const original = originalSnap.val() as Agendamento;
+  if (original.idCliente !== idCliente) throw new Error("Você não pode reagendar este agendamento.");
+  if (!original.idPrestador) throw new Error("Prestador do agendamento original não encontrado.");
+
+  const novoId = await agendarServico(agendamento, idCliente, { notificarCliente: false });
+  try {
+    await cancelarAgendamento(idAgendamentoOriginal, { notificar: false });
+  } catch (error) {
+    await cancelarAgendamento(novoId, { notificar: false });
+    throw error;
+  }
+
+  const nomeServico = agendamento.servico.nome;
+  const periodoAnterior = `${original.data} às ${original.horario}`;
+  const periodoNovo = `${agendamento.data} às ${agendamento.horario}`;
+  await Promise.all([
+    criarNotificacaoCliente(idCliente, { tipo: "agendamento", titulo: "Agendamento reagendado", mensagem: `${nomeServico} foi reagendado de ${periodoAnterior} para ${periodoNovo}.`, idAgendamento: novoId, idServico: agendamento.idServico }),
+    criarNotificacaoPrestador(original.idPrestador, novoId, { tipo: "agendamento", titulo: "Agendamento reagendado pelo cliente", mensagem: `${original.clienteNome ?? "O cliente"} reagendou ${nomeServico} de ${periodoAnterior} para ${periodoNovo}.`, idAgendamento: novoId, idServico: agendamento.idServico, manterAposEncerramento: true }),
+  ]);
+  return novoId;
 };
 
 export const atualizarServico = async (idServico: string, dados: Partial<Servico>) => {

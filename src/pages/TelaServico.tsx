@@ -11,6 +11,7 @@ import { getEmpresaPorId } from "../features/empresas/empresa.service";
 import { useGradiente } from "../hooks/useGradiente";
 import Agenda from "../components/Agenda";
 import DetalhesAgendamento from "../components/DetalhesAgendamento";
+import { useAlerta } from "../provider/AlertContext";
 
 const DIAS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 const hoje = () => new Date().toLocaleDateString("en-CA");
@@ -25,6 +26,7 @@ function TelaServico() {
   const [dataAgenda, setDataAgenda] = useState(hoje);
   const [agendamentosDoDia, setAgendamentosDoDia] = useState<Agendamento[]>([]);
   const [agendamentoDetalhado, setAgendamentoDetalhado] = useState<Agendamento>();
+  const { confirmar } = useAlerta();
   const idUsuario = getAuth().currentUser?.uid;
   const nomeUsuario = getAuth().currentUser?.displayName || "Perfil";
 
@@ -123,7 +125,7 @@ function TelaServico() {
         mostrarDadosPrivados={agendamentoDetalhado.idCliente === idUsuario}
         onFechar={() => setAgendamentoDetalhado(undefined)}
         onCancelar={agendamentoDetalhado.idCliente === idUsuario ? async (agendamento) => {
-          if (!agendamento.id || !window.confirm("Cancelar este agendamento?")) return;
+          if (!agendamento.id || !(await confirmar("Cancelar agendamento", "Cancelar este agendamento?", "Cancelar agendamento"))) return;
           try {
             await cancelarAgendamento(agendamento.id);
             setAgendamentosDoDia((atual) => atual.filter((item) => item.id !== agendamento.id));

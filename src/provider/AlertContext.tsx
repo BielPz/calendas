@@ -1,5 +1,6 @@
 import { createContext, useContext, useState } from "react"; // Importa o createContext para criar o contexto, useContext para consumir o contexto e useState para gerenciar o estado do alerta
 import CardAlerta from "../components/CardAlerta";
+import ModalConfirmacao from "../components/ModalConfirmacao";
 
 type Tipo = "sucesso" | "erro" | "aviso" | "desconect" | "info"; // Define os tipos de alerta disponíveis
 
@@ -15,6 +16,7 @@ interface AlertaState {
 interface AlertaContextType {
   showAlerta: (titulo: string, texto: string, tipo?: Tipo) => void;
   closeAlerta: () => void;
+  confirmar: (titulo: string, texto: string, confirmarLabel?: string) => Promise<boolean>;
 }
 
 // Cria o contexto do alerta com um valor inicial de null, indicando que o contexto ainda não foi fornecido
@@ -28,6 +30,7 @@ export function AlertaProvider({ children }: { children: React.ReactNode }) {
     texto: "",
     tipo: "sucesso",
   });
+  const [confirmacao, setConfirmacao] = useState<{ aberto: boolean; titulo: string; texto: string; label: string; resolver?: (confirmado: boolean) => void }>({ aberto: false, titulo: "", texto: "", label: "Confirmar" });
 
   // Função para mostrar o alerta, atualizando o estado do alerta com os valores fornecidos
   const showAlerta = (
@@ -47,10 +50,15 @@ export function AlertaProvider({ children }: { children: React.ReactNode }) {
   const closeAlerta = () => {
     setAlerta((prev) => ({ ...prev, aberto: false }));
   };
+  const confirmar = (titulo: string, texto: string, confirmarLabel = "Confirmar") => new Promise<boolean>((resolver) => setConfirmacao({ aberto: true, titulo, texto, label: confirmarLabel, resolver }));
+  const responderConfirmacao = (confirmado: boolean) => {
+    confirmacao.resolver?.(confirmado);
+    setConfirmacao({ aberto: false, titulo: "", texto: "", label: "Confirmar" });
+  };
 
   // Fornece o contexto do alerta para os componentes filhos, incluindo as funções para mostrar e fechar o alerta, e renderiza o componente ModalAlerta para exibir o alerta globalmente
   return (
-    <AlertaContext.Provider value={{ showAlerta, closeAlerta }}>
+    <AlertaContext.Provider value={{ showAlerta, closeAlerta, confirmar }}>
       {children}
 
       {/* 🔥 Modal global */}
@@ -61,6 +69,7 @@ export function AlertaProvider({ children }: { children: React.ReactNode }) {
         type={alerta.tipo}
         onClose={closeAlerta}
       />
+      <ModalConfirmacao aberto={confirmacao.aberto} titulo={confirmacao.titulo} mensagem={confirmacao.texto} confirmarLabel={confirmacao.label} onCancelar={() => responderConfirmacao(false)} onConfirmar={() => responderConfirmacao(true)} />
     </AlertaContext.Provider>
   );
 }

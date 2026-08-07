@@ -36,7 +36,7 @@ const diasPadrao = (): DiaDisponivel[] =>
 function TelaCriarServico() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { showAlerta } = useAlerta();
+  const { showAlerta, confirmar } = useAlerta();
   const corFundo = useGradiente();
   const nomeUsuario = getAuth().currentUser?.displayName || "Perfil";
   const idEmpresa = location.state?.idEmpresa;
@@ -229,9 +229,7 @@ function TelaCriarServico() {
 
   const handleExcluir = async () => {
     if (!idServico) return;
-    const confirmado = window.confirm(
-      `Excluir o serviço “${form.nome}”? Esta ação não pode ser desfeita.`,
-    );
+    const confirmado = await confirmar("Excluir serviço", `Excluir o serviço “${form.nome}”? Esta ação não pode ser desfeita.`, "Excluir serviço");
     if (!confirmado) return;
 
     try {
@@ -277,7 +275,7 @@ function TelaCriarServico() {
     setEditando(false);
   };
   const cancelarAgendamentoDaAgenda = async (agendamento: Agendamento) => {
-    if (!agendamento.id || !window.confirm("Cancelar este agendamento?")) return;
+    if (!agendamento.id || !(await confirmar("Cancelar agendamento", "Cancelar este agendamento?", "Cancelar agendamento"))) return;
     try {
       await cancelarAgendamento(agendamento.id);
       setAgendaServico((itens) => itens.filter((item) => item.id !== agendamento.id));
@@ -489,7 +487,7 @@ function TelaCriarServico() {
           tipoUsuario="prestador"
           onFechar={() => setAgendamentoDetalhado(undefined)}
           onCancelar={async (agendamento) => {
-            if (!agendamento.id || !window.confirm("Cancelar este agendamento?")) return;
+            if (!agendamento.id || !(await confirmar("Cancelar agendamento", "Cancelar este agendamento?", "Cancelar agendamento"))) return;
             try {
               await cancelarAgendamento(agendamento.id);
               setAgendaServico((atual) => atual.filter((item) => item.id !== agendamento.id));

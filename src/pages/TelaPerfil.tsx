@@ -35,7 +35,7 @@ function TelaPerfil() {
   const [dadosEditados, setDadosEditados] = useState<Record<string, string>>(
     {},
   );
-  const { showAlerta } = useAlerta();
+  const { showAlerta, confirmar } = useAlerta();
   const navigate = useNavigate();
   const cor_fundo = useGradiente();
 
@@ -120,9 +120,7 @@ function TelaPerfil() {
 
   const handleExcluirConta = async () => {
     if (!tipo) return;
-    const confirmado = window.confirm(
-      "Tem certeza? Sua conta será excluída permanentemente. Esta ação não pode ser desfeita.",
-    );
+    const confirmado = await confirmar("Excluir conta", "Tem certeza? Sua conta será excluída permanentemente. Esta ação não pode ser desfeita.", "Excluir conta");
     if (!confirmado) return;
 
     try {

@@ -22,7 +22,7 @@ function TelaCalendario() {
   const id = auth.currentUser?.uid;
   const nomeUsuario = auth.currentUser?.displayName || "Perfil";
   const navigate = useNavigate();
-  const { showAlerta } = useAlerta();
+  const { showAlerta, confirmar } = useAlerta();
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
   const [dataSelecionada, setDataSelecionada] = useState(() => new Date().toLocaleDateString("en-CA"));
   const [selecionadoId, setSelecionadoId] = useState<string>();
@@ -76,7 +76,7 @@ function TelaCalendario() {
   };
 
   const cancelar = async (agendamento: Agendamento) => {
-    if (!agendamento.id || !window.confirm(`Cancelar o agendamento de ${agendamento.servico.nome}?`)) return;
+    if (!agendamento.id || !(await confirmar("Cancelar agendamento", `Cancelar o agendamento de ${agendamento.servico.nome}?`, "Cancelar agendamento"))) return;
     try {
       await cancelarAgendamento(agendamento.id);
       setAgendamentos((atual) => atual.filter((item) => item.id !== agendamento.id));

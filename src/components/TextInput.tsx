@@ -177,8 +177,10 @@ function TextInput({
           {...commonProps}
           value={valor}
           min={agendamento ? minDate : undefined}
+          max={type === "date" ? dataMinima : undefined}
           maxLength={maxLength ? maxLength : undefined}
           onChange={(e) => handleChange(e.target.value)}
+          onInput={type === "date" ? (e) => handleChange(e.currentTarget.value) : undefined}
           onBlur={(e) => {
             if (agendamento) {
               const [ano, mes, dia] = e.target.value.split("-").map(Number);

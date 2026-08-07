@@ -163,6 +163,7 @@ function CadastroUsuario() {
         <TextInput
           titulo="Data de nascimento"
           type="date"
+          value={form.dtnasc}
           onChange={(value) => handleChange("dtnasc", value)}
           tipoValidacao="data"
           required
