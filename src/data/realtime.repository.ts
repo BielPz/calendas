@@ -697,6 +697,8 @@ export const reagendarServico = async (agendamento: Agendamento, idCliente: stri
   const original = originalSnap.val() as Agendamento;
   if (original.idCliente !== idCliente) throw new Error("Você não pode reagendar este agendamento.");
   if (!original.idPrestador) throw new Error("Prestador do agendamento original não encontrado.");
+  const idServico = agendamento.idServico ?? agendamento.servico?.id;
+  if (!idServico) throw new Error("Serviço do novo agendamento não encontrado.");
 
   const novoId = await agendarServico(agendamento, idCliente, { notificarCliente: false });
   try {
@@ -706,13 +708,22 @@ export const reagendarServico = async (agendamento: Agendamento, idCliente: stri
     throw error;
   }
 
-  const nomeServico = agendamento.servico.nome;
+  // Usa o prestador gravado no novo agendamento. Assim a permissão da notificação
+  // sempre é validada contra a reserva que acabou de ser criada.
+  const novoAgendamentoSnap = await get(ref(db, `agendamentos/${novoId}`));
+  const idPrestador = novoAgendamentoSnap.val()?.idPrestador ?? original.idPrestador;
+  const nomeServico = agendamento.servico?.nome ?? "Serviço";
   const periodoAnterior = `${original.data} às ${original.horario}`;
   const periodoNovo = `${agendamento.data} às ${agendamento.horario}`;
-  await Promise.all([
-    criarNotificacaoCliente(idCliente, { tipo: "agendamento", titulo: "Agendamento reagendado", mensagem: `${nomeServico} foi reagendado de ${periodoAnterior} para ${periodoNovo}.`, idAgendamento: novoId, idServico: agendamento.idServico }),
-    criarNotificacaoPrestador(original.idPrestador, novoId, { tipo: "agendamento", titulo: "Agendamento reagendado pelo cliente", mensagem: `${original.clienteNome ?? "O cliente"} reagendou ${nomeServico} de ${periodoAnterior} para ${periodoNovo}.`, idAgendamento: novoId, idServico: agendamento.idServico, manterAposEncerramento: true }),
+  const notificacoes = await Promise.allSettled([
+    criarNotificacaoCliente(idCliente, { tipo: "agendamento", titulo: "Agendamento reagendado", mensagem: `${nomeServico} foi reagendado de ${periodoAnterior} para ${periodoNovo}.`, idAgendamento: novoId, idServico }),
+    criarNotificacaoPrestador(idPrestador, novoId, { tipo: "agendamento", titulo: "Agendamento reagendado pelo cliente", mensagem: `${original.clienteNome ?? "O cliente"} reagendou ${nomeServico} de ${periodoAnterior} para ${periodoNovo}.`, idAgendamento: novoId, idServico, manterAposEncerramento: true }),
   ]);
+  // A reserva já foi concluída neste ponto. Uma falha isolada de notificação não
+  // deve exibir erro nem fazer o cliente acreditar que o reagendamento falhou.
+  notificacoes.forEach((resultado) => {
+    if (resultado.status === "rejected") console.error("Não foi possível registrar uma notificação de reagendamento:", resultado.reason);
+  });
   return novoId;
 };
 
