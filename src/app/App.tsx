@@ -18,6 +18,8 @@ const TelaCalendario = lazy(() => import("@/pages/TelaCalendario"));
 const TelaAgendamento = lazy(() => import("@/pages/TelaAgendamento"));
 const TelaCriarEmpresa = lazy(() => import("@/pages/TelaCriarEmpresa"));
 
+const TelaEmpresa = lazy(() => import("@/pages/TelaEmpresa"));
+
 const proteger = (element: React.ReactNode) => (
   <ProtectedRoute>{element}</ProtectedRoute>
 );
@@ -52,6 +54,11 @@ export default function App() {
                 <Route
                   path="/cadastro-empresa"
                   element={proteger(<TelaCriarEmpresa />)}
+                />
+
+                <Route
+                  path="/empresas/:idEmpresa"
+                  element={proteger(<TelaEmpresa />)}
                 />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
