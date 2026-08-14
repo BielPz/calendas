@@ -20,7 +20,11 @@ function TelaLogin() {
     try {
       await login(email, senha, tipo);
       navigate("/feed");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const code =
+        typeof error === "object" && error !== null && "code" in error
+          ? String(error.code)
+          : "";
       const mensagens: Record<string, string> = {
         "auth/invalid-credential": "E-mail ou senha incorretos.",
         "auth/user-not-found": "Usuário não encontrado.",
@@ -33,18 +37,23 @@ function TelaLogin() {
         "auth/network-request-failed": "Sem conexão. Verifique sua internet.",
       };
       const mensagem =
-        mensagens[error.code] ?? "Erro desconhecido. Tente novamente.";
+        mensagens[code] ??
+        (error instanceof Error
+          ? error.message
+          : "Erro desconhecido. Tente novamente.");
       setErro(mensagem);
-      mensagem == "auth/network-request-failed"
-        ? showAlerta("Desconectado", mensagem, "desconect")
-        : showAlerta("Erro", mensagem, "erro");
+      if (code === "auth/network-request-failed") {
+        showAlerta("Desconectado", mensagem, "desconect");
+      } else {
+        showAlerta("Erro", mensagem, "erro");
+      }
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-start min-h-screen dark:bg-zinc-900">
+    <div className="flex h-dvh flex-col items-center overflow-hidden dark:bg-zinc-900">
       <CabecalhoBranco tipo={tipo} setTipo={setTipo} titulo="Login" />
-      <div className="w-[45%] min-w-75 relative">
+      <div className="w-full max-w-xl flex-1 min-h-0 px-4">
         <div className="w-full flex flex-col gap-3">
           <TextInput
             titulo="E-mail"
@@ -59,23 +68,20 @@ function TelaLogin() {
             required
           />
           {erro && <p className="text-red-500 text-sm">{erro}</p>}
-          <Link
-            to="/esqueci-senha"
-            className="text-m text-blue-700 dark:text-blue-400 dark:hover:text-blue-50 hover:text-black transition-colors duration-200 self-start mt-1 mb-5"
-          >
+          <Link to="/esqueci-senha" className="ui-link self-start mt-1 mb-5">
             Esqueci a senha
           </Link>
         </div>
 
-        <div className="w-full min-w-75">
+        <div className="w-full">
           <button
             disabled={!isValid}
             onClick={handleLogin}
             className={`
-            w-full py-4 rounded-xl text-white font-semibold mb-3
+            ui-button-primary w-full py-4 mb-3
             ${
               isValid
-                ? "bg-linear-to-br from-orange-500 to-purple-500 dark:from-indigo-600 dark:to-zinc-600 dark:hover:from-indigo-950 dark:hover:to-zinc-950 hover:from-orange-700 hover:to-purple-700 cursor-pointer"
+                ? "bg-linear-to-br from-orange-500 to-purple-600 hover:from-orange-600 hover:to-purple-700 cursor-pointer"
                 : "bg-gray-400 cursor-not-allowed opacity-70"
             }
           `}
@@ -84,12 +90,9 @@ function TelaLogin() {
           </button>
         </div>
         <div className="border-t border-gray-300 dark:border-gray-700 my-3" />
-        <p className="text-start text-m mb-10 dark:text-gray-300">
+        <p className="text-start text-m mb-3 dark:text-gray-300">
           Não tem uma conta?{" "}
-          <Link
-            to="/cadastro"
-            className="text-blue-700 dark:text-blue-400 dark:hover:text-blue-50 hover:text-black transition-colors duration-200 font-semibold"
-          >
+          <Link to="/cadastro" className="ui-link">
             Cadastre-se
           </Link>
         </p>
