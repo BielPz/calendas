@@ -15,7 +15,7 @@ function TelaCadastro() {
         titulo={"Fazer Cadastro"}
       />
 
-      <div className="w-[45%] min-w-[300px] relative">
+      <div className="w-full max-w-xl px-4">
         <div className={`w-full ${tipo === "cliente" ? "block" : "hidden"}`}>
           <CadastroCliente />
         </div>
@@ -27,10 +27,7 @@ function TelaCadastro() {
         <div className="border-t border-gray-300 dark:border-gray-700 my-3" />
         <p className="text-start text-m mb-10 dark:text-gray-300">
           Já tem uma conta?{" "}
-          <Link
-            to="/login"
-            className="text-blue-700 dark:text-blue-400 dark:hover:text-blue-50 hover:text-black transition-colors duration-200 font-semibold"
-          >
+          <Link to="/login" className="ui-link">
             Faça login
           </Link>
         </p>

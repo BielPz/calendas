@@ -86,10 +86,6 @@ export const getEmpresaPorId = async (id: string) => {
 
 /* -----------------------------------------------------------------------------*/
 
-
-
-/* -----------------------------------------------------------------------------*/
-
 export const getTodosServicos = async (): Promise<Servico[]> => {
   try {
     const snapshot = await get(ref(db, "servicos"));
@@ -229,67 +225,6 @@ export const getDisponibilidadeDiaria = async (
 
   // Retorna o objeto com a disponibilidade de cada horário
   return resultado;
-};
-
-/* -----------------------------------------------------------------------------*/
-
-// Agenda um serviço para um cliente, salvando no nó "agendamentos" e associando ao cliente e prestador
-export const agendarServico = async (
-  agendamento: Agendamento,
-  idCliente: string,
-) => {
-  try {
-    // 1. Cria um novo agendamento com ID único
-    const agendamentoRef = ref(db, "agendamentos");
-    const newAgendamentoRef = push(agendamentoRef);
-    const idAgendamento = newAgendamentoRef.key!;
-
-    // 2. Salva os dados do agendamento (incluindo referências ao serviço, cliente e prestador)
-    const { servico, data, horario, obs } = agendamento;
-    const idServico = servico.id!;
-    await set(newAgendamentoRef, {
-      idServico,
-      idCliente,
-      data,
-      horario,
-      status: "agendado",
-      obs,
-    });
-
-    // 3. Associa o agendamento ao cliente (para facilitar consultas futuras do cliente)
-    try {
-      const clienteAgendamentoRef = ref(
-        db,
-        `clientes/${idCliente}/agendamentos/${idAgendamento}`,
-      );
-      await set(clienteAgendamentoRef, true);
-    } catch (error) {
-      console.error("Erro ao associar agendamento ao cliente:", error);
-      // Remover o agendamento criado se essa associação falhar
-      await remove(newAgendamentoRef);
-    }
-
-    // 4. Associa o agendamento ao serviço (para facilitar consultas futuras do prestador)
-    try {
-      const servicoAgendamentoRef = ref(
-        db,
-        `servicos/${idServico}/agendamentos/${idAgendamento}`,
-      );
-      await set(servicoAgendamentoRef, true);
-    } catch (error) {
-      console.error("Erro ao associar agendamento ao serviço:", error);
-      // Remover o agendamento criado e a associação com o cliente se essa associação falhar
-      await remove(newAgendamentoRef);
-      await remove(
-        ref(db, `clientes/${idCliente}/agendamentos/${idAgendamento}`),
-      );
-    }
-
-    return idAgendamento;
-  } catch (error) {
-    console.error("Erro ao agendar serviço:", error);
-    throw error;
-  }
 };
 
 /* -----------------------------------------------------------------------------*/
