@@ -1,7 +1,19 @@
 import { db } from "@/firebase/config";
-import type { Servico } from "@/firebase/types";
+import type { Agendamento, Servico } from "@/firebase/types";
 import { getAuth } from "firebase/auth";
 import { ref, get, update, push, set } from "firebase/database";
+
+/* -----------------------------------------------------------------------------*/
+/*                             SESSÃO USUÁRIO                                   */
+/* -----------------------------------------------------------------------------*/
+
+/* -----------------------------------------------------------------------------*/
+/*                              SESSÃO PRESTADOR                                */
+/* -----------------------------------------------------------------------------*/
+
+/* -----------------------------------------------------------------------------*/
+/*                               SESSÃO EMPRESA                                 */
+/* -----------------------------------------------------------------------------*/
 
 export const getServicosDaEmpresa = async (
   idEmpresa: string,
@@ -31,6 +43,44 @@ export const getServicosDaEmpresa = async (
   }
 };
 
+/* -----------------------------------------------------------------------------*/
+/*                               SESSÃO SERVIÇOS                                */
+/* -----------------------------------------------------------------------------*/
+
+export const atualizarServico = async (idServico: string, dados: Partial<Servico>) => {
+  const camposEditaveis = { ...dados };
+  delete camposEditaveis.id;
+  delete camposEditaveis.avaliacoes;
+  delete camposEditaveis.avaliacaoMedia;
+  delete camposEditaveis.totalAvaliacoes;
+  await update(ref(db, `servicos/${idServico}`), camposEditaveis);
+};
+
+export const excluirServico = async (idServico: string): Promise<void> => {
+  const servicoSnap = await get(ref(db, `servicos/${idServico}`));
+  if (!servicoSnap.exists()) throw new Error("Serviço não encontrado.");
+
+  const servico = servicoSnap.val() as Servico & { agendamentos?: Record<string, true>; favoritos?: Record<string, true> };
+  if (servico.agendamentos && Object.keys(servico.agendamentos).length > 0) {
+    throw new Error("Este serviço possui agendamentos. Cancele ou conclua os atendimentos antes de excluí-lo.");
+  }
+  if (!servico.idEmpresa) throw new Error("Empresa do serviço não encontrada.");
+
+  await Promise.all(Object.keys(servico.favoritos ?? {}).map((idCliente) => criarNotificacaoCliente(idCliente, {
+    tipo: "favorito",
+    titulo: "Serviço removido",
+    mensagem: `${servico.nome} foi removido pela empresa.`,
+    idServico,
+  })));
+
+  await update(ref(db), {
+    [`servicos/${idServico}`]: null,
+    [`empresas/${servico.idEmpresa}/servicos/${idServico}`]: null,
+  });
+};
+
+/* -----------------------------------------------------------------------------*/
+/*                             SESSÃO AGENDAMENTO                               */
 /* -----------------------------------------------------------------------------*/
 
 export const cancelarAgendamento = async (idAgendamento: string, opcoes: {notificar?: boolean} = {}): Promise<void> => {
@@ -77,6 +127,35 @@ export const cancelarAgendamento = async (idAgendamento: string, opcoes: {notifi
   });
 };
 
+/* ---------------------------------------------------------------*/
+
+export const responderAgendamento = async (idAgendamento: string, aprovar: boolean) => {
+  const uid = getAuth().currentUser?.uid;
+  if (!uid) throw new Error("Usuário não logado");
+  const snapshot = await get(ref(db, `agendamentos/${idAgendamento}`));
+  if (!snapshot.exists()) throw new Error("Agendamento não encontrado");
+  const agendamento = snapshot.val() as Agendamento;
+  if (agendamento.idPrestador !== uid || agendamento.status !== "aguardando_aprovacao") throw new Error("Você não pode responder este agendamento.");
+
+  if (aprovar) {
+    await update(ref(db, `agendamentos/${idAgendamento}`), { status: "agendado" });
+    await criarNotificacaoCliente(agendamento.idCliente!, { tipo: "agendamento", titulo: "Agendamento aprovado", mensagem: `${agendamento.servico?.nome ?? "Seu serviço"} foi aprovado pelo prestador.`, idAgendamento, idServico: agendamento.idServico });
+    return;
+  }
+
+  await update(ref(db), {
+    [`agendamentos/${idAgendamento}/status`]: "recusado",
+    [`clientes/${agendamento.idCliente}/agendamentos/${idAgendamento}`]: null,
+    [`servicos/${agendamento.idServico}/agendamentos/${idAgendamento}`]: null,
+    ...Object.fromEntries((agendamento.servicosConflitantes ?? []).map((id) => [`servicos/${id}/agendamentos/${idAgendamento}`, null])),
+    [`slots/${agendamento.idServico}/${agendamento.data}/${agendamento.horario}`]: null,
+    [`slotsClientes/${agendamento.idCliente}/${agendamento.data}/${agendamento.horario}`]: null,
+  });
+  await criarNotificacaoCliente(agendamento.idCliente!, { tipo: "agendamento", titulo: "Agendamento recusado", mensagem: `${agendamento.servico?.nome ?? "Seu serviço"} não foi aprovado pelo prestador.`, idAgendamento, idServico: agendamento.idServico });
+};
+
+/* -----------------------------------------------------------------------------*/
+/*                             SESSÃO NOTIFICAÇÃO                               */
 /* -----------------------------------------------------------------------------*/
 
 const criarNotificacaoCliente = async (idCliente: string, notificacao: Omit<import("../firebase/types").Notificacao, "id" | "criadoEm" | "lida">) => {

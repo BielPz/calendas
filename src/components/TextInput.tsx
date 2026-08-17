@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { IMaskInput } from "react-imask";
 
 type Option = {
@@ -29,6 +29,7 @@ interface Props {
   options?: Option[];
   selected?: string;
   maxLength?: number;
+  placeholder?: string;
   onChange?: (value: string) => void;
 }
 
@@ -47,9 +48,11 @@ function TextInput({
   onChange,
   selected,
   maxLength,
+  placeholder,
 }: Props) {
   const [erro, setErro] = useState<string | null>(null);
   const [valorInterno, setValorInterno] = useState("");
+  const id = useId();
 
   // 👇 controlado ou não
   const valor = value !== undefined ? value : valorInterno;
@@ -98,25 +101,29 @@ function TextInput({
     onChange?.(v);
   }
 
-  const baseClass =
-    "w-full px-4 py-3 border border-gray-300 rounded-xl dark:scheme-dark focus:outline-none disabled:bg-gray-100 dark:disabled:bg-zinc-800 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white transition-colors duration-200";
+  const baseClass = "ui-input no-spinner appearance-none";
 
   const commonProps = {
-    id: titulo.toLowerCase(),
-    name: titulo.toLowerCase(),
-    placeholder: placeholderDinamico,
+    id,
+    name: id,
+    placeholder: placeholder ?? placeholderDinamico,
     className: `${baseClass} no-spinner appearance-none`,
     onBlur: () => setErro(validar(valor)),
     required,
     disabled,
+    "aria-invalid": Boolean(erro),
+    "aria-describedby": erro ? `${id}-erro` : undefined,
   };
 
   return (
     <div className="w-full">
-      <p className="dark:text-white">
+      <label
+        htmlFor={id}
+        className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-zinc-200"
+      >
         {titulo}
         {required && <b className="text-red-400 font-semibold">*</b>}
-      </p>
+      </label>
 
       {type === "select" ? (
         <select
@@ -172,8 +179,14 @@ function TextInput({
           {...commonProps}
           value={valor}
           min={agendamento ? minDate : undefined}
+          max={type === "date" ? dataMinima : undefined}
           maxLength={maxLength ? maxLength : undefined}
           onChange={(e) => handleChange(e.target.value)}
+          onInput={
+            type === "date"
+              ? (e) => handleChange(e.currentTarget.value)
+              : undefined
+          }
           onBlur={(e) => {
             if (agendamento) {
               const [ano, mes, dia] = e.target.value.split("-").map(Number);
@@ -198,7 +211,15 @@ function TextInput({
       )}
 
       <div className="min-h-5 transition-all duration-200">
-        {erro && <p className="text-red-500 text-sm">{erro}</p>}
+        {erro && (
+          <p
+            id={`${id}-erro`}
+            role="alert"
+            className="text-sm text-red-600 dark:text-red-400"
+          >
+            {erro}
+          </p>
+        )}
       </div>
     </div>
   );

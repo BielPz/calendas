@@ -58,7 +58,7 @@ export interface ConfiguracaoAtendimento {
   solicitarTelefone: boolean;
   placeholderObservacao: string;
   observacaoObrigatoria?: boolean;
-  requererConfirmacao?: boolean;
+  requerAprovacao?: boolean;
 }
 
 export interface AvaliacaoServico {
