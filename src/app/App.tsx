@@ -20,6 +20,7 @@ const TelaCriarEmpresa = lazy(() => import("@/pages/TelaCriarEmpresa"));
 const TelaServico = lazy(() => import("@/pages/TelaServico"));
 const TelaEmpresa = lazy(() => import("@/pages/TelaEmpresa"));
 const TelaNotificacoes = lazy(() => import("@/pages/TelaNotificacoes"));
+const TelaMensagens = lazy(() => import("@/pages/TelaMensagens"));
 
 const proteger = (element: React.ReactNode) => (
   <ProtectedRoute>{element}</ProtectedRoute>
@@ -71,6 +72,10 @@ export default function App() {
                 <Route
                   path="/notificacoes"
                   element={proteger(<TelaNotificacoes />)}
+                />
+                <Route
+                  path="/mensagens"
+                  element={proteger(<TelaMensagens />)}
                 />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
