@@ -49,6 +49,29 @@ export const getServicosDaEmpresa = async (
 /*                               SESSÃO SERVIÇOS                                */
 /* -----------------------------------------------------------------------------*/
 
+export const salvarAvaliacaoServico = async (
+  idServico: string,
+  nota: number,
+  comentario: string,
+): Promise<void> => {
+  const uid = getAuth().currentUser?.uid;
+  if (!uid) throw new Error("Usuário não logado");
+  if (!Number.isInteger(nota) || nota < 1 || nota > 5) {
+    throw new Error("Escolha uma nota entre 1 e 5 estrelas.");
+  }
+  const clienteSnap = await get(ref(db, `clientes/${uid}`));
+  const nomeAutor = String(clienteSnap.val()?.nome ?? getAuth().currentUser?.displayName ?? "Cliente").trim() || "Cliente";
+
+  await set(ref(db, `servicos/${idServico}/avaliacoes/${uid}`), {
+    nota,
+    comentario: comentario.trim(),
+    atualizadoEm: Date.now(),
+    nomeAutor,
+  });
+};
+
+/* ---------------------------------------------------------------*/
+
 export const atualizarServico = async (idServico: string, dados: Partial<Servico>) => {
   const camposEditaveis = { ...dados };
   delete camposEditaveis.id;
@@ -57,6 +80,8 @@ export const atualizarServico = async (idServico: string, dados: Partial<Servico
   delete camposEditaveis.totalAvaliacoes;
   await update(ref(db, `servicos/${idServico}`), camposEditaveis);
 };
+
+/* ---------------------------------------------------------------*/
 
 export const excluirServico = async (idServico: string): Promise<void> => {
   const servicoSnap = await get(ref(db, `servicos/${idServico}`));

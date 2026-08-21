@@ -5,221 +5,160 @@ import {
   House,
   History,
   Heart,
-  ChevronDown,
-  ChevronUp,
+  HeartOff,
+  Bell,
+  MessageCircle,
 } from "lucide-react";
 import type { Servico } from "../../firebase/types";
+import { useMensagensNaoLidas } from "@/hooks/useMensagensNaoLidas";
+import MenuPrincipal from "../MenuPrincipal";
 
 const LIMITE_FAVORITOS = 3;
 
 interface Props {
   favoritos?: Servico[];
   onNavigateServico?: (servico: Servico) => void;
+  onRemoverFavorito?: (idServico: string) => void;
 }
 
-function SideBarCliente({ favoritos = [], onNavigateServico }: Props) {
+function SideBarCliente({
+  favoritos = [],
+  onNavigateServico,
+  onRemoverFavorito,
+}: Props) {
   const navigate = useNavigate();
   const [expandido, setExpandido] = useState(false);
 
-  const favoritosVisiveis = expandido
-    ? favoritos
-    : favoritos.slice(0, LIMITE_FAVORITOS);
-  const temMais = favoritos.length > LIMITE_FAVORITOS;
+  const mensagensNaoLidas = useMensagensNaoLidas();
 
-  const commonButtonClasses =
-    "flex flex-col sm:flex-row items-center gap-1 sm:gap-3 px-4 sm:px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-300 transition-colors duration-200 sm:w-full sm:text-left";
+  const itens = expandido ? favoritos : favoritos.slice(0, LIMITE_FAVORITOS);
 
-  // Item de favorito — compartilhado entre desktop e mobile
-  const itemFavorito = (s: Servico) => (
-    <button
-      key={s.id}
-      onClick={() => onNavigateServico?.(s)}
-      className="flex items-center gap-2 w-full px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors text-left group"
-    >
-      <div className="w-6 h-6 rounded shrink-0 bg-gray-200 dark:bg-zinc-600 overflow-hidden">
-        {s.imagem ? (
-          <img
-            src={s.imagem}
-            alt={s.nome}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full" />
+  const lista = (
+    <section className="mt-3 border-t border-slate-200 pt-3 dark:border-zinc-700">
+      <div className="mb-2 flex items-center justify-between px-3">
+        <span className="text-xs font-black uppercase tracking-wide text-slate-500">
+          Favoritos
+        </span>
+        {favoritos.length > LIMITE_FAVORITOS && (
+          <button
+            type="button"
+            onClick={() => setExpandido(!expandido)}
+            className="text-xs font-semibold text-orange-700 dark:text-orange-300"
+          >
+            {expandido ? "Ver menos" : "Ver todos"}
+          </button>
         )}
       </div>
-      <span className="text-xs text-gray-700 dark:text-gray-300 truncate flex-1">
-        {s.nome}
-      </span>
-      <Heart size={10} className="text-red-400 shrink-0 fill-red-400" />
-    </button>
+      {itens.length ? (
+        <div className="space-y-1">
+          {itens.map((servico) => (
+            <div
+              key={servico.id}
+              className="group flex items-center gap-1 rounded-lg px-1 hover:bg-orange-50 dark:hover:bg-zinc-700"
+            >
+              <button
+                type="button"
+                onClick={() => onNavigateServico?.(servico)}
+                className="flex min-w-0 flex-1 items-center gap-2 p-2 text-left"
+              >
+                <div className="h-7 w-7 shrink-0 overflow-hidden rounded bg-slate-200 dark:bg-zinc-600">
+                  {servico.imagem && (
+                    <img
+                      src={servico.imagem}
+                      alt={servico.nome}
+                      className="h-full w-full object-cover"
+                    />
+                  )}
+                </div>
+                <span className="truncate text-xs text-slate-700 dark:text-zinc-200">
+                  {servico.nome}
+                </span>
+              </button>
+              {servico.id && (
+                <button
+                  type="button"
+                  onClick={() => onRemoverFavorito?.(servico.id!)}
+                  className="p-2 text-red-500"
+                  aria-label="Remover favorito"
+                >
+                  <HeartOff size={15} />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="px-3 text-xs italic text-slate-400">
+          Nenhum favorito ainda.
+        </p>
+      )}
+    </section>
   );
 
   return (
-    <>
-      {/* ── SIDEBAR DESKTOP ───────────────────────────────────────────── */}
-      <div className="hidden md:flex flex-col gap-1 w-full">
-        <button className={commonButtonClasses}>
-          <House size={18} className="dark:text-gray-500" />
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-400">
-            Início
-          </span>
-        </button>
-
-        <button
-          className={commonButtonClasses}
-          onClick={() => navigate("/calendario")}
-        >
-          <CalendarClock size={18} className="dark:text-gray-500" />
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-400">
-            Minha Agenda
-          </span>
-        </button>
-
-        <button className={commonButtonClasses}>
-          <History size={18} className="dark:text-gray-500" />
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-400">
-            Histórico
-          </span>
-        </button>
-
-        {/* Seção Favoritos */}
-        <div className="mt-3 pt-3 border-t border-gray-100 dark:border-zinc-700">
-          <div className="flex items-center justify-between px-3 mb-1">
-            <p className="text-xs font-semibold text-gray-400 dark:text-gray-100 uppercase tracking-wide">
-              Favoritos
-            </p>
-            {favoritos.length > 0 && (
-              <span className="text-[10px] text-gray-400 dark:text-gray-500">
-                {favoritos.length}
-              </span>
-            )}
+    <div className="w-full">
+      <MenuPrincipal
+        itens={[
+          {
+            id: "inicio",
+            label: "Início",
+            icon: <House size={18} />,
+            onClick: () => navigate("/feed"),
+          },
+          {
+            id: "agenda",
+            label: "Minha Agenda",
+            icon: <CalendarClock size={18} />,
+            onClick: () => navigate("/calendario"),
+          },
+          {
+            id: "mensagens",
+            label: "Mensagens",
+            icon: <MessageCircle size={18} />,
+            contador: mensagensNaoLidas,
+            onClick: () => navigate("/mensagens"),
+          },
+          {
+            id: "notificacoes",
+            label: "Notificações",
+            icon: <Bell size={18} />,
+            onClick: () => navigate("/notificacoes"),
+          },
+          { id: "historico", label: "Histórico", icon: <History size={18} /> },
+        ]}
+        conteudoExtra={lista}
+      />
+      {favoritos.length > 0 && (
+        <div className="ui-card mt-2 p-2 md:hidden">
+          <div className="flex items-center gap-2 px-1 text-xs font-bold text-slate-500">
+            <Heart size={13} className="fill-current text-red-500" /> Favoritos
           </div>
-
-          {favoritos.length === 0 ? (
-            <p className="px-3 text-xs text-gray-300 dark:text-zinc-600 italic">
-              Nenhum favorito ainda
-            </p>
-          ) : (
-            <div className="flex flex-col gap-0.5">
-              {favoritosVisiveis.map(itemFavorito)}
-
-              {temMais && (
-                <button
-                  onClick={() => setExpandido(!expandido)}
-                  className="flex items-center gap-1 px-3 py-1 text-[10px] text-blue-500 hover:text-blue-600 transition-colors"
-                >
-                  {expandido ? (
-                    <>
-                      <ChevronUp size={11} /> Ver menos
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown size={11} /> +
-                      {favoritos.length - LIMITE_FAVORITOS} mais
-                    </>
-                  )}
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ── BARRA MOBILE ──────────────────────────────────────────────── */}
-      <div className="flex md:hidden flex-col gap-2 w-full">
-        {/* Ícones principais */}
-        <div className="flex bg-white dark:bg-zinc-800 rounded-lg px-2 py-2 gap-1 w-full justify-around">
-          <button className={commonButtonClasses}>
-            <House size={18} className="dark:text-gray-500" />
-            <span className="text-xs text-gray-600 dark:text-gray-400">
-              Início
-            </span>
-          </button>
-          <button
-            className={commonButtonClasses}
-            onClick={() => navigate("/calendario")}
-          >
-            <CalendarClock size={18} className="dark:text-gray-500" />
-            <span className="text-xs text-gray-600 dark:text-gray-400">
-              Agenda
-            </span>
-          </button>
-          <button className={commonButtonClasses}>
-            <History size={18} className="dark:text-gray-500" />
-            <span className="text-xs text-gray-600 dark:text-gray-400">
-              Histórico
-            </span>
-          </button>
-        </div>
-
-        {/* Favoritos mobile — aparece abaixo dos ícones */}
-        {favoritos.length > 0 && (
-          <div className="bg-white dark:bg-zinc-800 rounded-lg px-3 py-2 w-full">
-            <div className="flex items-center justify-between mb-1.5">
-              <div className="flex items-center gap-1.5">
-                <Heart size={11} className="text-red-400 fill-red-400" />
-                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
-                  Favoritos
-                </span>
-                <span className="text-[10px] text-gray-300 dark:text-zinc-600">
-                  ({favoritos.length})
-                </span>
-              </div>
-              {temMais && (
-                <button
-                  onClick={() => setExpandido(!expandido)}
-                  className="text-[10px] text-blue-500 flex items-center gap-0.5"
-                >
-                  {expandido ? (
-                    <>
-                      <ChevronUp size={10} />
-                      Menos
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown size={10} />
-                      Ver tudo
-                    </>
-                  )}
-                </button>
-              )}
-            </div>
-
-            {/* Lista horizontal no mobile */}
-            <div
-              className={`flex gap-2 ${expandido ? "flex-wrap" : "overflow-x-auto"}`}
-            >
-              {favoritosVisiveis.map((s) => (
-                <button
-                  key={s.id}
-                  onClick={() => onNavigateServico?.(s)}
-                  className="flex flex-col items-center gap-1 shrink-0"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-zinc-700 overflow-hidden relative">
-                    {s.imagem ? (
-                      <img
-                        src={s.imagem}
-                        alt={s.nome}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full" />
-                    )}
-                    <Heart
-                      size={8}
-                      className="absolute bottom-0.5 right-0.5 text-red-400 fill-red-400"
+          <div className="mt-2 flex gap-2 overflow-x-auto">
+            {itens.map((servico) => (
+              <button
+                key={servico.id}
+                type="button"
+                onClick={() => onNavigateServico?.(servico)}
+                className="w-16 shrink-0 text-center"
+              >
+                <div className="mx-auto h-10 w-10 overflow-hidden rounded-lg bg-slate-100 dark:bg-zinc-700">
+                  {servico.imagem && (
+                    <img
+                      src={servico.imagem}
+                      alt={servico.nome}
+                      className="h-full w-full object-cover"
                     />
-                  </div>
-                  <span className="text-[9px] text-gray-600 dark:text-gray-400 max-w-[44px] truncate">
-                    {s.nome}
-                  </span>
-                </button>
-              ))}
-            </div>
+                  )}
+                </div>
+                <span className="mt-1 block truncate text-[10px] text-slate-600 dark:text-zinc-300">
+                  {servico.nome}
+                </span>
+              </button>
+            ))}
           </div>
-        )}
-      </div>
-    </>
+        </div>
+      )}
+    </div>
   );
 }
 
