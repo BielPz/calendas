@@ -1,6 +1,6 @@
 import { db } from "@/firebase/config";
 import { getAgendamentosCliente, getAgendamentosDoServico } from "@/firebase/database";
-import type { Agendamento, Cliente, Servico, Usuario } from "@/firebase/types";
+import type { Agendamento, Cliente, Notificacao, Servico, Usuario } from "@/firebase/types";
 import { estaDentroDoFuncionamento, horariosSeSobrepoem, duracaoServicoEmMinutos } from "@/lib/agenda";
 import { getAuth } from "firebase/auth";
 import { ref, get, update, push, set, remove, runTransaction } from "firebase/database";
@@ -400,3 +400,58 @@ const criarNotificacaoCliente = async (idCliente: string, notificacao: Omit<impo
 const criarNotificacaoPrestador = async (idPrestador: string, idAgendamento: string, notificacao: Omit<import("../firebase/types").Notificacao, "id" | "criadoEm" | "lida">) => {
   await set(ref(db, `prestadores/${idPrestador}/notificacoes/${idAgendamento}`), { ...notificacao, criadoEm: Date.now(), lida: false, idAgendamento });
 };
+
+/* ---------------------------------------------------------------*/
+
+export const getNotificacoesCliente = async (idCliente: string) => {
+  const limite = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const snapshot = await get(ref(db, `clientes/${idCliente}/notificacoes`));
+  if (!snapshot.exists()) return [];
+  const itens = Object.entries(snapshot.val() as Record<string, import("../firebase/types").Notificacao>)
+    .map(([id, dados]) => ({ id, ...dados }))
+    .sort((a, b) => b.criadoEm - a.criadoEm);
+  const expiradas = itens.filter((item) => item.criadoEm < limite);
+  if (expiradas.length) await update(ref(db), Object.fromEntries(expiradas.map((item) => [`clientes/${idCliente}/notificacoes/${item.id}`, null])));
+  const atualizadas = await Promise.all(itens.map(async (item) => {
+    if (!item.idServico) return item;
+    const servico = await get(ref(db, `servicos/${item.idServico}`));
+    const nomeServico = servico.val()?.nome;
+    return nomeServico && !item.mensagem.toLocaleLowerCase("pt-BR").includes(nomeServico.toLocaleLowerCase("pt-BR")) ? { ...item, mensagem: `${nomeServico}: ${item.mensagem}` } : item;
+  }));
+  const comNomeIncluido = atualizadas.filter((item, indice) => item.mensagem !== itens[indice].mensagem);
+  if (comNomeIncluido.length) await update(ref(db), Object.fromEntries(comNomeIncluido.map((item) => [`clientes/${idCliente}/notificacoes/${item.id}/mensagem`, item.mensagem])));
+  return atualizadas.filter((item) => item.criadoEm >= limite);
+};
+
+/* ---------------------------------------------------------------*/
+
+export const getNotificacoesPrestador = async (idPrestador: string) => {
+  const limite = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const snapshot = await get(ref(db, `prestadores/${idPrestador}/notificacoes`));
+  if (!snapshot.exists()) return [];
+  const itens = Object.entries(snapshot.val() as Record<string, import("../firebase/types").Notificacao>).map(([id, dados]) => ({ id, ...dados })).sort((a, b) => b.criadoEm - a.criadoEm);
+  const expiradas = itens.filter((item) => item.criadoEm < limite);
+  const ativas = itens.filter((item) => item.criadoEm >= limite);
+  if (expiradas.length) await update(ref(db), Object.fromEntries(expiradas.map((item) => [`prestadores/${idPrestador}/notificacoes/${item.id}`, null])));
+  const comNomeServico = await Promise.all(ativas.map(async (item) => {
+    if (!item.idServico) return item;
+    const servico = await get(ref(db, `servicos/${item.idServico}`));
+    const nomeServico = servico.val()?.nome;
+    return nomeServico && !item.mensagem.toLocaleLowerCase("pt-BR").includes(nomeServico.toLocaleLowerCase("pt-BR")) ? { ...item, mensagem: `${nomeServico}: ${item.mensagem}` } : item;
+  }));
+  const mensagensAtualizadas = comNomeServico.filter((item, indice) => item.mensagem !== ativas[indice].mensagem);
+  if (mensagensAtualizadas.length) await update(ref(db), Object.fromEntries(mensagensAtualizadas.map((item) => [`prestadores/${idPrestador}/notificacoes/${item.id}/mensagem`, item.mensagem])));
+  return comNomeServico;
+};
+
+/* ---------------------------------------------------------------*/
+
+export const marcarNotificacaoLida = async (idCliente: string, idNotificacao: string) => update(ref(db, `clientes/${idCliente}/notificacoes/${idNotificacao}`), { lida: true });
+
+export const marcarNotificacaoPrestadorLida = async (idPrestador: string, idNotificacao: string) => update(ref(db, `prestadores/${idPrestador}/notificacoes/${idNotificacao}`), { lida: true });
+
+/* ---------------------------------------------------------------*/
+
+export const excluirNotificacao = async (idCliente: string, idNotificacao: string) => set(ref(db, `clientes/${idCliente}/notificacoes/${idNotificacao}`), null);
+
+export const excluirNotificacaoPrestador = async (idPrestador: string, idNotificacao: string) => set(ref(db, `prestadores/${idPrestador}/notificacoes/${idNotificacao}`), null);

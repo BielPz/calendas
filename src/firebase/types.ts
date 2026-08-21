@@ -145,3 +145,21 @@ export type StatusDisponibilidade = "sem-horario" | "parcial" | "disponivel";
 export interface Disponibilidade {
   [dia: number]: StatusDisponibilidade;
 }
+
+export interface MensagemChat {
+  id?: string;
+  autorId: string;
+  texto: string;
+  enviadoEm: number;
+}
+
+export interface ConversaChat {
+  id: string;
+  participantes: { cliente: string; prestador: string };
+  nomes: { cliente: string; prestador: string };
+  imagens?: { cliente?: string | null; prestador?: string | null };
+  criadoEm: number;
+  atualizadoEm: number;
+  ultimaMensagem?: { texto: string; autorId: string; enviadoEm: number };
+  ultimaLeitura?: Record<string, number>;
+}
