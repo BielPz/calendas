@@ -1,6 +1,9 @@
 export {
+  criarServico,
   atualizarServico,
   excluirServico,
+  getServico,
   getServicosDaEmpresa,
-  salvarAvaliacaoServico
+  salvarAvaliacaoServico,
+  getTodosServicos,
 } from "../../data/realtime.repository";

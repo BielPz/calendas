@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ServicoCard from "./ServicoCard";
 import type { Servico } from "../../firebase/types";
-import { getServicosDaEmpresa } from "../../firebase/database";
 import { useAlerta } from "../../provider/AlertContext";
+import { getServicosDaEmpresa } from "@/features/servicos/servico.service";
 
 interface DisplayProps {
   idEmpresa: string;

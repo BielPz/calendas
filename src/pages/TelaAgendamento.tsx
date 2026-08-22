@@ -5,23 +5,21 @@ import { getAuth } from "firebase/auth";
 import { ArrowLeft, Clock3, X } from "lucide-react";
 import type { Agendamento, Disponibilidade, Servico } from "../firebase/types";
 import TextInput from "../components/TextInput";
-import {
-  getAgendamentosDoServico,
-  getDisponibilidadeDiaria,
-  getDisponibilidadeMensal,
-} from "../firebase/database";
 import GradeDisponibilidade from "../components/GradeDisponibilidade";
 import { useGradiente } from "../hooks/useGradiente";
 import { useAlerta } from "../provider/AlertContext";
 import Loading from "../components/Loading";
 import { estaDentroDoFuncionamento } from "@/lib/agenda";
-import {
-  agendarServico,
-  getServicosDaEmpresa,
-  reagendarServico,
-} from "@/data/realtime.repository";
 import Agenda from "@/components/Agenda";
 import NavegacaoMes from "@/components/NavegacaoMes";
+import { getServicosDaEmpresa } from "@/features/servicos/servico.service";
+import {
+  agendarServico,
+  getAgendamentosDoServico,
+  getDisponibilidadeDiaria,
+  getDisponibilidadeMensal,
+  reagendarServico,
+} from "@/features/agendamentos/agendamento.service";
 
 function TelaAgendamento() {
   const [servicos, setServicos] = useState<{ label: string; value: string }[]>(

@@ -3,12 +3,6 @@ import Formulario from "../components/Formulario";
 import TextInput from "../components/TextInput";
 import type { Servico, DiaDisponivel, Agendamento } from "../firebase/types";
 import CabecalhoBranco from "../components/CabecalhoBranco";
-import {
-  criarServico,
-  getAgendamentosDoServico,
-  getEmpresaPorId,
-  getServico,
-} from "../firebase/database";
 import { useLocation, useNavigate } from "react-router";
 import UploadImagem from "../components/UploadImagem";
 import { useAlerta } from "../provider/AlertContext";
@@ -17,7 +11,11 @@ import { getAuth } from "firebase/auth";
 import {
   atualizarServico,
   cancelarAgendamento,
+  criarServico,
   excluirServico,
+  getAgendamentosDoServico,
+  getEmpresaPorId,
+  getServico,
   getServicosDaEmpresa,
   responderAgendamento,
 } from "@/data/realtime.repository";

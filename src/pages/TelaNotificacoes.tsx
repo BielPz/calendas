@@ -10,7 +10,6 @@ import type { Notificacao } from "../firebase/types";
 import { useGradiente } from "../hooks/useGradiente";
 import { db } from "../firebase/config";
 import { onValue, ref } from "firebase/database";
-import { getTipoUsuario } from "@/firebase/auth";
 import {
   excluirNotificacao,
   excluirNotificacaoPrestador,
@@ -24,6 +23,7 @@ import {
   getNotificacoesChat,
   marcarNotificacaoChatLida,
 } from "@/features/mensagens/mensagem.service";
+import { getTipoUsuario } from "@/features/auth/auth.service";
 
 function TelaNotificacoes() {
   const uid = getAuth().currentUser?.uid;

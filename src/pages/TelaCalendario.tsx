@@ -1,23 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
-import { X, Search, CalendarClock, Info, Trash2 } from "lucide-react";
 import Cabecalho from "../components/Cabecalho";
 import { getAuth } from "firebase/auth";
-import MiniCalendario from "../components/MiniCalendario";
-import TimelineHoras from "../components/TimeLineHoras";
 import { useNavigate } from "react-router-dom";
 import { useGradiente } from "../hooks/useGradiente";
 import Loading from "../components/Loading";
-import { getAgendamentosUsuario } from "../firebase/database";
+import {
+  cancelarAgendamento,
+  getAgendamentosUsuario,
+} from "../features/agendamentos/agendamento.service";
 import type { Agendamento } from "../firebase/types";
-import { useAlerta } from "@/provider/AlertContext";
-import { getTipoUsuario } from "@/firebase/auth";
-import { cancelarAgendamento } from "@/data/realtime.repository";
-import AgendaUnificada from "@/components/AgendaUnificada";
+import { useAlerta } from "../provider/AlertContext";
+import { getTipoUsuario } from "../features/auth/auth.service";
+import AgendaUnificada from "../components/AgendaUnificada";
 import DetalhesAgendamento from "@/components/DetalhesAgendamentos";
-import GradeDisponibilidade from "@/components/GradeDisponibilidade";
-import NavegacaoMes from "@/components/NavegacaoMes";
-import PainelAgenda from "@/components/PainelAgenda";
-import CardAgendamento from "@/components/CardAgendamento";
 
 function TelaCalendario() {
   const corFundo = useGradiente();
@@ -26,16 +21,11 @@ function TelaCalendario() {
   const nomeUsuario = auth.currentUser?.displayName || "Perfil";
   const navigate = useNavigate();
   const { showAlerta, confirmar } = useAlerta();
+
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
-  const [dataSelecionada, setDataSelecionada] = useState(() =>
-    new Date().toLocaleDateString("en-CA"),
-  );
-  const [selecionadoId, setSelecionadoId] = useState<string>();
   const [tipoUsuario, setTipoUsuario] = useState<"cliente" | "prestador">(
     "cliente",
   );
-  const [mesCalendario, setMesCalendario] = useState(() => new Date());
-  const [mostrandoAgenda, setMostrandoAgenda] = useState(false);
   const [agendamentoDetalhado, setAgendamentoDetalhado] =
     useState<Agendamento>();
 
@@ -58,28 +48,6 @@ function TelaCalendario() {
         ),
     [agendamentos],
   );
-
-  const selecionarAgendamento = (agendamento: Agendamento) => {
-    setDataSelecionada(agendamento.data);
-    setSelecionadoId(agendamento.id);
-    setMostrandoAgenda(true);
-  };
-
-  const abrirDetalhes = (agendamento: Agendamento) => {
-    setAgendamentoDetalhado(agendamento);
-  };
-
-  const selecionarData = (data: string) => {
-    const primeiroDoDia = agendamentos
-      .filter(
-        (agendamento) =>
-          agendamento.data === data && agendamento.status !== "cancelado",
-      )
-      .sort((a, b) => a.horario.localeCompare(b.horario))[0];
-    setDataSelecionada(data);
-    setSelecionadoId(primeiroDoDia?.id);
-    setMostrandoAgenda(true);
-  };
 
   const tituloAgenda =
     tipoUsuario === "prestador" ? "Agenda da empresa" : "Minha agenda";
@@ -109,7 +77,6 @@ function TelaCalendario() {
       setAgendamentos((atual) =>
         atual.filter((item) => item.id !== agendamento.id),
       );
-      setSelecionadoId(undefined);
       setAgendamentoDetalhado(undefined);
       showAlerta(
         "Agendamento cancelado",
@@ -124,40 +91,6 @@ function TelaCalendario() {
       );
     }
   };
-
-  const acoesDoAgendamento = (agendamento: Agendamento) => (
-    <>
-      {tipoUsuario === "cliente" && (
-        <button
-          type="button"
-          onClick={() => reagendar(agendamento)}
-          className="rounded-md p-2 text-orange-600 transition hover:bg-orange-100 hover:text-orange-800 dark:text-orange-300 dark:hover:bg-orange-400/15"
-          aria-label="Reagendar"
-          title="Reagendar"
-        >
-          <CalendarClock size={17} />
-        </button>
-      )}
-      <button
-        type="button"
-        onClick={() => abrirDetalhes(agendamento)}
-        className="rounded-md p-2 text-slate-600 transition hover:bg-orange-100 hover:text-orange-800 dark:text-zinc-300 dark:hover:bg-orange-400/15"
-        aria-label="Ver detalhes"
-        title="Ver detalhes"
-      >
-        <Info size={17} />
-      </button>
-      <button
-        type="button"
-        onClick={() => cancelar(agendamento)}
-        className="rounded-md p-2 text-red-600 transition hover:bg-red-100 hover:text-red-800 dark:text-red-300 dark:hover:bg-red-400/15"
-        aria-label="Cancelar agendamento"
-        title="Cancelar agendamento"
-      >
-        <Trash2 size={17} />
-      </button>
-    </>
-  );
 
   if (!id) return <Loading />;
 

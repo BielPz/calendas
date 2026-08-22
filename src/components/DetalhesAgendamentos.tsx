@@ -1,4 +1,3 @@
-import type { Agendamento } from "@/firebase/types";
 import {
   CalendarDays,
   Clock3,
@@ -8,9 +7,10 @@ import {
   Phone,
   Trash2,
 } from "lucide-react";
-import { useNavigate } from "react-router";
-import CardInformacao from "./CardInformacao";
+import { useNavigate } from "react-router-dom";
+import type { Agendamento } from "../firebase/types";
 import ModalBase from "./ModalBase";
+import CardInformacao from "./CardInformacao";
 
 interface Props {
   agendamento: Agendamento;
@@ -32,12 +32,14 @@ function DetalhesAgendamento({
     "pt-BR",
     { weekday: "long", day: "2-digit", month: "long", year: "numeric" },
   );
+
   const modalidade =
     agendamento.modalidadeAtendimento === "online"
       ? "Atendimento online"
       : agendamento.modalidadeAtendimento === "presencial-prestador"
         ? "Prestador vai até o cliente"
         : "Atendimento no estabelecimento";
+
   const idContato =
     tipoUsuario === "cliente" ? agendamento.idPrestador : agendamento.idCliente;
 

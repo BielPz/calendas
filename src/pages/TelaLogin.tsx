@@ -2,8 +2,8 @@ import { useState } from "react";
 import CabecalhoBranco from "../components/CabecalhoBranco";
 import { Link, useNavigate } from "react-router-dom";
 import TextInput from "../components/TextInput";
-import { login } from "../firebase/auth";
 import { useAlerta } from "../provider/AlertContext";
+import { login } from "@/features/auth/auth.service";
 
 function TelaLogin() {
   const [email, setEmail] = useState("");

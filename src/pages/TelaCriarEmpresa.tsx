@@ -4,12 +4,12 @@ import TextInput from "../components/TextInput";
 import UploadImagem from "../components/UploadImagem";
 import CabecalhoBranco from "../components/CabecalhoBranco";
 import type { Empresa } from "../firebase/types";
-import { registrarEmpresa } from "../firebase/auth";
 import { getAuth } from "firebase/auth";
 import { useNavigate } from "react-router";
 import { useAlerta } from "../provider/AlertContext";
 import Estados from "../hooks/Estados";
 import Cidades from "../hooks/Cidades";
+import { registrarEmpresa } from "@/features/empresas/empresa.service";
 
 // ─── Componente ──────────────────────────────────────────────────────────────
 function TelaAdicionarEmpresa() {

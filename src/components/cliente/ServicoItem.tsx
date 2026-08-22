@@ -1,13 +1,13 @@
 import { memo, useEffect, useState } from "react";
 import type { Servico } from "../../firebase/types";
-import { getEmpresaPorId, toggleFavorito } from "../../firebase/database";
-import imgErrorInternet from "../../images/erroInternet.jpg";
 import { useAlerta } from "../../provider/AlertContext";
 import { useNavigate } from "react-router";
 import { getAuth } from "firebase/auth";
 import ImagemServico from "../ImagemServico";
 import { salvarAvaliacaoServico } from "@/features/servicos/servico.service";
 import ModalAvaliacao from "../ModalAvaliacao";
+import { getEmpresaPorId } from "@/features/empresas/empresa.service";
+import { toggleFavorito } from "@/features/perfil/perfil.service";
 
 interface Props {
   servico: Servico;

@@ -4,7 +4,8 @@ import Fase2 from "./Fase2";
 import Fase3 from "./Fase3";
 import CheckBox from "../CheckBox";
 import { useNavigate } from "react-router-dom";
-import { registrarEmpresa, registrarPrestador } from "../../firebase/auth";
+import { registrarPrestador } from "../../features/auth/auth.service";
+import { registrarEmpresa } from "../../features/empresas/empresa.service";
 import type { Usuario, Empresa } from "../../firebase/types";
 import Index from "./Index";
 import { useAlerta } from "../../provider/AlertContext";
@@ -114,7 +115,7 @@ function CadastroUsuario() {
           w-full py-4 rounded-xl text-white font-semibold mb-3
           ${
             isFormValid[fase - 1] && checked
-              ? "bg-gradient-to-br from-orange-500 to-purple-500 hover:from-orange-700 hover:to-purple-700 cursor-pointer"
+              ? "bg-linear-to-br from-orange-500 to-violet-600 hover:from-orange-600 hover:to-violet-700 cursor-pointer"
               : "bg-gray-400 cursor-not-allowed opacity-70"
           }
         `}

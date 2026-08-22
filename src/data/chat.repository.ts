@@ -1,8 +1,8 @@
 import { get, onValue, push, ref, set, update } from "firebase/database";
 import type { ConversaChat, MensagemChat, Notificacao } from "@/firebase/types";
 import { db } from "@/firebase/config";
-import { getTipoUsuario } from "@/firebase/auth";
 import { getAuth } from "firebase/auth";
+import { getTipoUsuario } from "@/features/auth/auth.service";
 
 
 /* -----------------------------------------------------------------------------*/

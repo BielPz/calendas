@@ -1,16 +1,5 @@
-import Agenda from "@/components/Agenda";
-import Cabecalho from "@/components/Cabecalho";
-import DetalhesAgendamento from "@/components/DetalhesAgendamentos";
-import Loading from "@/components/Loading";
-import { cancelarAgendamento } from "@/data/realtime.repository";
-import {
-  getAgendamentosDoServico,
-  getEmpresaPorId,
-  getServico,
-} from "@/firebase/database";
-import type { Agendamento, AvaliacaoServico, Servico } from "@/firebase/types";
-import { useGradiente } from "@/hooks/useGradiente";
-import { useAlerta } from "@/provider/AlertContext";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { getAuth } from "firebase/auth";
 import {
   ArrowLeft,
@@ -21,8 +10,19 @@ import {
   Monitor,
   Star,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import Cabecalho from "../components/Cabecalho";
+import Loading from "../components/Loading";
+import type { Agendamento, AvaliacaoServico, Servico } from "../firebase/types";
+import { getServico } from "../features/servicos/servico.service";
+import {
+  cancelarAgendamento,
+  getAgendamentosDoServico,
+} from "../features/agendamentos/agendamento.service";
+import { getEmpresaPorId } from "../features/empresas/empresa.service";
+import { useGradiente } from "../hooks/useGradiente";
+import Agenda from "../components/Agenda";
+import { useAlerta } from "../provider/AlertContext";
+import DetalhesAgendamento from "@/components/DetalhesAgendamentos";
 
 const DIAS = [
   "Domingo",
@@ -36,46 +36,45 @@ const DIAS = [
 const hoje = () => new Date().toLocaleDateString("en-CA");
 
 function TelaServico() {
-  const { idservico } = useParams<{ idservico: string }>();
+  const { idServico } = useParams();
   const navigate = useNavigate();
   const corFundo = useGradiente();
-  const { confirmar } = useAlerta();
-
   const [servico, setServico] = useState<Servico | null>(null);
-  const [empresa, setEmpresa] = useState<string>("");
-  const [idPrestador, setIdPrestador] = useState<string>("");
-  const [loading, setLoading] = useState(true);
+  const [empresa, setEmpresa] = useState("");
+  const [idPrestador, setIdPrestador] = useState("");
+  const [carregando, setCarregando] = useState(true);
   const [dataAgenda, setDataAgenda] = useState(hoje);
   const [agendamentosDoDia, setAgendamentosDoDia] = useState<Agendamento[]>([]);
   const [agendamentoDetalhado, setAgendamentoDetalhado] =
     useState<Agendamento>();
-
+  const { confirmar } = useAlerta();
   const idUsuario = getAuth().currentUser?.uid;
   const nomeUsuario = getAuth().currentUser?.displayName || "Perfil";
 
   useEffect(() => {
     const carregar = async () => {
-      if (!idservico) return;
+      if (!idServico) return;
       try {
-        const item = (await getServico(idservico)) as Servico | null;
+        const item = (await getServico(idServico)) as Servico | null;
         setServico(item);
         if (item?.idEmpresa) {
           const dadosEmpresa = await getEmpresaPorId(item.idEmpresa);
+          setEmpresa(dadosEmpresa?.nome ?? "Empresa");
           setIdPrestador(
             (dadosEmpresa as typeof dadosEmpresa & { uidDono?: string })
               ?.uidDono ?? "",
           );
         }
       } finally {
-        setLoading(false);
+        setCarregando(false);
       }
     };
     carregar();
-  }, [idservico]);
+  }, [idServico]);
 
   useEffect(() => {
-    if (!idservico || !dataAgenda) return;
-    getAgendamentosDoServico(idservico)
+    if (!idServico || !dataAgenda) return;
+    getAgendamentosDoServico(idServico)
       .then((itens) =>
         setAgendamentosDoDia(
           itens.filter(
@@ -84,7 +83,7 @@ function TelaServico() {
         ),
       )
       .catch(() => setAgendamentosDoDia([]));
-  }, [dataAgenda, idservico]);
+  }, [dataAgenda, idServico]);
 
   const avaliacoes = useMemo(
     () =>
@@ -95,7 +94,7 @@ function TelaServico() {
     avaliacao.comentario?.trim(),
   );
 
-  if (loading) return <Loading />;
+  if (carregando) return <Loading />;
   if (!servico)
     return (
       <div

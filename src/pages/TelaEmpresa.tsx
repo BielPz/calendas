@@ -3,8 +3,10 @@ import CardServico from "@/components/CardServico";
 import EstadoVazio from "@/components/EstadoVazio";
 import ImagemServico from "@/components/ImagemServico";
 import Loading from "@/components/Loading";
-import { getServicosDaEmpresa } from "@/data/realtime.repository";
-import { getEmpresaPorId } from "@/firebase/database";
+import {
+  getEmpresaPorId,
+  getServicosDaEmpresa,
+} from "@/data/realtime.repository";
 import type { Empresa, Servico } from "@/firebase/types";
 import { useGradiente } from "@/hooks/useGradiente";
 import { getAuth } from "firebase/auth";

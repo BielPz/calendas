@@ -1,8 +1,10 @@
 import { memo, useEffect, useState } from "react";
-import { getUsuarioQueAgendou } from "../../firebase/database";
 import type { Agendamento } from "../../firebase/types";
 import { CalendarDays, Check, Clock, X } from "lucide-react";
-import { responderAgendamento } from "@/data/realtime.repository";
+import {
+  getUsuarioQueAgendou,
+  responderAgendamento,
+} from "@/data/realtime.repository";
 
 interface Props {
   agendamento: Agendamento;

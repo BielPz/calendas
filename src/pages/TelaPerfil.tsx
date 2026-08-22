@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import Formulario from "../components/Formulario";
 import TextInput from "../components/TextInput";
-import { getTipoUsuario } from "../firebase/auth";
 import { signOut } from "firebase/auth";
-import { atualizarPerfil, excluirConta } from "../firebase/database";
 import { auth, db } from "../firebase/config";
 import { useAlerta } from "../provider/AlertContext";
 import { useNavigate } from "react-router-dom";
@@ -26,6 +24,11 @@ import Loading from "../components/Loading";
 import { uploadImage } from "../cloudinary/upload";
 import PainelLateral from "@/components/PainelLateral";
 import GrupoFormulario from "@/components/GrupoFormulario";
+import { getTipoUsuario } from "@/features/auth/auth.service";
+import {
+  atualizarPerfil,
+  excluirConta,
+} from "@/features/perfil/perfil.service";
 
 type Secao =
   | "perfil"

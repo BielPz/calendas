@@ -1,13 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import Cabecalho from "../components/Cabecalho";
-import { getTipoUsuario } from "../firebase/auth";
-import {
-  getEmpresasDoPrestador,
-  getTodosServicos,
-  getFavoritos,
-  getAgendamentosUsuario,
-  toggleFavorito,
-} from "../firebase/database";
 import DisplayServicos from "../components/prestador/DisplayServicos";
 import ServicoItem from "../components/cliente/ServicoItem";
 import type { Agendamento, Servico } from "../firebase/types";
@@ -22,6 +14,14 @@ import Loading from "../components/Loading";
 import NotificacaoAgendamento from "../components/prestador/NotificacaoAgendamento";
 import { db } from "../firebase/config";
 import { get, onValue, ref } from "firebase/database";
+import { getTipoUsuario } from "@/features/auth/auth.service";
+import {
+  getFavoritos,
+  getTodosServicos,
+  getEmpresasDoPrestador,
+  toggleFavorito,
+  getAgendamentosUsuario,
+} from "@/data/realtime.repository";
 
 function TelaFeed() {
   const [usuario, setUsuario] = useState<"cliente" | "prestador" | null>(null);
