@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
 import { Bell, CheckCheck, Trash2 } from "lucide-react";
 import { getAuth } from "firebase/auth";
-import Cabecalho from "../components/Cabecalho";
 import SideBarCliente from "../components/cliente/SideBarCliente";
 import SideBarPrestador from "../components/prestador/SideBarPrestador";
-import EstadoVazio from "../components/EstadoVazio";
-import Loading from "../components/Loading";
+import EstadoVazio from "../components/modals/EstadoVazio";
 import type { Notificacao } from "../firebase/types";
 import { useGradiente } from "../hooks/useGradiente";
 import { db } from "../firebase/config";
@@ -24,6 +22,8 @@ import {
   marcarNotificacaoChatLida,
 } from "@/features/mensagens/mensagem.service";
 import { getTipoUsuario } from "@/features/auth/auth.service";
+import Cabecalho from "@/components/utils/Cabecalho";
+import Loading from "@/components/utils/Loading";
 
 function TelaNotificacoes() {
   const uid = getAuth().currentUser?.uid;

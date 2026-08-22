@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import Formulario from "../Formulario";
-import TextInput from "../TextInput";
 import type { Usuario } from "../../firebase/types";
+import Formulario from "../utils/Formulario";
+import TextInput from "../utils/TextInput";
 
 interface Props {
   onValidate?: (valid: boolean) => void;

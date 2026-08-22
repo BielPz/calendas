@@ -1,5 +1,5 @@
 import type { Servico } from "@/firebase/types";
-import ImagemServico from "./ImagemServico";
+import ImagemServico from "../utils/ImagemServico";
 
 interface Props {
   servico: Servico;

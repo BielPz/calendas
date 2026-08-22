@@ -1,8 +1,8 @@
 import type { Agendamento } from "@/firebase/types";
 import type { ReactNode } from "react";
 import Agenda from "./Agenda";
-import EstadoVazio from "./EstadoVazio";
-import CardAgendamento from "./CardAgendamento";
+import EstadoVazio from "../modals/EstadoVazio";
+import CardAgendamento from "../modals/CardAgendamento";
 
 interface Props {
   tituloLista: string;

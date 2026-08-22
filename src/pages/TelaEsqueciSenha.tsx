@@ -1,10 +1,10 @@
 import { useState } from "react";
-import Cabecalho from "../components/Cabecalho";
-import TextInput from "../components/TextInput";
 import { useNavigate } from "react-router-dom";
 import { useAlerta } from "../provider/AlertContext";
 import { useGradiente } from "../hooks/useGradiente";
 import { redefinirSenha } from "@/features/auth/auth.service";
+import Cabecalho from "@/components/utils/Cabecalho";
+import TextInput from "@/components/utils/TextInput";
 
 function TelaEsqueciSenha() {
   const [form, setForm] = useState({ email: "" });

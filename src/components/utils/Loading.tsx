@@ -1,5 +1,5 @@
+import { useGradiente } from "@/hooks/useGradiente";
 import { CalendarDays } from "lucide-react";
-import { useGradiente } from "../hooks/useGradiente";
 
 function Loading() {
   const cor_fundo = useGradiente();

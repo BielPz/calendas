@@ -1,8 +1,4 @@
 import { useState } from "react";
-import Formulario from "../components/Formulario";
-import TextInput from "../components/TextInput";
-import UploadImagem from "../components/UploadImagem";
-import CabecalhoBranco from "../components/CabecalhoBranco";
 import type { Empresa } from "../firebase/types";
 import { getAuth } from "firebase/auth";
 import { useNavigate } from "react-router";
@@ -10,6 +6,10 @@ import { useAlerta } from "../provider/AlertContext";
 import Estados from "../hooks/Estados";
 import Cidades from "../hooks/Cidades";
 import { registrarEmpresa } from "@/features/empresas/empresa.service";
+import CabecalhoBranco from "@/components/utils/CabecalhoBranco";
+import Formulario from "@/components/utils/Formulario";
+import TextInput from "@/components/utils/TextInput";
+import UploadImagem from "@/components/utils/UploadImagem";
 
 // ─── Componente ──────────────────────────────────────────────────────────────
 function TelaAdicionarEmpresa() {

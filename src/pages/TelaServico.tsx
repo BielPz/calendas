@@ -10,8 +10,6 @@ import {
   Monitor,
   Star,
 } from "lucide-react";
-import Cabecalho from "../components/Cabecalho";
-import Loading from "../components/Loading";
 import type { Agendamento, AvaliacaoServico, Servico } from "../firebase/types";
 import { getServico } from "../features/servicos/servico.service";
 import {
@@ -20,9 +18,11 @@ import {
 } from "../features/agendamentos/agendamento.service";
 import { getEmpresaPorId } from "../features/empresas/empresa.service";
 import { useGradiente } from "../hooks/useGradiente";
-import Agenda from "../components/Agenda";
 import { useAlerta } from "../provider/AlertContext";
-import DetalhesAgendamento from "@/components/DetalhesAgendamentos";
+import DetalhesAgendamento from "@/components/agenda/DetalhesAgendamentos";
+import Agenda from "@/components/agenda/Agenda";
+import Cabecalho from "@/components/utils/Cabecalho";
+import Loading from "@/components/utils/Loading";
 
 const DIAS = [
   "Domingo",

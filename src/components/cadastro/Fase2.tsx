@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import Formulario from "../Formulario";
-import TextInput from "../TextInput";
-import UploadImagem from "../UploadImagem";
 import Estados from "../../hooks/Estados";
 import Cidades from "../../hooks/Cidades";
 import type { Empresa } from "../../firebase/types";
 import ConsultarCEP from "../../hooks/ConsultarCEP";
 import { useAlerta } from "../../provider/AlertContext";
+import TextInput from "../utils/TextInput";
+import Formulario from "../utils/Formulario";
+import UploadImagem from "../utils/UploadImagem";
 
 interface Props {
   onValidate?: (valid: boolean) => void;

@@ -3,8 +3,8 @@ import imgLogo from "../images/logo.png";
 import { Link, useNavigate } from "react-router-dom";
 import { getAuth, signOut } from "firebase/auth";
 import imgLogout from "../images/logout.png";
-import { useTheme } from "../provider/ThemeContext";
 import { Moon, Sun } from "lucide-react";
+import { useTheme } from "@/provider/ThemeContext";
 
 interface Props {
   perfil?: boolean;

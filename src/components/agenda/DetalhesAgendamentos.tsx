@@ -8,9 +8,9 @@ import {
   Trash2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import type { Agendamento } from "../firebase/types";
-import ModalBase from "./ModalBase";
-import CardInformacao from "./CardInformacao";
+import type { Agendamento } from "../../firebase/types";
+import ModalBase from "../modals/ModalBase";
+import CardInformacao from "../modals/CardInformacao";
 
 interface Props {
   agendamento: Agendamento;

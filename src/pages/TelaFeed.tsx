@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import Cabecalho from "../components/Cabecalho";
 import DisplayServicos from "../components/prestador/DisplayServicos";
 import ServicoItem from "../components/cliente/ServicoItem";
 import type { Agendamento, Servico } from "../firebase/types";
@@ -10,7 +9,6 @@ import { useAlerta } from "../provider/AlertContext";
 import { Check, ChevronDown, Search } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useGradiente } from "../hooks/useGradiente";
-import Loading from "../components/Loading";
 import NotificacaoAgendamento from "../components/prestador/NotificacaoAgendamento";
 import { db } from "../firebase/config";
 import { get, onValue, ref } from "firebase/database";
@@ -22,6 +20,8 @@ import {
   toggleFavorito,
   getAgendamentosUsuario,
 } from "@/data/realtime.repository";
+import Cabecalho from "@/components/utils/Cabecalho";
+import Loading from "@/components/utils/Loading";
 
 function TelaFeed() {
   const [usuario, setUsuario] = useState<"cliente" | "prestador" | null>(null);

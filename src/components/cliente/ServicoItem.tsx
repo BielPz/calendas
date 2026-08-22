@@ -3,9 +3,9 @@ import type { Servico } from "../../firebase/types";
 import { useAlerta } from "../../provider/AlertContext";
 import { useNavigate } from "react-router";
 import { getAuth } from "firebase/auth";
-import ImagemServico from "../ImagemServico";
+import ImagemServico from "../utils/ImagemServico";
 import { salvarAvaliacaoServico } from "@/features/servicos/servico.service";
-import ModalAvaliacao from "../ModalAvaliacao";
+import ModalAvaliacao from "../modals/ModalAvaliacao";
 import { getEmpresaPorId } from "@/features/empresas/empresa.service";
 import { toggleFavorito } from "@/features/perfil/perfil.service";
 

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import type { Servico } from "../firebase/types";
-import ImagemServico from "./ImagemServico";
+import type { Servico } from "../../firebase/types";
+import ImagemServico from "../utils/ImagemServico";
 
 interface Props {
   servico: Servico;

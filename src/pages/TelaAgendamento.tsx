@@ -1,17 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import Cabecalho from "../components/Cabecalho";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { getAuth } from "firebase/auth";
 import { ArrowLeft, Clock3, X } from "lucide-react";
 import type { Agendamento, Disponibilidade, Servico } from "../firebase/types";
-import TextInput from "../components/TextInput";
-import GradeDisponibilidade from "../components/GradeDisponibilidade";
 import { useGradiente } from "../hooks/useGradiente";
 import { useAlerta } from "../provider/AlertContext";
-import Loading from "../components/Loading";
 import { estaDentroDoFuncionamento } from "@/lib/agenda";
-import Agenda from "@/components/Agenda";
-import NavegacaoMes from "@/components/NavegacaoMes";
 import { getServicosDaEmpresa } from "@/features/servicos/servico.service";
 import {
   agendarServico,
@@ -20,6 +14,12 @@ import {
   getDisponibilidadeMensal,
   reagendarServico,
 } from "@/features/agendamentos/agendamento.service";
+import Agenda from "@/components/agenda/Agenda";
+import GradeDisponibilidade from "@/components/agenda/GradeDisponibilidade";
+import NavegacaoMes from "@/components/agenda/NavegacaoMes";
+import Cabecalho from "@/components/utils/Cabecalho";
+import Loading from "@/components/utils/Loading";
+import TextInput from "@/components/utils/TextInput";
 
 function TelaAgendamento() {
   const [servicos, setServicos] = useState<{ label: string; value: string }[]>(

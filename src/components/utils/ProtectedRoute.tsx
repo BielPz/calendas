@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
 import Loading from "./Loading";
-import { useAuth } from "../hooks/useAuth";
 
 interface Props {
   children: ReactNode;

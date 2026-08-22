@@ -1,7 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import Formulario from "../Formulario";
-import TextInput from "../TextInput";
-import CheckBox from "../CheckBox";
 import { useNavigate } from "react-router-dom";
 import Estados from "../../hooks/Estados";
 import Cidades from "../../hooks/Cidades";
@@ -9,6 +6,9 @@ import { registrarCliente } from "../../features/auth/auth.service";
 import type { Usuario, Cliente } from "../../firebase/types";
 import { useAlerta } from "../../provider/AlertContext";
 import ConsultarCEP from "../../hooks/ConsultarCEP";
+import CheckBox from "../utils/CheckBox";
+import Formulario from "../utils/Formulario";
+import TextInput from "../utils/TextInput";
 
 function CadastroUsuario() {
   const [form, setForm] = useState<Usuario & Cliente>({

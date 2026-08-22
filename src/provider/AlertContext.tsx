@@ -1,6 +1,6 @@
 import { createContext, useContext, useState } from "react"; // Importa o createContext para criar o contexto, useContext para consumir o contexto e useState para gerenciar o estado do alerta
-import CardAlerta from "../components/CardAlerta";
-import ModalConfirmacao from "@/components/ModalConfirmacao";
+import CardAlerta from "../components/modals/CardAlerta";
+import ModalConfirmacao from "@/components/modals/ModalConfirmacao";
 
 type Tipo = "sucesso" | "erro" | "aviso" | "desconect" | "info"; // Define os tipos de alerta disponíveis
 

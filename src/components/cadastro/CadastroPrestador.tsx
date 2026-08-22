@@ -2,13 +2,13 @@ import { useState } from "react";
 import Fase1 from "./Fase1";
 import Fase2 from "./Fase2";
 import Fase3 from "./Fase3";
-import CheckBox from "../CheckBox";
 import { useNavigate } from "react-router-dom";
 import { registrarPrestador } from "../../features/auth/auth.service";
 import { registrarEmpresa } from "../../features/empresas/empresa.service";
 import type { Usuario, Empresa } from "../../firebase/types";
 import Index from "./Index";
 import { useAlerta } from "../../provider/AlertContext";
+import CheckBox from "../utils/CheckBox";
 
 function CadastroUsuario() {
   const [isFormValid, setIsFormValid] = useState([false, false, false]); // 3 fases

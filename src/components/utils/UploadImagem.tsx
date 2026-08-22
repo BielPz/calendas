@@ -1,5 +1,5 @@
+import { uploadImage } from "@/cloudinary/upload";
 import { useState } from "react";
-import { uploadImage } from "../cloudinary/upload";
 
 interface Props {
   label: string;

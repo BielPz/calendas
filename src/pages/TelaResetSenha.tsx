@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import Cabecalho from "../components/Cabecalho";
-import TextInput from "../components/TextInput";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import Formulario from "../components/Formulario";
 import { verifyPasswordResetCode, confirmPasswordReset } from "firebase/auth";
 import { auth } from "../firebase/config";
 import { useAlerta } from "../provider/AlertContext";
 import { useGradiente } from "../hooks/useGradiente";
+import Cabecalho from "@/components/utils/Cabecalho";
+import Formulario from "@/components/utils/Formulario";
+import TextInput from "@/components/utils/TextInput";
 
 function TelaResetSenha() {
   const [form, setForm] = useState({ novaSenha: "", confirmarSenha: "" });

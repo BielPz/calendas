@@ -7,6 +7,7 @@ interface Props {
   setTipo?: React.Dispatch<React.SetStateAction<"cliente" | "prestador">>;
   titulo: string;
 }
+
 function CabecalhoBranco({ tipo, setTipo, titulo }: Props) {
   const navigate = useNavigate();
 

@@ -1,9 +1,9 @@
 import { useState } from "react";
-import CabecalhoBranco from "../components/CabecalhoBranco";
 import { Link, useNavigate } from "react-router-dom";
-import TextInput from "../components/TextInput";
 import { useAlerta } from "../provider/AlertContext";
 import { login } from "@/features/auth/auth.service";
+import CabecalhoBranco from "@/components/utils/CabecalhoBranco";
+import TextInput from "@/components/utils/TextInput";
 
 function TelaLogin() {
   const [email, setEmail] = useState("");

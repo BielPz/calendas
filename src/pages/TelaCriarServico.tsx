@@ -1,10 +1,6 @@
 import { useEffect, useState, useRef } from "react";
-import Formulario from "../components/Formulario";
-import TextInput from "../components/TextInput";
 import type { Servico, DiaDisponivel, Agendamento } from "../firebase/types";
-import CabecalhoBranco from "../components/CabecalhoBranco";
 import { useLocation, useNavigate } from "react-router";
-import UploadImagem from "../components/UploadImagem";
 import { useAlerta } from "../provider/AlertContext";
 import { useGradiente } from "@/hooks/useGradiente";
 import { getAuth } from "firebase/auth";
@@ -31,14 +27,18 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import Cabecalho from "@/components/Cabecalho";
-import DetalhesAgendamento from "@/components/DetalhesAgendamentos";
-import GradeDisponibilidade from "@/components/GradeDisponibilidade";
-import PainelLateral from "@/components/PainelLateral";
-import ResumoServico from "@/components/ResumoServico";
-import AgendaUnificada from "@/components/AgendaUnificada";
-import PainelAgenda from "@/components/PainelAgenda";
-import NavegacaoMes from "@/components/NavegacaoMes";
+import AgendaUnificada from "@/components/agenda/AgendaUnificada";
+import DetalhesAgendamento from "@/components/agenda/DetalhesAgendamentos";
+import GradeDisponibilidade from "@/components/agenda/GradeDisponibilidade";
+import NavegacaoMes from "@/components/agenda/NavegacaoMes";
+import PainelAgenda from "@/components/agenda/PainelAgenda";
+import ResumoServico from "@/components/modals/ResumoServico";
+import Cabecalho from "@/components/utils/Cabecalho";
+import CabecalhoBranco from "@/components/utils/CabecalhoBranco";
+import Formulario from "@/components/utils/Formulario";
+import PainelLateral from "@/components/utils/PainelLateral";
+import TextInput from "@/components/utils/TextInput";
+import UploadImagem from "@/components/utils/UploadImagem";
 
 // ─── Configuração dos dias da semana ─────────────────────────────────────────
 const DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];

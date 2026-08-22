@@ -1,10 +1,10 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import Loading from "@/components/Loading";
+import ProtectedRoute from "@/components/utils/ProtectedRoute";
 import { AlertaProvider } from "@/provider/AlertContext";
 import { ThemeProvider } from "@/provider/ThemeContext";
-import AppErrorBoundary from "@/components/AppErrorBoundary";
+import AppErrorBoundary from "@/components/utils/AppErrorBoundary";
+import Loading from "@/components/utils/Loading";
 
 const TelaInicial = lazy(() => import("@/pages/TelaInicial"));
 const TelaLogin = lazy(() => import("@/pages/TelaLogin"));

@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import type { Servico } from "../../firebase/types";
 import { useMensagensNaoLidas } from "@/hooks/useMensagensNaoLidas";
-import MenuPrincipal from "../MenuPrincipal";
+import MenuPrincipal from "../utils/MenuPrincipal";
 
 const LIMITE_FAVORITOS = 3;
 

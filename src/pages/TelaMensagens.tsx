@@ -2,9 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { getAuth } from "firebase/auth";
 import { ArrowLeft, MessageCircle, Search, Send } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import Cabecalho from "../components/Cabecalho";
-import EstadoVazio from "../components/EstadoVazio";
-import Loading from "../components/Loading";
+import EstadoVazio from "../components/modals/EstadoVazio";
 import { useGradiente } from "../hooks/useGradiente";
 import {
   criarOuObterConversa,
@@ -15,6 +13,8 @@ import {
   observarMensagens,
 } from "../features/mensagens/mensagem.service";
 import type { ConversaChat, MensagemChat } from "../firebase/types";
+import Cabecalho from "@/components/utils/Cabecalho";
+import Loading from "@/components/utils/Loading";
 
 const hora = (valor: number) =>
   new Date(valor).toLocaleTimeString("pt-BR", {

@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import Formulario from "../components/Formulario";
-import TextInput from "../components/TextInput";
 import { signOut } from "firebase/auth";
 import { auth, db } from "../firebase/config";
 import { useAlerta } from "../provider/AlertContext";
@@ -17,18 +15,20 @@ import {
   Trash2,
   Camera,
 } from "lucide-react";
-import Cabecalho from "../components/Cabecalho";
 import { get, ref } from "firebase/database";
 import { useGradiente } from "../hooks/useGradiente";
-import Loading from "../components/Loading";
 import { uploadImage } from "../cloudinary/upload";
-import PainelLateral from "@/components/PainelLateral";
-import GrupoFormulario from "@/components/GrupoFormulario";
+import PainelLateral from "@/components/utils/PainelLateral";
 import { getTipoUsuario } from "@/features/auth/auth.service";
 import {
   atualizarPerfil,
   excluirConta,
 } from "@/features/perfil/perfil.service";
+import Cabecalho from "@/components/utils/Cabecalho";
+import Formulario from "@/components/utils/Formulario";
+import GrupoFormulario from "@/components/utils/GrupoFormulario";
+import Loading from "@/components/utils/Loading";
+import TextInput from "@/components/utils/TextInput";
 
 type Secao =
   | "perfil"

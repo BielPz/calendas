@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { Agendamento } from "../firebase/types";
+import type { Agendamento } from "../../firebase/types";
 
 interface Props {
   agendamento: Agendamento;

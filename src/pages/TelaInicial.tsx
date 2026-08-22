@@ -1,4 +1,4 @@
-import Cabecalho from "../components/Cabecalho";
+import Cabecalho from "@/components/utils/Cabecalho";
 import { useGradiente } from "../hooks/useGradiente";
 import imgComputador from "../images/computador.png";
 import { useNavigate } from "react-router-dom";

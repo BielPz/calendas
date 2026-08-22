@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import Cabecalho from "../components/Cabecalho";
 import { getAuth } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { useGradiente } from "../hooks/useGradiente";
-import Loading from "../components/Loading";
 import {
   cancelarAgendamento,
   getAgendamentosUsuario,
@@ -11,8 +9,10 @@ import {
 import type { Agendamento } from "../firebase/types";
 import { useAlerta } from "../provider/AlertContext";
 import { getTipoUsuario } from "../features/auth/auth.service";
-import AgendaUnificada from "../components/AgendaUnificada";
-import DetalhesAgendamento from "@/components/DetalhesAgendamentos";
+import DetalhesAgendamento from "@/components/agenda/DetalhesAgendamentos";
+import AgendaUnificada from "@/components/agenda/AgendaUnificada";
+import Cabecalho from "@/components/utils/Cabecalho";
+import Loading from "@/components/utils/Loading";
 
 function TelaCalendario() {
   const corFundo = useGradiente();

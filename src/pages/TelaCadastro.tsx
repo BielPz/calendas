@@ -1,8 +1,8 @@
 import { useState } from "react";
-import CabecalhoBranco from "../components/CabecalhoBranco";
 import CadastroPrestador from "../components/cadastro/CadastroPrestador";
 import CadastroCliente from "../components/cadastro/CadastroCliente";
 import { Link } from "react-router-dom";
+import CabecalhoBranco from "@/components/utils/CabecalhoBranco";
 
 function TelaCadastro() {
   const [tipo, setTipo] = useState<"cliente" | "prestador">("cliente");

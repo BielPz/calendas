@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import CheckBox from "../CheckBox";
-import Formulario from "../Formulario";
+import CheckBox from "../utils/CheckBox";
+import Formulario from "../utils/Formulario";
 
 interface Props {
   onValidate?: (valid: boolean) => void;

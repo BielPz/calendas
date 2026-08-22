@@ -1,8 +1,8 @@
-import Cabecalho from "@/components/Cabecalho";
-import CardServico from "@/components/CardServico";
-import EstadoVazio from "@/components/EstadoVazio";
-import ImagemServico from "@/components/ImagemServico";
-import Loading from "@/components/Loading";
+import CardServico from "@/components/modals/CardServico";
+import EstadoVazio from "@/components/modals/EstadoVazio";
+import Cabecalho from "@/components/utils/Cabecalho";
+import ImagemServico from "@/components/utils/ImagemServico";
+import Loading from "@/components/utils/Loading";
 import {
   getEmpresaPorId,
   getServicosDaEmpresa,
