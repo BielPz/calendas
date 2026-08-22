@@ -1,4 +1,4 @@
-import imgErrorInternet from "../images/erroInternet.jpg";
+import imgErrorInternet from "@/images/erroInternet.jpg";
 
 interface Props {
   src?: string;

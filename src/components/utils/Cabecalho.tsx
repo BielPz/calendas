@@ -1,8 +1,8 @@
 import { useState } from "react";
-import imgLogo from "../images/logo.png";
+import imgLogo from "@/images/logo.png";
 import { Link, useNavigate } from "react-router-dom";
 import { getAuth, signOut } from "firebase/auth";
-import imgLogout from "../images/logout.png";
+import imgLogout from "@/images/logout.png";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/provider/ThemeContext";
 
