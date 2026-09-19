@@ -40,15 +40,6 @@ const STATUS_CLASSES: Record<StatusDia, string> = {
   vazio: "bg-transparent",
 };
 
-function Legenda({ cor, texto }: { cor: string; texto: string }) {
-  return (
-    <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
-      <span className={`h-3 w-3 rounded ${cor}`} />
-      {texto}
-    </div>
-  );
-}
-
 function GradeDisponibilidade({
   ano,
   mes,
@@ -155,6 +146,15 @@ function GradeDisponibilidade({
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+function Legenda({ cor, texto }: { cor: string; texto: string }) {
+  return (
+    <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
+      <span className={`h-3 w-3 rounded ${cor}`} />
+      {texto}
     </div>
   );
 }

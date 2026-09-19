@@ -468,7 +468,7 @@ export const getAgendamento = async (
 
 /* ---------------------------------------------------------------*/
 
-/** Pega todos os agendamentos de um serviço específico (para o prestador ver os agendamentos do serviço)*/
+// pegar todos os agendamentos de um serviço específico (para o prestador ver os agendamentos do serviço)
 export const getAgendamentosDoServico = async (
   idServico: string,
 ): Promise<Agendamento[]> => {
@@ -693,6 +693,7 @@ export const getDisponibilidadeDiaria = async (
   const servico = servicoSnap.val() as Servico;
   return calcularDisponibilidadeDiaria(servico, data, horariosDisponiveis, agendamentos);
 };
+
 
 /* ---------------------------------------------------------------*/
 
