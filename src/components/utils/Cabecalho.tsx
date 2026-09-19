@@ -1,10 +1,13 @@
-import { useState } from "react";
-import imgLogo from "@/images/logo.png";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getAuth, signOut } from "firebase/auth";
 import imgLogout from "@/images/logout.png";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/provider/ThemeContext";
+import MarcaLogo from "./MarcaLogo";
+import { getTipoUsuario } from "@/data/auth.repository";
+import { db } from "@/firebase/config";
+import { get, ref } from "firebase/database";
 
 interface Props {
   perfil?: boolean;
@@ -15,8 +18,27 @@ interface Props {
 
 function Cabecalho({ perfil, none, nome, fotoPerfil }: Props) {
   const [hovered, setHovered] = useState(false);
+  const [fotoCarregada, setFotoCarregada] = useState<string>();
   const navigate = useNavigate();
   const { darkMode, toggleDarkMode } = useTheme();
+
+  useEffect(() => {
+    if (perfil === undefined || fotoPerfil) return;
+    const uid = getAuth().currentUser?.uid;
+    if (!uid) return;
+
+    getTipoUsuario()
+      .then((tipo) =>
+        get(
+          ref(
+            db,
+            `${tipo === "cliente" ? "clientes" : "prestadores"}/${uid}/imagem`,
+          ),
+        ),
+      )
+      .then((snapshot) => setFotoCarregada(snapshot.val() ?? undefined))
+      .catch(() => setFotoCarregada(undefined));
+  }, [perfil, fotoPerfil]);
 
   const handleLogout = async () => {
     await signOut(getAuth());
@@ -35,19 +57,15 @@ function Cabecalho({ perfil, none, nome, fotoPerfil }: Props) {
   return (
     <div className="w-full z-50 flex justify-center">
       <div className="w-[95%] border-b border-white flex items-center py-2 px-3">
-        <img
-          src={imgLogo}
-          alt="logo"
-          className="w-24 cursor-pointer"
-          onClick={() => {
-            perfil === undefined && none === undefined
-              ? (window.location.href = "/")
-              : navigate("/feed");
-          }}
+        <MarcaLogo
+          className="w-24"
+          onClick={() =>
+            navigate(perfil === undefined && none === undefined ? "/" : "/feed")
+          }
         />
         <button
           onClick={toggleDarkMode}
-          className="ml-4 p-2 rounded-full hover:bg-gray-800 dark:hover:bg-gray-600 transition-colors duration-200"
+          className="ml-4 rounded-full p-2 text-white hover:bg-white/15 transition-colors duration-200 focus-visible:ring-white"
         >
           {darkMode ? <Sun size={20} color="white" /> : <Moon size={20} />}
         </button>
@@ -56,7 +74,7 @@ function Cabecalho({ perfil, none, nome, fotoPerfil }: Props) {
             <Link
               to="/login"
               className="text-white text-sm font-medium
-                        hover:bg-gray-800 dark:hover:bg-gray-600  
+                        hover:bg-white/15
                         transition-colors duration-200 px-3 py-1 rounded-lg"
             >
               Entrar
@@ -64,7 +82,7 @@ function Cabecalho({ perfil, none, nome, fotoPerfil }: Props) {
             <Link
               to="/cadastro"
               className="text-white text-sm font-medium
-                        hover:bg-gray-800 dark:hover:bg-gray-600
+                        hover:bg-white/15
                         transition-colors duration-200 px-3 py-1 rounded-lg"
             >
               Cadastrar
@@ -79,7 +97,7 @@ function Cabecalho({ perfil, none, nome, fotoPerfil }: Props) {
               onMouseEnter={() => setHovered(true)}
               onMouseLeave={() => setHovered(false)}
               className={`flex items-center transition-all duration-300 overflow-hidden
-                bg-gray-800 dark:bg-gray-600 rounded-full p-1
+                bg-black/25 dark:bg-zinc-800 rounded-full p-1
                 ${hovered ? "gap-2" : "gap-0"}
               `}
             >
@@ -91,9 +109,9 @@ function Cabecalho({ perfil, none, nome, fotoPerfil }: Props) {
                 {nome || "Perfil"}
               </span>
               <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 flex items-center justify-center bg-gray-700">
-                {fotoPerfil ? (
+                {fotoPerfil || fotoCarregada ? (
                   <img
-                    src={fotoPerfil}
+                    src={fotoPerfil || fotoCarregada}
                     alt="perfil"
                     className="w-full h-full object-cover"
                   />
@@ -107,7 +125,7 @@ function Cabecalho({ perfil, none, nome, fotoPerfil }: Props) {
 
             <button
               onClick={handleLogout}
-              className=" hover:bg-gray-800 dark:hover:bg-gray-600 transition-all duration-300 w-9 h-9 hover:w-11 hover:h-11 rounded-full flex items-center justify-center"
+              className="text-white hover:bg-white/15 transition-all duration-300 w-9 h-9 hover:w-11 hover:h-11 rounded-full flex items-center justify-center"
             >
               <img src={imgLogout} alt="Sair" className="w-5 h-5" />
             </button>

@@ -1,13 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import Logo from "@/images/logo.png";
 import { getAuth } from "firebase/auth";
+import MarcaLogo from "./MarcaLogo";
 
 interface Props {
   tipo?: "cliente" | "prestador";
   setTipo?: React.Dispatch<React.SetStateAction<"cliente" | "prestador">>;
   titulo: string;
 }
-
 function CabecalhoBranco({ tipo, setTipo, titulo }: Props) {
   const navigate = useNavigate();
 
@@ -22,14 +21,9 @@ function CabecalhoBranco({ tipo, setTipo, titulo }: Props) {
   };
 
   return (
-    <div className="w-[45%] flex flex-col gap-2">
+    <div className="flex w-full max-w-xl flex-col gap-2 px-4">
       <div className="w-full flex justify-center">
-        <img
-          src={Logo}
-          alt="logo"
-          className="w-80 object-contain cursor-pointer"
-          onClick={handleCliqueLogo}
-        />
+        <MarcaLogo className="w-80" onClick={handleCliqueLogo} />
       </div>
       <div className="flex flex-col gap-2">
         <div className="flex items-center w-full my-2">

@@ -3,23 +3,23 @@ import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { getAuth } from "firebase/auth";
 import { ArrowLeft, Clock3, X } from "lucide-react";
 import type { Agendamento, Disponibilidade, Servico } from "../firebase/types";
-import { useGradiente } from "../hooks/useGradiente";
-import { useAlerta } from "../provider/AlertContext";
-import { estaDentroDoFuncionamento } from "@/lib/agenda";
-import { getServicosDaEmpresa } from "@/features/servicos/servico.service";
+import { getServicosDaEmpresa } from "../features/servicos/servico.service";
 import {
   agendarServico,
+  reagendarServico,
   getAgendamentosDoServico,
   getDisponibilidadeDiaria,
   getDisponibilidadeMensal,
-  reagendarServico,
-} from "@/features/agendamentos/agendamento.service";
-import Agenda from "@/components/agenda/Agenda";
+} from "../features/agendamentos/agendamento.service";
+import { useGradiente } from "../hooks/useGradiente";
+import { useAlerta } from "../provider/AlertContext";
+import { estaDentroDoFuncionamento } from "../lib/agenda";
+import Loading from "@/components/utils/Loading";
+import Cabecalho from "@/components/utils/Cabecalho";
+import TextInput from "@/components/utils/TextInput";
 import GradeDisponibilidade from "@/components/agenda/GradeDisponibilidade";
 import NavegacaoMes from "@/components/agenda/NavegacaoMes";
-import Cabecalho from "@/components/utils/Cabecalho";
-import Loading from "@/components/utils/Loading";
-import TextInput from "@/components/utils/TextInput";
+import Agenda from "@/components/agenda/Agenda";
 
 function TelaAgendamento() {
   const [servicos, setServicos] = useState<{ label: string; value: string }[]>(
@@ -35,7 +35,6 @@ function TelaAgendamento() {
     empresa: string;
     idAgendamentoOriginal?: string;
   } | null;
-
   const servicoInicial = state?.servico;
   const empresa = state?.empresa ?? "";
   const idAgendamentoOriginal = state?.idAgendamentoOriginal;
@@ -53,7 +52,6 @@ function TelaAgendamento() {
     horario: "",
     obs: "",
   });
-
   const configuracao = form.servico.configuracaoAtendimento ?? {
     modalidade: "presencial-cliente" as const,
     solicitarTelefone: false,
@@ -61,16 +59,13 @@ function TelaAgendamento() {
     observacaoObrigatoria: false,
     requerAprovacao: false,
   };
-
   const duracaoMinutos = (() => {
     const valor = Number(form.servico.duracao) || 60;
     if (form.servico.tempo === "hora") return valor * 60;
     if (form.servico.tempo === "dia") return valor * 1440;
     return valor;
   })();
-
   const modoHorarioLivre = form.servico.modoHorario === "livre";
-
   const horarioLivreValido = useMemo(() => {
     if (!form.data || !form.horario) return true;
     return estaDentroDoFuncionamento(form.servico, form.data, form.horario);
@@ -93,13 +88,10 @@ function TelaAgendamento() {
   const [horariosBase, setHorariosBase] = useState<
     { label: string; value: string }[]
   >([]);
-
   const [atualizarDisponibilidade, setAtualizarDisponibilidade] =
     useState<Disponibilidade | null>(null);
   const [agendaDoServico, setAgendaDoServico] = useState<Agendamento[]>([]);
-
   const [modalMobileAberto, setModalMobileAberto] = useState(false);
-
   // Converte o dia da grade principal para a data usada no agendamento.
   const handleDiaSelecionado = (dia: number) => {
     const dataISO = `${ano}-${String(mes + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
