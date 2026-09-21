@@ -2,7 +2,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DayPicker, useDayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import { ptBR } from "date-fns/locale";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 // Componente customizado para o caption do mês, incluindo os botões de navegação
 function CaptionComBotoes() {
@@ -21,13 +21,13 @@ function CaptionComBotoes() {
       <div className="flex gap-1">
         <button
           onClick={() => previousMonth && goToMonth(previousMonth)}
-          className="p-1 hover:bg-gray-100 rounded"
+          className="rounded p-1 text-slate-600 hover:bg-orange-50 dark:text-zinc-300 dark:hover:bg-zinc-800"
         >
           <ChevronLeft size={16} className="dark:text-gray-100" />
         </button>
         <button
           onClick={() => nextMonth && goToMonth(nextMonth)}
-          className="p-1 hover:bg-gray-100 rounded"
+          className="rounded p-1 text-slate-600 hover:bg-orange-50 dark:text-zinc-300 dark:hover:bg-zinc-800"
         >
           <ChevronRight size={16} className="dark:text-gray-100" />
         </button>
@@ -40,16 +40,25 @@ interface Props {
   onChange?: (date: Date | undefined) => void;
   agendamento?: boolean;
   value?: string;
+  datasComAgendamento?: string[];
 }
 
-function MiniCalendario({ onChange, agendamento, value }: Props) {
-  const [selected, setSelected] = useState<Date>();
+function MiniCalendario({
+  onChange,
+  agendamento,
+  value,
+  datasComAgendamento = [],
+}: Props) {
+  const [selected, setSelected] = useState<Date | undefined>(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today;
+  });
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-
-  useEffect(() => {
-    setSelected(today); // Define a data atual como selecionada inicialmente
-  }, []);
+  const diasAgendados = datasComAgendamento.map(
+    (data) => new Date(`${data}T12:00:00`),
+  );
 
   function handleChange(date: Date | undefined) {
     if (agendamento) {
@@ -86,15 +95,19 @@ function MiniCalendario({ onChange, agendamento, value }: Props) {
           "grid grid-cols-7 text-center text-xs text-gray-500 mb-1 dark:text-gray-200",
         weeks: "grid",
         week: "grid grid-cols-7",
-        day: "text-center text-sm p-1 dark:text-gray-300 w-full flex items-center justify-center rounded-lg transition-colors",
+        day: "text-center text-sm p-1 text-slate-700 dark:text-zinc-200 w-full flex items-center justify-center rounded-lg transition-colors",
         day_button:
-          "w-10 h-6 rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center",
+          "w-10 h-7 rounded-full text-inherit hover:bg-orange-100 hover:text-orange-900 dark:hover:bg-orange-400/20 dark:hover:text-orange-100 transition-colors flex items-center justify-center",
         selected: "",
         today: "font-bold",
       }}
       modifiersClassNames={{
-        selected: "!bg-gray-900 !text-white !rounded-full",
+        selected:
+          "!rounded-full !bg-linear-to-br !from-orange-500 !to-violet-600 !text-white hover:!from-orange-600 hover:!to-violet-700",
+        comAgendamento:
+          "!bg-orange-100 !text-orange-900 !font-bold hover:!bg-orange-200 hover:!text-orange-950 dark:!bg-orange-400/20 dark:!text-orange-100",
       }}
+      modifiers={{ comAgendamento: diasAgendados }}
     />
   );
 }

@@ -1,6 +1,6 @@
-import type { Agendamento } from "@/firebase/types";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import TimelineHoras from "./TimeLineHoras";
+import type { Agendamento } from "@/firebase/types";
 
 interface Props {
   titulo: string;

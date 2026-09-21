@@ -423,7 +423,7 @@ function TelaAgendamento() {
                 />
                 {configuracao.observacaoObrigatoria && !form.obs.trim() && (
                   <p className="-mt-3 mb-3 text-xs font-medium text-red-600 dark:text-red-300">
-                    A observacao e obrigatoria para este servico.
+                    A observacao é obrigatoria para este servico.
                   </p>
                 )}
                 {configuracao.solicitarTelefone && (
@@ -622,7 +622,7 @@ function TelaAgendamento() {
                 />
                 {configuracao.observacaoObrigatoria && !form.obs.trim() && (
                   <p className="-mt-3 mb-3 text-xs font-medium text-red-600 dark:text-red-300">
-                    A observacao e obrigatoria para este servico.
+                    A observacao é obrigatoria para este servico.
                   </p>
                 )}
                 {configuracao.solicitarTelefone && (

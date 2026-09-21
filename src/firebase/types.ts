@@ -140,10 +140,8 @@ export interface ConversaChat {
   ultimaLeitura?: Record<string, number>; 
 }
 
-export type StatusDisponibilidade = "sem-horario" | "parcial" | "disponivel";
-
 export interface Disponibilidade {
-  [dia: number]: StatusDisponibilidade;
+  [dia: number]: "sem-horario" | "parcial" | "disponivel";
 }
 
 export interface MensagemChat {

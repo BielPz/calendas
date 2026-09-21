@@ -1,9 +1,9 @@
-import type { Agendamento } from "@/firebase/types";
-import { CalendarClock, Info, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { CalendarClock, Info, Trash2 } from "lucide-react";
 import GradeDisponibilidade from "./GradeDisponibilidade";
-import PainelAgenda from "./PainelAgenda";
 import NavegacaoMes from "./NavegacaoMes";
+import PainelAgenda from "./PainelAgenda";
+import type { Agendamento } from "@/firebase/types";
 
 interface Props {
   tituloLista: string;
@@ -36,7 +36,6 @@ function AgendaUnificada({
   const [mes, setMes] = useState(() => new Date());
   const [selecionadoId, setSelecionadoId] = useState<string>();
   const [mostrandoHorarios, setMostrandoHorarios] = useState(false);
-
   const ativos = useMemo(
     () =>
       agendamentos.filter((agendamento) => agendamento.status !== "cancelado"),
@@ -49,7 +48,6 @@ function AgendaUnificada({
     setSelecionadoId(agendamento.id);
     setMostrandoHorarios(true);
   };
-
   const selecionarDia = (dia: number) => {
     const dataSelecionada = `${mes.getFullYear()}-${String(mes.getMonth() + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
     const primeiro = ativos
@@ -59,7 +57,6 @@ function AgendaUnificada({
     setSelecionadoId(primeiro?.id);
     setMostrandoHorarios(true);
   };
-
   const acoes = (agendamento: Agendamento) => (
     <>
       {permitirReagendar && onReagendar && (

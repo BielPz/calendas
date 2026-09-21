@@ -5,12 +5,12 @@ interface Props {
   onProximo: () => void;
   mes?: Date;
 }
+
 function NavegacaoMes({ onAnterior, onProximo, mes }: Props) {
   const tituloMes = mes?.toLocaleDateString("pt-BR", {
     month: "long",
     year: "numeric",
   });
-
   return (
     <div className="flex items-center gap-3">
       <span className="text-sm font-bold capitalize text-slate-700 dark:text-zinc-200">

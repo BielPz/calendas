@@ -2,8 +2,8 @@ import type { Agendamento } from "@/firebase/types";
 import { useEffect, useState } from "react";
 
 interface Props {
-  inicio?: number; // hora de início (0-24)
-  fim?: number; // hora de término (0-24)
+  inicio?: number;
+  fim?: number;
   agendamentos?: Agendamento[];
   selecionadoId?: string;
   onSelecionar?: (agendamento: Agendamento) => void;

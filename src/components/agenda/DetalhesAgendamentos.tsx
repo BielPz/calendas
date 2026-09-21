@@ -1,16 +1,16 @@
+import type { Agendamento } from "@/firebase/types";
 import {
+  MessageCircle,
+  Trash2,
   CalendarDays,
   Clock3,
   MapPin,
-  MessageCircle,
-  MessageSquareText,
   Phone,
-  Trash2,
+  MessageSquareText,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import type { Agendamento } from "../../firebase/types";
-import ModalBase from "../modals/ModalBase";
 import CardInformacao from "../modals/CardInformacao";
+import ModalBase from "../modals/ModalBase";
 
 interface Props {
   agendamento: Agendamento;
@@ -20,7 +20,7 @@ interface Props {
   mostrarDadosPrivados?: boolean;
 }
 
-function DetalhesAgendamento({
+export default function DetalhesAgendamento({
   agendamento,
   tipoUsuario,
   onFechar,
@@ -32,17 +32,14 @@ function DetalhesAgendamento({
     "pt-BR",
     { weekday: "long", day: "2-digit", month: "long", year: "numeric" },
   );
-
   const modalidade =
     agendamento.modalidadeAtendimento === "online"
       ? "Atendimento online"
       : agendamento.modalidadeAtendimento === "presencial-prestador"
         ? "Prestador vai até o cliente"
         : "Atendimento no estabelecimento";
-
   const idContato =
     tipoUsuario === "cliente" ? agendamento.idPrestador : agendamento.idCliente;
-
   return (
     <ModalBase
       aberto
@@ -127,5 +124,3 @@ function DetalhesAgendamento({
     </ModalBase>
   );
 }
-
-export default DetalhesAgendamento;
