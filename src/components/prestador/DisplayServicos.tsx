@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ServicoCard from "./ServicoCard";
 import type { Servico } from "../../firebase/types";
+import { getServicosDaEmpresa } from "../../features/servicos/servico.service";
 import { useAlerta } from "../../provider/AlertContext";
-import { getServicosDaEmpresa } from "@/features/servicos/servico.service";
 
 interface DisplayProps {
   idEmpresa: string;
@@ -23,32 +23,49 @@ function DisplayServicos({ idEmpresa }: DisplayProps) {
       );
       return;
     }
-    navigate("/cadastro-servico", { state: { idEmpresa } });
+    navigate("/gerenciar-servico", { state: { idEmpresa } });
   };
 
   useEffect(() => {
-    if (!idEmpresa) return;
+    if (!idEmpresa) {
+      setServicos([]);
+      return;
+    }
+
+    let ativo = true;
 
     async function carregar() {
       const data = await getServicosDaEmpresa(idEmpresa);
-      setServicos(data);
+      if (ativo) setServicos(data);
     }
 
     carregar();
+
+    return () => {
+      ativo = false;
+    };
   }, [idEmpresa]);
 
   return (
-    <div className="flex gap-3 overflow-x-auto pb-2">
-      <div
+    <div className="flex justify-start gap-3 overflow-x-auto pb-2">
+      <button
+        type="button"
         onClick={handleNovoServico}
-        className="shrink-0 flex h-24 w-24 sm:h-32 sm:w-32 cursor-pointer items-center justify-center rounded-lg bg-gray-200 hover:bg-gray-300 transition-colors"
+        className="flex h-36 w-36 shrink-0 items-center justify-center rounded-xl border border-dashed border-orange-300 bg-orange-50 text-orange-700 transition-colors hover:border-orange-500 hover:bg-orange-100 dark:border-orange-400/40 dark:bg-orange-400/10 dark:text-orange-200 dark:hover:bg-orange-400/15"
+        aria-label="Criar serviço"
       >
-        <span className="pb-3 text-7xl sm:text-8xl leading-0 text-gray-600 select-none">
-          +
-        </span>
-      </div>
+        <span className="pb-3 text-8xl leading-none select-none">+</span>
+      </button>
       {servicos.map((servico, index) => (
-        <ServicoCard key={index} servico={servico} />
+        <ServicoCard
+          key={index}
+          servico={servico}
+          onClick={() =>
+            navigate("/gerenciar-servico", {
+              state: { idEmpresa, idServico: servico.id },
+            })
+          }
+        />
       ))}
     </div>
   );

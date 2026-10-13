@@ -135,12 +135,6 @@ function Fase2({ onValidate, onChange }: Props) {
           cep
         />
         <TextInput
-          titulo="Complemento"
-          type="text"
-          onChange={(value) => handleChange("complemento", value)}
-          maxLength={50}
-        />
-        <TextInput
           titulo="Logradouro"
           type="text"
           onChange={(value) => handleChange("logradouro", value)}
@@ -148,13 +142,21 @@ function Fase2({ onValidate, onChange }: Props) {
           required
           maxLength={50}
         />
-        <TextInput
-          titulo="Número"
-          type="number"
-          onChange={(value) => handleChange("numero", value)}
-          required
-          maxLength={10}
-        />
+        <div className="flex gap-3">
+          <TextInput
+            titulo="Número"
+            type="number"
+            onChange={(value) => handleChange("numero", value)}
+            required
+            maxLength={10}
+          />
+          <TextInput
+            titulo="Complemento"
+            type="text"
+            onChange={(value) => handleChange("complemento", value)}
+            maxLength={50}
+          />
+        </div>
         <TextInput
           titulo="Bairro"
           type="text"
@@ -163,22 +165,24 @@ function Fase2({ onValidate, onChange }: Props) {
           required
           maxLength={50}
         />
-        <TextInput
-          titulo="Estado"
-          type="select"
-          options={estados}
-          onChange={(value) => handleChange("estado", value)}
-          value={form.estado === undefined ? undefined : form.estado}
-          required
-        />
-        <TextInput
-          titulo="Cidade"
-          type="select"
-          options={cidades}
-          onChange={(value) => handleChange("cidade", value)}
-          value={form.cidade === undefined ? undefined : form.cidade}
-          required
-        />
+        <div className="flex gap-3">
+          <TextInput
+            titulo="Estado"
+            type="select"
+            options={estados}
+            onChange={(value) => handleChange("estado", value)}
+            value={form.estado === undefined ? undefined : form.estado}
+            required
+          />
+          <TextInput
+            titulo="Cidade"
+            type="select"
+            options={cidades}
+            onChange={(value) => handleChange("cidade", value)}
+            value={form.cidade === undefined ? undefined : form.cidade}
+            required
+          />
+        </div>
       </Formulario>
     </>
   );

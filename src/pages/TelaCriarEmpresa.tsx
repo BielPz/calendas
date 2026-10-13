@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Empresa } from "../firebase/types";
 import { getAuth } from "firebase/auth";
 import { useNavigate } from "react-router";
@@ -10,11 +10,13 @@ import CabecalhoBranco from "@/components/utils/CabecalhoBranco";
 import Formulario from "@/components/utils/Formulario";
 import TextInput from "@/components/utils/TextInput";
 import UploadImagem from "@/components/utils/UploadImagem";
+import ConsultarCEP from "@/hooks/ConsultarCEP";
 
 // ─── Componente ──────────────────────────────────────────────────────────────
 function TelaAdicionarEmpresa() {
   const navigate = useNavigate();
   const { showAlerta } = useAlerta();
+  const [checkCEP, setCheckCEP] = useState(false);
 
   const [form, setForm] = useState<Empresa>({
     nome: "",
@@ -51,12 +53,43 @@ function TelaAdicionarEmpresa() {
     form.cnpj &&
     form.tel &&
     form.cep &&
+    checkCEP &&
     form.logradouro &&
     form.numero &&
     form.bairro &&
     form.cidade &&
     form.estado,
   );
+
+  const CEPdados = useMemo(
+    () => (form.cep?.length === 9 ? ConsultarCEP(form.cep) : null),
+    [form.cep],
+  );
+
+  // Atualiza os campos de endereço quando o CEP é consultado
+  useEffect(() => {
+    if (!CEPdados) return;
+
+    CEPdados.then((dados) => {
+      if (!dados || dados.erro) {
+        showAlerta(
+          "Falha na consulta",
+          "Não foi possível consultar o CEP. Verifique o número e tente novamente.",
+          "desconect",
+        );
+        setCheckCEP(false);
+        return;
+      }
+      setForm((prev) => ({
+        ...prev,
+        logradouro: dados.logradouro || "",
+        bairro: dados.bairro || "",
+        cidade: dados.localidade || "",
+        estado: dados.uf || "",
+      }));
+      setCheckCEP(true);
+    });
+  }, [CEPdados]);
 
   // ── Submit ─────────────────────────────────────────────────────────────────
   const handleConfirmar = async () => {
