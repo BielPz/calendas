@@ -1,25 +1,25 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
+  Bell,
   CalendarClock,
-  House,
-  History,
   Heart,
   HeartOff,
-  Bell,
+  History,
+  House,
   MessageCircle,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import type { Servico } from "../../firebase/types";
-import { useMensagensNaoLidas } from "@/hooks/useMensagensNaoLidas";
+import { useMensagensNaoLidas } from "../../hooks/useMensagensNaoLidas";
 import MenuPrincipal from "../utils/MenuPrincipal";
-
-const LIMITE_FAVORITOS = 3;
 
 interface Props {
   favoritos?: Servico[];
   onNavigateServico?: (servico: Servico) => void;
   onRemoverFavorito?: (idServico: string) => void;
 }
+
+const LIMITE_FAVORITOS = 3;
 
 function SideBarCliente({
   favoritos = [],
@@ -28,11 +28,8 @@ function SideBarCliente({
 }: Props) {
   const navigate = useNavigate();
   const [expandido, setExpandido] = useState(false);
-
   const mensagensNaoLidas = useMensagensNaoLidas();
-
   const itens = expandido ? favoritos : favoritos.slice(0, LIMITE_FAVORITOS);
-
   const lista = (
     <section className="mt-3 border-t border-slate-200 pt-3 dark:border-zinc-700">
       <div className="mb-2 flex items-center justify-between px-3">
@@ -94,7 +91,6 @@ function SideBarCliente({
       )}
     </section>
   );
-
   return (
     <div className="w-full">
       <MenuPrincipal
