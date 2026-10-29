@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import DisplayServicos from "../components/prestador/DisplayServicos";
+import { useEffect, useMemo, useState } from "react";
 import { getAuth } from "firebase/auth";
 import SideBarCliente from "../components/cliente/SideBarCliente";
 import SideBarPrestador from "../components/prestador/SideBarPrestador";
@@ -22,6 +21,29 @@ import Loading from "@/components/utils/Loading";
 import type { Agendamento, Servico } from "@/firebase/types";
 
 type OrdenacaoHistorico = "recente" | "antigo" | "concluido" | "cancelado";
+
+type StatusAgendamento = NonNullable<Agendamento["status"]>;
+
+const ROTULO_STATUS: Record<StatusAgendamento, string> = {
+  pendente: "Pendente",
+  aguardando_aprovacao: "Aguardando aprovação",
+  agendado: "Agendado",
+  recusado: "Recusado",
+  concluido: "Concluído",
+  cancelado: "Cancelado",
+};
+
+const COR_STATUS: Record<StatusAgendamento, string> = {
+  pendente:
+    "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300",
+  aguardando_aprovacao:
+    "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
+  agendado: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
+  recusado: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
+  concluido:
+    "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300",
+  cancelado: "bg-slate-200 text-slate-700 dark:bg-zinc-700 dark:text-zinc-300",
+};
 
 function TelaHistorico() {
   const [usuario, setUsuario] = useState<"cliente" | "prestador" | null>(null);
@@ -117,6 +139,7 @@ function TelaHistorico() {
 
   useEffect(() => setLimiteHistorico(20), [busca, ordenacao]);
 
+  // ------------------------- SideBar Favoritos -------------------------------------
   const handleFavoritoChange = (idServico: string, favoritado: boolean) => {
     setIdsFavoritos((prev) => {
       const next = new Set(prev);
@@ -139,15 +162,17 @@ function TelaHistorico() {
   const servicosFavoritos = servicos.filter(
     (s) => s.id && idsFavoritos.has(s.id),
   );
+  // ----------------------------------------------------------------------------------
 
   useEffect(() => {
-    const carregar = async () => {
-      if (!id) return;
-      const lista = await getAgendamentosUsuario(id!);
-      setAgendamentos(lista);
-    };
-    carregar();
-  }, [id]);
+    if (!id || usuario !== "cliente") return;
+    getAgendamentosUsuario(id)
+      .then(setAgendamentos)
+      .catch((err) => {
+        console.error(err);
+        showAlerta("Erro", "Erro ao carregar agendamentos.", "erro");
+      });
+  }, [id, usuario, showAlerta]);
 
   useEffect(() => {
     if (!id || usuario !== "prestador") return;
@@ -198,6 +223,44 @@ function TelaHistorico() {
     };
   }, [id, usuario]);
 
+  const agendamentosFiltrados = useMemo(() => {
+    const termo = busca.trim().toLocaleLowerCase("pt-BR");
+
+    let lista = agendamentos.filter(
+      (a) =>
+        usuario !== "prestador" ||
+        !idEmpresaAtiva ||
+        a.idEmpresa === idEmpresaAtiva,
+    );
+
+    lista = lista.filter(
+      (a) =>
+        !termo ||
+        [
+          a.servico?.nome,
+          a.clienteNome,
+          a.data,
+          a.horario,
+          a.status && ROTULO_STATUS[a.status],
+        ]
+          .filter(Boolean)
+          .some((v) => String(v).toLocaleLowerCase("pt-BR").includes(termo)),
+    );
+
+    if (ordenacao === "concluido")
+      lista = lista.filter((a) => a.status === "concluido");
+    if (ordenacao === "cancelado")
+      lista = lista.filter((a) => a.status === "cancelado");
+
+    return [...lista].sort((a, b) => {
+      const chaveA = `${a.data} ${a.horario}`;
+      const chaveB = `${b.data} ${b.horario}`;
+      return ordenacao === "antigo"
+        ? chaveA.localeCompare(chaveB)
+        : chaveB.localeCompare(chaveA);
+    });
+  }, [agendamentos, busca, ordenacao]);
+
   if (!usuario) return <Loading />;
 
   return (
@@ -224,7 +287,7 @@ function TelaHistorico() {
                 />
                 <input
                   type="search"
-                  placeholder="Pesquisar serviços"
+                  placeholder="Pesquisar Agendamentos"
                   value={buscaDigitada}
                   onChange={(event) => {
                     const valor = event.target.value;
@@ -329,12 +392,62 @@ function TelaHistorico() {
             )}
 
             <div className="flex flex-col gap-3 w-full md:w-4/5 min-h-0">
-              {usuario === "prestador" && (
-                <div className="ui-card p-3 overflow-x-auto shrink-0">
-                  <DisplayServicos idEmpresa={idEmpresaAtiva} />
-                </div>
-              )}
-              <div className="ui-card p-3 overflow-y-auto flex-1 min-h-0"></div>
+              <div className="ui-card p-3 overflow-y-auto flex-1 min-h-0">
+                {agendamentosFiltrados.slice(0, limiteHistorico).map((a) => (
+                  <div
+                    key={a.id}
+                    className="ui-card-muted flex flex-wrap items-center justify-between gap-3 p-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold text-slate-800 dark:text-zinc-100">
+                        {a.servico?.nome ?? "Serviço"}
+                      </p>
+                      <p className="text-sm text-slate-600 dark:text-zinc-300">
+                        {a.data.split("-").reverse().join("/")} às {a.horario}
+                        {a.duracaoMinutos ? ` · ${a.duracaoMinutos} min` : ""}
+                      </p>
+                      {usuario === "prestador" && a.clienteNome && (
+                        <p className="text-sm text-slate-600 dark:text-zinc-300">
+                          Cliente: {a.clienteNome}
+                        </p>
+                      )}
+                      {a.modalidadeAtendimento && (
+                        <p className="text-xs text-slate-500 dark:text-zinc-400">
+                          {a.modalidadeAtendimento}
+                        </p>
+                      )}
+                      {a.obs && (
+                        <p className="mt-1 text-xs italic text-slate-500 dark:text-zinc-400">
+                          {a.obs}
+                        </p>
+                      )}
+                    </div>
+                    {a.status && (
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-medium ${COR_STATUS[a.status]}`}
+                      >
+                        {ROTULO_STATUS[a.status]}
+                      </span>
+                    )}
+                  </div>
+                ))}
+
+                {agendamentosFiltrados.length > limiteHistorico && (
+                  <button
+                    type="button"
+                    className="ui-button-secondary self-center px-5 py-2 text-sm"
+                    onClick={() => setLimiteHistorico((l) => l + 20)}
+                  >
+                    Carregar mais
+                  </button>
+                )}
+
+                {agendamentosFiltrados.length === 0 && (
+                  <p className="ui-card-muted p-5 text-center text-sm text-slate-600 dark:text-zinc-300">
+                    Nenhum agendamento encontrado.
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>
