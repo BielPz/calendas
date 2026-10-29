@@ -120,7 +120,12 @@ function SideBarCliente({
             icon: <Bell size={18} />,
             onClick: () => navigate("/notificacoes"),
           },
-          { id: "historico", label: "Histórico", icon: <History size={18} /> },
+          {
+            id: "historico",
+            label: "Histórico",
+            icon: <History size={18} />,
+            onClick: () => navigate("/historico"),
+          },
         ]}
         conteudoExtra={lista}
       />
