@@ -737,6 +737,47 @@ export const reagendarServico = async (agendamento: Agendamento, idCliente: stri
 
 /* ---------------------------------------------------------------*/
 
+export const concluirAgendamento = async (idAgendamento: string, opcoes: { notificar?: boolean } = {}): Promise<void> => {
+  const uid = getAuth().currentUser?.uid;
+  if (!uid) throw new Error("Usuário não logado");
+
+  const agendamentoSnap = await get(ref(db, `agendamentos/${idAgendamento}`));
+  if (!agendamentoSnap.exists()) throw new Error("Agendamento não encontrado");
+
+  const agendamento = agendamentoSnap.val();
+  if (agendamento.idPrestador !== uid) {
+    throw new Error("Apenas o prestador pode concluir o agendamento.");
+  }
+  if (agendamento.status !== "agendado") {
+    throw new Error("Só é possível concluir agendamentos com status 'agendado'.");
+  }
+  if (new Date(`${agendamento.data}T${agendamento.horario}:00`) > new Date()) {
+    throw new Error("O agendamento ainda não aconteceu.");
+  }
+
+  const nomeServico = agendamento.servico?.nome ?? (await get(ref(db, `servicos/${agendamento.idServico}`))).val()?.nome ?? "serviço";
+
+  if (opcoes.notificar !== false) {
+    await criarNotificacaoCliente(agendamento.idCliente, {
+      tipo: "agendamento",
+      titulo: "Agendamento concluído",
+      mensagem: `Seu agendamento de ${nomeServico} em ${agendamento.data} às ${agendamento.horario} foi concluído.`,
+      idAgendamento,
+      idServico: agendamento.idServico,
+    });
+  }
+
+  await update(ref(db), {
+    [`agendamentos/${idAgendamento}/status`]: "concluido",
+    ...Object.fromEntries((agendamento.servicosConflitantes ?? []).map((id: string) => [`servicos/${id}/agendamentos/${idAgendamento}`, null])),
+    [`slots/${agendamento.idServico}/${agendamento.data}/${agendamento.horario}`]: null,
+    [`slotsClientes/${agendamento.idCliente}/${agendamento.data}/${agendamento.horario}`]: null,
+    [`prestadores/${agendamento.idPrestador}/notificacoes/${idAgendamento}`]: null,
+  });
+};
+
+/* ---------------------------------------------------------------*/
+
 export const cancelarAgendamento = async (idAgendamento: string, opcoes: {notificar?: boolean} = {}): Promise<void> => {
   const uid = getAuth().currentUser?.uid;
   if (!uid) throw new Error("Usuário não logado");
@@ -771,9 +812,9 @@ export const cancelarAgendamento = async (idAgendamento: string, opcoes: {notifi
   }
 
   await update(ref(db), {
-    [`agendamentos/${idAgendamento}`]: null,
-    [`clientes/${agendamento.idCliente}/agendamentos/${idAgendamento}`]: null,
-    [`servicos/${agendamento.idServico}/agendamentos/${idAgendamento}`]: null,
+    [`agendamentos/${idAgendamento}/status`]: "cancelado",
+    //[`clientes/${agendamento.idCliente}/agendamentos/${idAgendamento}`]: null,
+    //[`servicos/${agendamento.idServico}/agendamentos/${idAgendamento}`]: null,
     ...Object.fromEntries((agendamento.servicosConflitantes ?? []).map((id: string) => [`servicos/${id}/agendamentos/${idAgendamento}`, null])),
     [`slots/${agendamento.idServico}/${agendamento.data}/${agendamento.horario}`]: null,
     [`slotsClientes/${agendamento.idCliente}/${agendamento.data}/${agendamento.horario}`]: null,

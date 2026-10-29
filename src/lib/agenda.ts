@@ -27,6 +27,3 @@ export const estaDentroDoFuncionamento = (servico: Servico, data: string, horari
   const fim = inicio + duracaoServicoEmMinutos(servico);
   return inicio >= horarioParaMinutos(dia.inicio) && fim <= horarioParaMinutos(dia.fim);
 };
-
-export const mesmoDiaAgendado = (data: string): boolean =>
-  data === new Date().toLocaleDateString("sv-SE");
