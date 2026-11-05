@@ -19,31 +19,10 @@ import {
 import Cabecalho from "@/components/utils/Cabecalho";
 import Loading from "@/components/utils/Loading";
 import type { Agendamento, Servico } from "@/firebase/types";
+import CardHistorico from "@/components/modals/CardHistorico";
+import { ROTULO_STATUS } from "@/components/utils/statusAgendamento";
 
 type OrdenacaoHistorico = "recente" | "antigo" | "concluido" | "cancelado";
-
-type StatusAgendamento = NonNullable<Agendamento["status"]>;
-
-const ROTULO_STATUS: Record<StatusAgendamento, string> = {
-  pendente: "Pendente",
-  aguardando_aprovacao: "Aguardando aprovação",
-  agendado: "Agendado",
-  recusado: "Recusado",
-  concluido: "Concluído",
-  cancelado: "Cancelado",
-};
-
-const COR_STATUS: Record<StatusAgendamento, string> = {
-  pendente:
-    "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300",
-  aguardando_aprovacao:
-    "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
-  agendado: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
-  recusado: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
-  concluido:
-    "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300",
-  cancelado: "bg-slate-200 text-slate-700 dark:bg-zinc-700 dark:text-zinc-300",
-};
 
 function TelaHistorico() {
   const [usuario, setUsuario] = useState<"cliente" | "prestador" | null>(null);
@@ -259,7 +238,7 @@ function TelaHistorico() {
         ? chaveA.localeCompare(chaveB)
         : chaveB.localeCompare(chaveA);
     });
-  }, [agendamentos, busca, ordenacao]);
+  }, [agendamentos, busca, ordenacao, usuario, idEmpresaAtiva]);
 
   if (!usuario) return <Loading />;
 
@@ -271,9 +250,10 @@ function TelaHistorico() {
         fotoPerfil={fotoPerfil ? fotoPerfil : undefined}
       />
       <div className="flex min-h-0 grow w-full flex-col items-center overflow-hidden">
-        <div className="flex min-h-0 w-full max-w-7xl grow flex-col gap-4 overflow-hidden p-4">
+        {/* Celular: rola tudo | md+: só a lista rola */}
+        <div className="flex min-h-0 w-full max-w-7xl grow flex-col gap-3 overflow-y-auto p-3 sm:gap-4 sm:p-4 md:overflow-hidden">
           {usuario === "cliente" && (
-            <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+            <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
               <form
                 className="feed-search flex-1"
                 onSubmit={(event) => {
@@ -300,39 +280,36 @@ function TelaHistorico() {
                   Pesquisar
                 </button>
               </form>
-              {usuario === "cliente" && (
-                <div className="feed-filter">
-                  <select
-                    value={ordenacaoSelecionada}
-                    onChange={(event) =>
-                      setOrdenacaoSelecionada(
-                        event.target.value as typeof ordenacaoSelecionada,
-                      )
-                    }
-                    className="feed-filter-select"
-                  >
-                    <option value="recente">Mais Recente</option>
-                    <option value="antigo">Mais Antigo</option>
-                    <option value="concluido">Concluido</option>
-                    <option value="cancelado">Cancelado</option>
-                  </select>
-                  <ChevronDown
-                    size={17}
-                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-zinc-300"
-                  />
-                </div>
-              )}
+              <div className="feed-filter w-full sm:w-52">
+                <select
+                  value={ordenacaoSelecionada}
+                  onChange={(event) =>
+                    setOrdenacaoSelecionada(
+                      event.target.value as typeof ordenacaoSelecionada,
+                    )
+                  }
+                  className="feed-filter-select"
+                >
+                  <option value="recente">Mais Recente</option>
+                  <option value="antigo">Mais Antigo</option>
+                  <option value="concluido">Concluído</option>
+                  <option value="cancelado">Cancelado</option>
+                </select>
+                <ChevronDown
+                  size={17}
+                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-zinc-300"
+                />
+              </div>
             </div>
           )}
+
           {usuario === "prestador" && (
             <div className="ui-card flex shrink-0 flex-wrap items-center justify-between gap-3 p-3">
-              <div>
-                <h1 className="font-bold text-slate-800 dark:text-zinc-100">
-                  Gerenciar empresa
-                </h1>
-              </div>
+              <h1 className="font-bold text-slate-800 dark:text-zinc-100">
+                Gerenciar empresa
+              </h1>
               <div className="flex w-full gap-2 sm:w-auto">
-                <div className="feed-filter flex-1 sm:w-64">
+                <div className="feed-filter w-full sm:w-64">
                   <select
                     value={idEmpresaAtiva}
                     onChange={(e) => setIdEmpresaAtiva(e.target.value)}
@@ -356,7 +333,7 @@ function TelaHistorico() {
 
           {/* Barra horizontal de ícones — só mobile */}
           {usuario === "cliente" && (
-            <div className="md:hidden shrink-0">
+            <div className="shrink-0 md:hidden">
               <SideBarCliente
                 favoritos={servicosFavoritos}
                 onRemoverFavorito={removerFavorito}
@@ -367,15 +344,15 @@ function TelaHistorico() {
             </div>
           )}
           {usuario === "prestador" && (
-            <div className="md:hidden shrink-0">
+            <div className="shrink-0 md:hidden">
               <SideBarPrestador />
             </div>
           )}
 
-          <div className="flex flex-col md:flex-row gap-3 grow min-h-0">
+          <div className="flex shrink-0 flex-col gap-3 md:min-h-0 md:shrink md:grow md:flex-row">
             {/* Sidebar vertical — só desktop */}
             {usuario === "cliente" && (
-              <div className="ui-card hidden shrink-0 overflow-y-auto p-3 md:block md:w-1/5">
+              <div className="ui-card hidden shrink-0 overflow-y-auto p-3 md:block md:w-56 lg:w-64">
                 <SideBarCliente
                   favoritos={servicosFavoritos}
                   onRemoverFavorito={removerFavorito}
@@ -386,50 +363,15 @@ function TelaHistorico() {
               </div>
             )}
             {usuario === "prestador" && (
-              <div className="ui-card hidden shrink-0 overflow-y-auto p-3 md:block md:w-1/5">
+              <div className="ui-card hidden shrink-0 overflow-y-auto p-3 md:block md:w-56 lg:w-64">
                 <SideBarPrestador />
               </div>
             )}
 
-            <div className="flex flex-col gap-3 w-full md:w-4/5 min-h-0">
-              <div className="ui-card p-3 overflow-y-auto flex-1 min-h-0">
+            <div className="flex w-full min-w-0 flex-col gap-3 md:min-h-0 md:flex-1">
+              <div className="ui-card flex flex-col gap-3 p-3 md:min-h-0 md:flex-1 md:overflow-y-auto">
                 {agendamentosFiltrados.slice(0, limiteHistorico).map((a) => (
-                  <div
-                    key={a.id}
-                    className="ui-card-muted flex flex-wrap items-center justify-between gap-3 p-3"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate font-semibold text-slate-800 dark:text-zinc-100">
-                        {a.servico?.nome ?? "Serviço"}
-                      </p>
-                      <p className="text-sm text-slate-600 dark:text-zinc-300">
-                        {a.data.split("-").reverse().join("/")} às {a.horario}
-                        {a.duracaoMinutos ? ` · ${a.duracaoMinutos} min` : ""}
-                      </p>
-                      {usuario === "prestador" && a.clienteNome && (
-                        <p className="text-sm text-slate-600 dark:text-zinc-300">
-                          Cliente: {a.clienteNome}
-                        </p>
-                      )}
-                      {a.modalidadeAtendimento && (
-                        <p className="text-xs text-slate-500 dark:text-zinc-400">
-                          {a.modalidadeAtendimento}
-                        </p>
-                      )}
-                      {a.obs && (
-                        <p className="mt-1 text-xs italic text-slate-500 dark:text-zinc-400">
-                          {a.obs}
-                        </p>
-                      )}
-                    </div>
-                    {a.status && (
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-medium ${COR_STATUS[a.status]}`}
-                      >
-                        {ROTULO_STATUS[a.status]}
-                      </span>
-                    )}
-                  </div>
+                  <CardHistorico key={a.id} agendamento={a} usuario={usuario} />
                 ))}
 
                 {agendamentosFiltrados.length > limiteHistorico && (

@@ -104,6 +104,7 @@ function SideBarCliente({
           {
             id: "agenda",
             label: "Minha Agenda",
+            labelCurto: "Agenda",
             icon: <CalendarClock size={18} />,
             onClick: () => navigate("/calendario"),
           },
