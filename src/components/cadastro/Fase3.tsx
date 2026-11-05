@@ -1,12 +1,19 @@
 import { useEffect, useState } from "react";
 import CheckBox from "../utils/CheckBox";
 import Formulario from "../utils/Formulario";
+import DocumentoLegalView from "../legalidade/DocumentoLegalView";
+import { politicaPrivacidade } from "../legalidade/PoliticaPrivacidade";
+import { termosUso } from "../legalidade/TermosUso";
 
 interface Props {
   onValidate?: (valid: boolean) => void;
 }
 
+type Aba = "termos" | "privacidade";
+
 function Fase3({ onValidate }: Props) {
+  const [aba, setAba] = useState<Aba>("termos");
+
   const [checks, setChecks] = useState({
     termos: false,
     notificacoes: false,
@@ -16,35 +23,40 @@ function Fase3({ onValidate }: Props) {
     onValidate?.(checks.termos); // só termos obrigatório
   }, [checks]);
 
+  const abaClasse = (ativa: boolean) =>
+    `px-4 py-2 rounded-t-xl font-semibold border border-b-0 ${
+      ativa
+        ? "border-gray-400 bg-white dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+        : "border-transparent text-gray-500 dark:text-zinc-400"
+    }`;
+
   return (
     <>
       <Formulario>
-        <h1 className="font-bold text-4xl py-6">Termos de Uso</h1>
-        <div className="overflow-auto h-70 border p-2 border-gray-400 rounded-xl dark:border-zinc-700 dark:bg-zinc-900 dark:text-white">
-          Lorem ipsum dolor sit amet. Et corporis aliasNam galisum non culpa
-          molestiae quo nostrum doloremque rem earum provident eum
-          necessitatibus vero At amet nemo. Rem tempora beatae in quas
-          possimusNon quis sed dolorem ipsam nam laborum error aut velit vitae
-          qui velit repudiandae? Eos voluptatem teneturEx eius sit molestias
-          cumque eum galisum laudantium. Sed inventore ipsum At quisquam culpa
-          Ut enim est accusantium quia aut itaque laborum. Aut deleniti rerum
-          qui omnis officiisid autem. Qui fugiat sapienteEt eaque ut sint
-          cupiditate est accusantium blanditiis ut pariatur voluptates non
-          cupiditate dolores. Sed rerum obcaecati Nam aliquam vel dolorem
-          eveniet aut rerum pariatur. Sit illum facilis et facere modiaut
-          laudantium ut iure rerum non repellat aliquid. Aut dolorem itaque est
-          officia molestiaeUt aliquid 33 quia dicta ad rerum animi et autem
-          quam. Eos velit quisNon perferendis ex dolor voluptatem sit voluptatem
-          sequi ut voluptatem provident qui blanditiis consequatur qui culpa
-          impedit. In quae cumque ut rerum suntCum itaque. Quo eveniet iustoHic
-          quasi et repudiandae cupiditate est corrupti voluptatem non doloremque
-          libero non unde quam? Aut distinctio itaqueSed beatae et suscipit quia
-          qui debitis aliquam eos eaque obcaecati est perspiciatis iure ea
-          adipisci debitis. Et dolorem optioEa porro vel quis inventore et autem
-          maxime et nulla quis.
+        <h1 className="font-bold text-4xl py-6">Termos de Uso e Privacidade</h1>
+        <div className="flex gap-1">
+          <button
+            type="button"
+            className={abaClasse(aba === "termos")}
+            onClick={() => setAba("termos")}
+          >
+            Termos de Uso
+          </button>
+          <button
+            type="button"
+            className={abaClasse(aba === "privacidade")}
+            onClick={() => setAba("privacidade")}
+          >
+            Política de Privacidade
+          </button>
+        </div>
+        <div className="overflow-auto h-70 border p-3 border-gray-400 rounded-xl rounded-tl-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white">
+          <DocumentoLegalView
+            documento={aba === "termos" ? termosUso : politicaPrivacidade}
+          />
         </div>
         <CheckBox
-          message="Eu aceito os termos e condições"
+          message="Li e aceito os Termos de Uso e a Política de Privacidade"
           onChange={(e) =>
             setChecks((prev) => ({ ...prev, termos: e.target.checked }))
           }
