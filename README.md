@@ -2,6 +2,8 @@
 
 Aplicação web para clientes encontrarem serviços e para prestadores gerenciarem empresas, serviços e agendamentos.
 
+Link do site atualizado: https://calendas-vert.vercel.app/
+
 ## Requisitos
 
 - Node.js 22 ou superior
